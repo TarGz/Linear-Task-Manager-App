@@ -31,6 +31,17 @@
   color: var(--text-primary);
 }
 
+.add-new-task-btn {
+  width: 100%;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-weight: 600;
+}
+
 .tasks-list {
   display: flex;
   flex-direction: column;

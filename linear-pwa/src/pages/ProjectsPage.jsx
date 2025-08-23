@@ -23,22 +23,7 @@ function ProjectsPage() {
       
       const data = await linearApi.getProjects();
       
-      const allProjects = [];
-      if (data.viewer?.teamMemberships?.nodes) {
-        data.viewer.teamMemberships.nodes.forEach(membership => {
-          const team = membership.team;
-          if (team.projects?.nodes) {
-            team.projects.nodes.forEach(project => {
-              allProjects.push({
-                ...project,
-                teamName: team.name,
-                teamId: team.id
-              });
-            });
-          }
-        });
-      }
-      
+      const allProjects = data.projects?.nodes || [];
       allProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setProjects(allProjects);
     } catch (error) {
@@ -132,7 +117,6 @@ function ProjectsPage() {
                 <ProjectCard
                   key={project.id}
                   project={project}
-                  tasks={project.issues?.nodes || []}
                   onClick={handleProjectClick}
                   onStatusChange={handleStatusChange}
                 />

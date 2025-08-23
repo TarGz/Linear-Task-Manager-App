@@ -68,23 +68,19 @@ class LinearAPI {
   async getProjects() {
     const query = `
       query {
-        viewer {
-          teamMemberships {
-            nodes {
-              team {
+        projects(first: 50) {
+          nodes {
+            id
+            name
+            description
+            state
+            createdAt
+            updatedAt
+            issues {
+              nodes {
                 id
-                name
-                projects {
-                  nodes {
-                    id
-                    name
-                    description
-                    state
-                    startedAt
-                    completedAt
-                    createdAt
-                    updatedAt
-                  }
+                state {
+                  type
                 }
               }
             }
@@ -181,6 +177,20 @@ class LinearAPI {
       }
     `;
     return this.query(mutation, { input });
+  }
+
+  async getTeams() {
+    const query = `
+      query {
+        teams(first: 10) {
+          nodes {
+            id
+            name
+          }
+        }
+      }
+    `;
+    return this.query(query);
   }
 
   async updateIssue(id, input) {

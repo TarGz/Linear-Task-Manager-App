@@ -1,4 +1,4 @@
-import { Calendar, User } from 'lucide-react';
+import { Calendar, User, Check, Play } from 'lucide-react';
 import { useRef, useState } from 'react';
 import './TaskCard.css';
 
@@ -43,30 +43,41 @@ function TaskCard({ task, onStatusChange, onClick }) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const getStatusClass = (status) => {
+  const getStatusClass = (stateType) => {
     const statusMap = {
-      'Backlog': 'planning',
-      'Todo': 'planning',
-      'In Progress': 'progress',
-      'Done': 'done',
-      'Canceled': 'canceled'
+      'unstarted': 'planning',
+      'backlog': 'planning', 
+      'started': 'progress',
+      'completed': 'done',
+      'canceled': 'canceled'
     };
-    return statusMap[status] || 'planning';
+    return statusMap[stateType] || 'planning';
+  };
+
+  const getStatusDisplay = (stateType) => {
+    const statusMap = {
+      'unstarted': 'Planning',
+      'backlog': 'Planning',
+      'started': 'In Progress', 
+      'completed': 'Done',
+      'canceled': 'Canceled'
+    };
+    return statusMap[stateType] || 'Planning';
   };
 
   return (
     <div
       ref={cardRef}
       className="task-card card"
-      onClick={() => !isDragging && onClick && onClick(task)}
+      onClick={(e) => !isDragging && onClick && onClick(task, e)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div className="task-header">
         <h4 className="task-title">{task.title}</h4>
-        <span className={`status-badge status-${getStatusClass(task.state?.name)}`}>
-          {task.state?.name || 'Todo'}
+        <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
+          {getStatusDisplay(task.state?.type)}
         </span>
       </div>
       

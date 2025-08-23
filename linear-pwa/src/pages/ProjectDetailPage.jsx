@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, RefreshCw } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
+import TaskForm from '../components/TaskForm';
+import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
 import './ProjectDetailPage.css';
 
@@ -13,6 +15,8 @@ function ProjectDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const loadProject = async (showRefreshSpinner = false) => {
     try {
@@ -49,23 +53,90 @@ function ProjectDetailPage() {
     loadProject();
   }, [id]);
 
-  const handleTaskClick = (task) => {
-    window.open(`https://linear.app/issue/${task.id}`, '_blank');
+  const handleTaskClick = (task, event) => {
+    setSelectedTask(task);
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      const workflowStates = await linearApi.getWorkflowStates('your-team-id');
-      const doneState = workflowStates.team.states.nodes.find(state => 
-        state.type === 'completed' || state.name.toLowerCase().includes('done')
-      );
+      // Get teams to find a team ID
+      const teamsData = await linearApi.getTeams();
+      const teamId = teamsData.teams?.nodes?.[0]?.id;
       
-      if (doneState) {
-        await linearApi.updateIssue(taskId, { stateId: doneState.id });
+      if (!teamId) {
+        console.error('No team found');
+        return;
+      }
+
+      const workflowStates = await linearApi.getWorkflowStates(teamId);
+      
+      // Find the appropriate state based on the newStatus value
+      let targetState;
+      if (newStatus === 'completed') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'completed'
+        );
+      } else if (newStatus === 'started') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'started'
+        );
+      } else if (newStatus === 'planned') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'unstarted' || state.type === 'backlog'
+        );
+      } else if (newStatus === 'canceled') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'canceled'
+        );
+      }
+      
+      if (targetState) {
+        await linearApi.updateIssue(taskId, { stateId: targetState.id });
         await loadProject();
+        setSelectedTask(null); // Close the menu
+      } else {
+        console.error('Target state not found for:', newStatus);
       }
     } catch (error) {
       console.error('Failed to update task status:', error);
+    }
+  };
+
+  const handleCreateTask = async (taskData) => {
+    try {
+      // Get teams to find a team ID (use first available team for now)
+      const teamsData = await linearApi.getTeams();
+      const teamId = teamsData.teams?.nodes?.[0]?.id;
+      
+      if (!teamId) {
+        console.error('No team found');
+        return;
+      }
+
+      const issueInput = {
+        title: taskData.title,
+        teamId: teamId
+      };
+
+      // Only add optional fields if they have values
+      if (taskData.description) {
+        issueInput.description = taskData.description;
+      }
+      if (id) {
+        issueInput.projectId = id;
+      }
+      if (taskData.priority && taskData.priority !== 'Medium') {
+        issueInput.priority = taskData.priority === 'High' ? 1 : 3;
+      }
+      if (taskData.dueDate) {
+        issueInput.dueDate = taskData.dueDate;
+      }
+
+      await linearApi.createIssue(issueInput);
+      setShowTaskForm(false);
+      await loadProject(); // Refresh to show new task
+    } catch (error) {
+      console.error('Failed to create task:', error);
     }
   };
 
@@ -181,7 +252,7 @@ function ProjectDetailPage() {
             {tasks.length === 0 ? (
               <div className="empty-state">
                 <h3>No tasks found</h3>
-                <p>This project doesn't have any tasks yet. Create a task in Linear to get started.</p>
+                <p>This project doesn't have any tasks yet. Create your first task below.</p>
               </div>
             ) : (
               <div className="tasks-list">
@@ -195,13 +266,33 @@ function ProjectDetailPage() {
                 ))}
               </div>
             )}
+
+            <button 
+              className="btn btn-primary add-new-task-btn"
+              onClick={() => setShowTaskForm(true)}
+            >
+              <Plus size={20} />
+              Add New Task
+            </button>
           </div>
         </div>
       </div>
 
-      <button className="fab" onClick={() => window.open('https://linear.app', '_blank')}>
-        <Plus size={24} />
-      </button>
+      {showTaskForm && (
+        <TaskForm
+          projectId={id}
+          onSubmit={handleCreateTask}
+          onCancel={() => setShowTaskForm(false)}
+        />
+      )}
+
+      {selectedTask && (
+        <StatusMenu
+          task={selectedTask}
+          onStatusChange={handleStatusChange}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 }

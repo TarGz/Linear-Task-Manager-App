@@ -17,6 +17,36 @@
   gap: var(--spacing-sm);
 }
 
+.task-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.status-toggle-btn {
+  background: var(--success);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.8;
+}
+
+.status-toggle-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.status-toggle-btn:active {
+  transform: scale(0.95);
+}
+
 .task-title {
   color: var(--text-primary);
   margin: 0;

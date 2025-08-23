@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Smartphone } from 'lucide-react';
+import { Calendar, CheckSquare, Smartphone, Monitor, Megaphone, Package } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import './ProjectCard.css';
 
@@ -8,10 +8,13 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick }) {
   const [isDragging, setIsDragging] = useState(false);
   const cardRef = useRef(null);
 
-  // Calculate progress (will be 0 for now since we don't have tasks)
-  const totalTasks = project.issueCount || 0;
-  const completedTasks = 0;
-  const progressPercentage = 0;
+  // Calculate progress from issues
+  const issues = project.issues?.nodes || [];
+  const totalTasks = issues.length;
+  const completedTasks = issues.filter(issue => 
+    issue.state?.type === 'completed'
+  ).length;
+  const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
@@ -73,6 +76,23 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick }) {
   const status = isOverdue() ? 'Overdue' : getStatusDisplay(project.state);
   const statusClass = isOverdue() ? 'overdue' : getStatusClass(project.state);
 
+  // Get project icon based on name
+  const getProjectIcon = (name) => {
+    const lowercaseName = name.toLowerCase();
+    if (lowercaseName.includes('website') || lowercaseName.includes('web')) {
+      return Monitor;
+    } else if (lowercaseName.includes('mobile') || lowercaseName.includes('app')) {
+      return Smartphone;
+    } else if (lowercaseName.includes('marketing') || lowercaseName.includes('campaign')) {
+      return Megaphone;
+    } else if (lowercaseName.includes('brand') || lowercaseName.includes('identity')) {
+      return Package;
+    }
+    return Package; // default
+  };
+
+  const ProjectIcon = getProjectIcon(project.name);
+
   return (
     <div
       ref={cardRef}
@@ -84,7 +104,7 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick }) {
     >
       <div className="project-header">
         <div className="project-icon">
-          <Smartphone size={20} />
+          <ProjectIcon size={20} />
         </div>
         <div className="project-info">
           <h3 className="project-title">{project.name}</h3>

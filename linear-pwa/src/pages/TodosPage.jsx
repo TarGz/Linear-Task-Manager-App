@@ -91,7 +91,16 @@ function TodosPage() {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      const workflowStates = await linearApi.getWorkflowStates('your-team-id');
+      // Get teams to find a team ID
+      const teamsData = await linearApi.getTeams();
+      const teamId = teamsData.teams?.nodes?.[0]?.id;
+      
+      if (!teamId) {
+        console.error('No team found');
+        return;
+      }
+
+      const workflowStates = await linearApi.getWorkflowStates(teamId);
       const doneState = workflowStates.team.states.nodes.find(state => 
         state.type === 'completed' || state.name.toLowerCase().includes('done')
       );
