@@ -16,6 +16,17 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick }) {
   ).length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  // Debug logging for production
+  if (totalTasks === 0) {
+    console.log('ProjectCard Debug - Project with 0 tasks:', {
+      projectName: project.name,
+      projectId: project.id,
+      hasIssues: !!project.issues,
+      issuesNodes: project.issues?.nodes,
+      rawProject: project
+    });
+  }
+
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
     setIsDragging(true);

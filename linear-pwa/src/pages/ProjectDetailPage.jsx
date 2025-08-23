@@ -92,7 +92,24 @@ function ProjectDetailPage() {
       
       if (targetState) {
         await linearApi.updateIssue(taskId, { stateId: targetState.id });
-        await loadProject();
+        
+        // Update the task locally instead of reloading entire project
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === taskId 
+              ? { 
+                  ...task, 
+                  state: { 
+                    ...task.state, 
+                    type: targetState.type,
+                    id: targetState.id,
+                    name: targetState.name 
+                  } 
+                }
+              : task
+          )
+        );
+        
         setSelectedTask(null); // Close the menu
       } else {
         console.error('Target state not found for:', newStatus);

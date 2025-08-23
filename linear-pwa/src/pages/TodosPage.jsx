@@ -107,7 +107,23 @@ function TodosPage() {
       
       if (doneState) {
         await linearApi.updateIssue(taskId, { stateId: doneState.id });
-        await loadTasks();
+        
+        // Update the task locally instead of reloading all tasks
+        setTasks(prevTasks => 
+          prevTasks.map(task => 
+            task.id === taskId 
+              ? { 
+                  ...task, 
+                  state: { 
+                    ...task.state, 
+                    type: doneState.type,
+                    id: doneState.id,
+                    name: doneState.name 
+                  } 
+                }
+              : task
+          )
+        );
       }
     } catch (error) {
       console.error('Failed to update task status:', error);
