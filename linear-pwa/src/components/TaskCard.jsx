@@ -1,4 +1,4 @@
-import { Calendar, User, Check, Play } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import './TaskCard.css';
 
@@ -86,13 +86,13 @@ function TaskCard({ task, onStatusChange, onClick, onLongPress }) {
 
   const getStatusDisplay = (stateType) => {
     const statusMap = {
-      'unstarted': 'Planning',
-      'backlog': 'Planning',
+      'unstarted': 'Todo',
+      'backlog': 'Todo',
       'started': 'In Progress', 
       'completed': 'Done',
       'canceled': 'Canceled'
     };
-    return statusMap[stateType] || 'Planning';
+    return statusMap[stateType] || 'Todo';
   };
 
   return (
@@ -104,39 +104,22 @@ function TaskCard({ task, onStatusChange, onClick, onLongPress }) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="task-header">
-        <h4 className="task-title">{task.title}</h4>
-        <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
-          {getStatusDisplay(task.state?.type)}
-        </span>
-      </div>
-      
-      {task.description && (
-        <p className="task-description">{task.description}</p>
-      )}
-      
-      <div className="task-footer">
-        <div className="task-meta">
+      <div className="task-content">
+        <div className="task-main">
+          <h4 className="task-title">{task.title}</h4>
+          {task.project && (
+            <span className="task-project">{task.project.name}</span>
+          )}
           {task.dueDate && (
-            <div className="meta-item">
-              <Calendar size={14} />
+            <div className="task-due-date">
+              <Calendar size={12} />
               <span>{formatDate(task.dueDate)}</span>
             </div>
           )}
-          {task.assignee && (
-            <div className="meta-item">
-              {task.assignee.avatarUrl ? (
-                <img src={task.assignee.avatarUrl} alt={task.assignee.name} className="avatar-mini" />
-              ) : (
-                <User size={14} />
-              )}
-              <span>{task.assignee.name}</span>
-            </div>
-          )}
         </div>
-        {task.project && (
-          <span className="task-project">{task.project.name}</span>
-        )}
+        <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
+          {getStatusDisplay(task.state?.type)}
+        </span>
       </div>
     </div>
   );

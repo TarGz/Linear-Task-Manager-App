@@ -3,7 +3,7 @@ import './StatusMenu.css';
 
 function StatusMenu({ task, onStatusChange, onClose }) {
   const statuses = [
-    { value: 'planned', label: 'Planning', icon: Clock, color: '#9E9E9E' },
+    { value: 'planned', label: 'Todo', icon: Clock, color: '#9E9E9E' },
     { value: 'started', label: 'In Progress', icon: Play, color: '#7C4DFF' },
     { value: 'completed', label: 'Done', icon: Check, color: '#4CAF50' },
     { value: 'canceled', label: 'Canceled', icon: X, color: '#F44336' }

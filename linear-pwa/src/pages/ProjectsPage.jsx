@@ -28,7 +28,43 @@ function ProjectsPage() {
       const data = await linearApi.getProjects();
       
       const allProjects = data.projects?.nodes || [];
-      allProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      // Sort by status priority: In Progress, Todo (planned), Done, Canceled
+      allProjects.sort((a, b) => {
+        const statusOrder = {
+          // In Progress variants
+          'started': 0,
+          'in_progress': 0,
+          'active': 0,
+          
+          // Todo/Planning variants  
+          'planned': 1,
+          'backlog': 1,
+          'todo': 1,
+          'planning': 1,
+          
+          // Done/Completed variants
+          'completed': 2,
+          'done': 2,
+          'finished': 2,
+          
+          // Canceled variants
+          'canceled': 3,
+          'cancelled': 3,
+          'paused': 3
+        };
+        
+        const aOrder = statusOrder[a.state?.toLowerCase?.()] ?? statusOrder[a.state] ?? 4;
+        const bOrder = statusOrder[b.state?.toLowerCase?.()] ?? statusOrder[b.state] ?? 4;
+        
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+        
+        // If same status, sort by creation date (newest first)
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      
       setProjects(allProjects);
     } catch (error) {
       setError('Failed to load projects. Please check your connection and try again.');

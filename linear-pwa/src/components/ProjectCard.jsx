@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Smartphone, Monitor, Megaphone, Package, Heart } from 'lucide-react';
+import { CheckSquare, Smartphone, Monitor, Megaphone, Package } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import './ProjectCard.css';
 
@@ -8,35 +8,7 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
   const [isDragging, setIsDragging] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState(null);
   const [isLongPress, setIsLongPress] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const cardRef = useRef(null);
-
-  // Check if project is favorite
-  useEffect(() => {
-    const checkFavorite = () => {
-      const favorites = JSON.parse(localStorage.getItem('favoriteProjects') || '[]');
-      setIsFavorite(favorites.includes(project.id));
-    };
-    
-    checkFavorite();
-    
-    // Listen for storage changes to update favorite status
-    const handleStorageChange = (e) => {
-      if (e.key === 'favoriteProjects') {
-        checkFavorite();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also listen for focus events in case the storage was changed in the same tab
-    window.addEventListener('focus', checkFavorite);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', checkFavorite);
-    };
-  }, [project.id]);
 
   // Calculate progress from issues
   const issues = project.issues?.nodes || [];
@@ -116,22 +88,22 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
 
   const getStatusClass = (status) => {
     const statusMap = {
-      'planned': 'active',
+      'planned': 'planning',
       'started': 'progress',
       'completed': 'done',
       'canceled': 'canceled'
     };
-    return statusMap[status] || 'active';
+    return statusMap[status] || 'planning';
   };
 
   const getStatusDisplay = (status) => {
     const statusMap = {
-      'planned': 'Active',
+      'planned': 'Todo',
       'started': 'In Progress',
       'completed': 'Done',
       'canceled': 'Canceled'
     };
-    return statusMap[status] || 'Active';
+    return statusMap[status] || 'Todo';
   };
 
   // Check if project is overdue
@@ -172,27 +144,18 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
       onTouchEnd={handleTouchEnd}
     >
       <div className="project-header">
-        <div className="project-icon">
-          <ProjectIcon size={20} />
-        </div>
-        <div className="project-info">
-          <div className="project-title-row">
-            <h3 className="project-title">{project.name}</h3>
-            {isFavorite && (
-              <Heart size={16} className="favorite-indicator" fill="currentColor" />
-            )}
+        <div className="project-left">
+          <div className="project-icon">
+            <ProjectIcon size={20} />
           </div>
-          <span className={`status-badge status-${statusClass}`}>
-            {status}
-          </span>
+          <h3 className="project-title">{project.name}</h3>
         </div>
+        <span className={`status-badge status-${statusClass}`}>
+          {status}
+        </span>
       </div>
       
       <div className="project-stats">
-        <div className="stat-item">
-          <Calendar size={14} />
-          <span>Progress</span>
-        </div>
         <div className="stat-value">
           {completedTasks}/{totalTasks} tasks
         </div>
@@ -205,7 +168,6 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
-        <span className="progress-text">{progressPercentage}% complete</span>
       </div>
     </div>
   );

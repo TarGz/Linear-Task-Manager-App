@@ -37,11 +37,30 @@ function TodosPage() {
       const data = await linearApi.getAllIssues();
       
       const sortedTasks = data.issues.nodes.sort((a, b) => {
+        // First sort by status priority: In Progress, Todo, Done, Canceled
+        const statusOrder = {
+          'started': 0,
+          'unstarted': 1,
+          'backlog': 1,
+          'completed': 2,
+          'canceled': 3
+        };
+        
+        const aOrder = statusOrder[a.state?.type] ?? 4;
+        const bOrder = statusOrder[b.state?.type] ?? 4;
+        
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+        
+        // Within same status, sort by due date (earliest first)
         if (a.dueDate && b.dueDate) {
           return new Date(a.dueDate) - new Date(b.dueDate);
         }
         if (a.dueDate) return -1;
         if (b.dueDate) return 1;
+        
+        // Finally, sort by creation date (newest first)
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
       

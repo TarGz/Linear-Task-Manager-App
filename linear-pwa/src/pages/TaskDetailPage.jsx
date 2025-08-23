@@ -152,13 +152,13 @@ function TaskDetailPage() {
 
   const getStatusDisplay = (stateType) => {
     const statusMap = {
-      'unstarted': 'Planning',
-      'backlog': 'Planning',
+      'unstarted': 'Todo',
+      'backlog': 'Todo',
       'started': 'In Progress', 
       'completed': 'Done',
       'canceled': 'Canceled'
     };
-    return statusMap[stateType] || 'Planning';
+    return statusMap[stateType] || 'Todo';
   };
 
   const formatDate = (dateString) => {
