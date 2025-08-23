@@ -174,6 +174,21 @@ function SettingsPage({ onApiKeyChange }) {
               Open Linear API Settings
             </a>
           </div>
+
+          <div className="settings-section">
+            <h2>App Information</h2>
+            <div className="app-info card">
+              <div className="user-item">
+                <strong>Version:</strong> 2.0.0
+              </div>
+              <div className="user-item">
+                <strong>Build:</strong> {new Date().toLocaleDateString()}
+              </div>
+              <div className="user-item">
+                <strong>Features:</strong> Task Creation, Status Management, Offline Support
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
