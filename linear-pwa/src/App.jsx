@@ -31,8 +31,10 @@ function App() {
     );
   }
 
+  const basename = process.env.NODE_ENV === 'production' ? '/Linear-Task-Manager-App' : '';
+
   return (
-    <Router basename="/Linear-Task-Manager-App">
+    <Router basename={basename}>
       <div className="app">
         <div className="app-content">
           <Routes>

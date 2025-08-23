@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'Linear Task Manager',
         short_name: 'Linear Tasks',
@@ -46,5 +46,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/Linear-Task-Manager-App/'
+  base: process.env.NODE_ENV === 'production' ? '/Linear-Task-Manager-App/' : '/'
 })
