@@ -46,5 +46,5 @@ export default defineConfig({
       }
     })
   ],
-  base: '/'
+  base: '/Linear-Task-Manager-App/'
 })
