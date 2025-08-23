@@ -34,7 +34,6 @@
 
 .page-header {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
   padding: var(--spacing-lg) 0;
   margin-bottom: var(--spacing-lg);
 }
@@ -42,7 +41,8 @@
 .page-title {
   color: var(--text-primary);
   margin: 0;
-  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
 }
 
 .page-content {

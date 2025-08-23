@@ -8,6 +8,13 @@
   align-items: center;
 }
 
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+  margin-top: 4px;
+}
+
 .refresh-btn {
   min-width: 40px;
 }
@@ -25,10 +32,10 @@
   gap: var(--spacing-lg);
 }
 
-.projects-grid {
-  display: grid;
+.projects-list {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 @media (max-width: 768px) {

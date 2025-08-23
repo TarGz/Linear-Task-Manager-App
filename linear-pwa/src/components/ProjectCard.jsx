@@ -1,12 +1,17 @@
-import { Calendar, CheckSquare } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { Calendar, CheckSquare, Smartphone } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
 import './ProjectCard.css';
 
-function ProjectCard({ project, onStatusChange, onClick }) {
+function ProjectCard({ project, tasks = [], onStatusChange, onClick }) {
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const cardRef = useRef(null);
+
+  // Calculate progress (will be 0 for now since we don't have tasks)
+  const totalTasks = project.issueCount || 0;
+  const completedTasks = 0;
+  const progressPercentage = 0;
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
@@ -37,33 +42,36 @@ function ProjectCard({ project, onStatusChange, onClick }) {
     setCurrentX(0);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return null;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
   const getStatusClass = (status) => {
     const statusMap = {
-      'planned': 'planning',
+      'planned': 'active',
       'started': 'progress',
       'completed': 'done',
       'canceled': 'canceled'
     };
-    return statusMap[status] || 'planning';
+    return statusMap[status] || 'active';
   };
 
   const getStatusDisplay = (status) => {
     const statusMap = {
-      'planned': 'Planning',
+      'planned': 'Active',
       'started': 'In Progress',
       'completed': 'Done',
       'canceled': 'Canceled'
     };
-    return statusMap[status] || 'Planning';
+    return statusMap[status] || 'Active';
   };
 
-  const taskCount = project.issues?.nodes?.length || 0;
+  // Check if project is overdue
+  const isOverdue = () => {
+    if (!project.targetDate) return false;
+    const targetDate = new Date(project.targetDate);
+    const now = new Date();
+    return targetDate < now && project.state !== 'completed';
+  };
+
+  const status = isOverdue() ? 'Overdue' : getStatusDisplay(project.state);
+  const statusClass = isOverdue() ? 'overdue' : getStatusClass(project.state);
 
   return (
     <div
@@ -75,35 +83,35 @@ function ProjectCard({ project, onStatusChange, onClick }) {
       onTouchEnd={handleTouchEnd}
     >
       <div className="project-header">
-        <h3 className="project-title">{project.name}</h3>
-        <span className={`status-badge status-${getStatusClass(project.state)}`}>
-          {getStatusDisplay(project.state)}
-        </span>
+        <div className="project-icon">
+          <Smartphone size={20} />
+        </div>
+        <div className="project-info">
+          <h3 className="project-title">{project.name}</h3>
+          <span className={`status-badge status-${statusClass}`}>
+            {status}
+          </span>
+        </div>
       </div>
       
-      {project.description && (
-        <p className="project-description">{project.description}</p>
-      )}
-      
-      <div className="project-footer">
-        <div className="project-meta">
-          <div className="meta-item">
-            <CheckSquare size={14} />
-            <span>{taskCount} task{taskCount !== 1 ? 's' : ''}</span>
-          </div>
-          {project.completedAt && (
-            <div className="meta-item">
-              <Calendar size={14} />
-              <span>Completed {formatDate(project.completedAt)}</span>
-            </div>
-          )}
-          {!project.completedAt && project.startedAt && (
-            <div className="meta-item">
-              <Calendar size={14} />
-              <span>Started {formatDate(project.startedAt)}</span>
-            </div>
-          )}
+      <div className="project-stats">
+        <div className="stat-item">
+          <Calendar size={14} />
+          <span>Progress</span>
         </div>
+        <div className="stat-value">
+          {completedTasks}/{totalTasks} tasks
+        </div>
+      </div>
+
+      <div className="progress-section">
+        <div className="progress-bar">
+          <div 
+            className={`progress-fill progress-${statusClass}`}
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </div>
+        <span className="progress-text">{progressPercentage}% complete</span>
       </div>
     </div>
   );

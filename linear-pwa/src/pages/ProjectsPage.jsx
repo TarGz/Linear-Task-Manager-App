@@ -91,12 +91,17 @@ function ProjectsPage() {
     );
   }
 
+  const activeProjects = projects.filter(p => p.state !== 'completed' && p.state !== 'canceled');
+
   return (
     <div className="projects-page">
       <div className="page-header">
         <div className="container">
           <div className="header-content">
-            <h1 className="page-title">Projects</h1>
+            <div>
+              <h1 className="page-title">Projects</h1>
+              <p className="page-subtitle">{activeProjects.length} active projects</p>
+            </div>
             <button
               className="btn btn-icon btn-secondary refresh-btn"
               onClick={handleRefresh}
@@ -122,11 +127,12 @@ function ProjectsPage() {
               <p>You don't have any projects yet. Create your first project in Linear to get started.</p>
             </div>
           ) : (
-            <div className="projects-grid">
+            <div className="projects-list">
               {projects.map(project => (
                 <ProjectCard
                   key={project.id}
                   project={project}
+                  tasks={project.issues?.nodes || []}
                   onClick={handleProjectClick}
                   onStatusChange={handleStatusChange}
                 />

@@ -5,17 +5,17 @@
 }
 
 :root {
-  --primary-color: #F18173;
-  --primary-dark: #E56B5C;
-  --background: #FAFAFA;
+  --primary-color: #FF6B6B;
+  --primary-dark: #FF5252;
+  --background: #F8F9FA;
   --surface: #FFFFFF;
-  --text-primary: #2C3E50;
-  --text-secondary: #7F8C8D;
-  --border: #E0E0E0;
-  --success: #4CAF50;
-  --warning: #FF9800;
-  --error: #F44336;
-  --info: #2196F3;
+  --text-primary: #212529;
+  --text-secondary: #6C757D;
+  --border: #E9ECEF;
+  --success: #51CF66;
+  --warning: #FFB84D;
+  --error: #FF6B6B;
+  --info: #339AF0;
   
   --status-planning: #9E9E9E;
   --status-progress: #7C4DFF;
@@ -217,19 +217,21 @@ input:focus, textarea:focus, select:focus {
   width: 56px;
   height: 56px;
   border-radius: var(--radius-full);
-  background: var(--primary-color);
+  background: #FF6B6B;
   color: white;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 28px;
   z-index: 100;
+  transition: all 0.2s;
 }
 
 .fab:hover {
-  background: var(--primary-dark);
+  background: #FF5252;
   transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
 }
 
 @media (max-width: 768px) {
