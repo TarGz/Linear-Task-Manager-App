@@ -34,15 +34,15 @@
 
 .page-header {
   background: var(--surface);
-  padding: var(--spacing-lg) 0;
-  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+  margin-bottom: var(--spacing-md);
 }
 
 .page-title {
   color: var(--text-primary);
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .page-content {

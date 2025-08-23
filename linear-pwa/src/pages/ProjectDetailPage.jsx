@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, RefreshCw, Edit, Trash2, MoreVertical, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, MoreVertical, ExternalLink, Palette } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
 import StatusMenu from '../components/StatusMenu';
+import IconSelector from '../components/IconSelector';
 import linearApi from '../services/linearApi';
 import './ProjectDetailPage.css';
 
@@ -14,20 +15,16 @@ function ProjectDetailPage() {
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
+  const [showIconSelector, setShowIconSelector] = useState(false);
 
-  const loadProject = async (showRefreshSpinner = false) => {
+  const loadProject = async () => {
     try {
-      if (showRefreshSpinner) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError('');
       
       const data = await linearApi.getProjectIssues(id);
@@ -68,7 +65,6 @@ function ProjectDetailPage() {
       console.error('Failed to load project:', error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -184,9 +180,6 @@ function ProjectDetailPage() {
     }
   };
 
-  const handleRefresh = () => {
-    loadProject(true);
-  };
 
   const handleEditProject = async () => {
     if (!editName.trim()) return;
@@ -339,13 +332,6 @@ function ProjectDetailPage() {
               >
                 <MoreVertical size={20} />
               </button>
-              <button
-                className="btn btn-icon btn-secondary refresh-btn"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
-              </button>
             </div>
           </div>
         </div>
@@ -420,6 +406,16 @@ function ProjectDetailPage() {
                 className="project-action-option"
                 onClick={() => {
                   setShowProjectActions(false);
+                  setShowIconSelector(true);
+                }}
+              >
+                <Palette size={16} />
+                <span>Change Icon</span>
+              </button>
+              <button
+                className="project-action-option"
+                onClick={() => {
+                  setShowProjectActions(false);
                   handleOpenInLinear();
                 }}
               >
@@ -436,6 +432,14 @@ function ProjectDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showIconSelector && (
+        <IconSelector
+          projectId={id}
+          currentIcon={null}
+          onClose={() => setShowIconSelector(false)}
+        />
       )}
     </div>
   );

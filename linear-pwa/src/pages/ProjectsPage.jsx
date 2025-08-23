@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import ProjectForm from '../components/ProjectForm';
@@ -12,17 +12,12 @@ function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
-  const loadProjects = async (showRefreshSpinner = false) => {
+  const loadProjects = async () => {
     try {
-      if (showRefreshSpinner) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError('');
       
       const data = await linearApi.getProjects();
@@ -71,7 +66,6 @@ function ProjectsPage() {
       console.error('Failed to load projects:', error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -106,9 +100,6 @@ function ProjectsPage() {
     setSelectedProject(project);
   };
 
-  const handleRefresh = () => {
-    loadProjects(true);
-  };
 
   const handleCreateProject = async (projectData) => {
     try {
@@ -167,13 +158,6 @@ function ProjectsPage() {
               <h1 className="page-title">Projects</h1>
               <p className="page-subtitle">{activeProjects.length} active projects</p>
             </div>
-            <button
-              className="btn btn-icon btn-secondary refresh-btn"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
-            </button>
           </div>
         </div>
       </div>

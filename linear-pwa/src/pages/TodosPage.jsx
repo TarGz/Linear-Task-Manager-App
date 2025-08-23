@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Filter } from 'lucide-react';
+import { Plus, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import StatusMenu from '../components/StatusMenu';
@@ -12,7 +12,6 @@ function TodosPage() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filter, setFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
@@ -25,13 +24,9 @@ function TodosPage() {
     { value: 'overdue', label: 'Overdue' }
   ];
 
-  const loadTasks = async (showRefreshSpinner = false) => {
+  const loadTasks = async () => {
     try {
-      if (showRefreshSpinner) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError('');
       
       const data = await linearApi.getAllIssues();
@@ -70,7 +65,6 @@ function TodosPage() {
       console.error('Failed to load tasks:', error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -178,9 +172,6 @@ function TodosPage() {
     }
   };
 
-  const handleRefresh = () => {
-    loadTasks(true);
-  };
 
   const getFilterCount = (filterType) => {
     return applyFilter(tasks, filterType).length;
@@ -218,13 +209,6 @@ function TodosPage() {
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter size={20} />
-              </button>
-              <button
-                className="btn btn-icon btn-secondary refresh-btn"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
               </button>
             </div>
           </div>

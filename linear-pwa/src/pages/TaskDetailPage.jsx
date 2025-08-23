@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
@@ -11,19 +11,14 @@ function TaskDetailPage() {
   const [task, setTask] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [showTaskActions, setShowTaskActions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
 
-  const loadTask = async (showRefreshSpinner = false) => {
+  const loadTask = async () => {
     try {
-      if (showRefreshSpinner) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
+      setIsLoading(true);
       setError('');
       
       // For now, we'll get the task from the issues list
@@ -41,7 +36,6 @@ function TaskDetailPage() {
       console.error('Failed to load task:', error);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   };
 
@@ -109,9 +103,6 @@ function TaskDetailPage() {
     }
   };
 
-  const handleRefresh = () => {
-    loadTask(true);
-  };
 
   const handleEditTask = async () => {
     if (!editTitle.trim()) return;
@@ -272,13 +263,6 @@ function TaskDetailPage() {
                 title="More actions"
               >
                 <MoreVertical size={20} />
-              </button>
-              <button
-                className="btn btn-icon btn-secondary refresh-btn"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
               </button>
             </div>
           </div>

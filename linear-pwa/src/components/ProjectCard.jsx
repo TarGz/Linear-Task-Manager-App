@@ -1,4 +1,4 @@
-import { CheckSquare, Smartphone, Monitor, Megaphone, Package } from 'lucide-react';
+import { CheckSquare, Smartphone, Monitor, Megaphone, Package, Briefcase, Target, Lightbulb, Zap, Rocket, Star, Heart, Coffee, Camera, Music, Book, Code, Palette, Globe, Shield, Wrench } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import './ProjectCard.css';
 
@@ -8,7 +8,20 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
   const [isDragging, setIsDragging] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState(null);
   const [isLongPress, setIsLongPress] = useState(false);
+  const [iconKey, setIconKey] = useState(null);
   const cardRef = useRef(null);
+
+  // Listen for icon changes
+  useEffect(() => {
+    const handleIconChange = (event) => {
+      if (event.detail.projectId === project.id) {
+        setIconKey(event.detail.iconKey);
+      }
+    };
+
+    window.addEventListener('projectIconChanged', handleIconChange);
+    return () => window.removeEventListener('projectIconChanged', handleIconChange);
+  }, [project.id]);
 
   // Calculate progress from issues
   const issues = project.issues?.nodes || [];
@@ -117,22 +130,58 @@ function ProjectCard({ project, tasks = [], onStatusChange, onClick, onLongPress
   const status = isOverdue() ? 'Overdue' : getStatusDisplay(project.state);
   const statusClass = isOverdue() ? 'overdue' : getStatusClass(project.state);
 
-  // Get project icon based on name
-  const getProjectIcon = (name) => {
-    const lowercaseName = name.toLowerCase();
+  // Available project icons
+  const availableIcons = {
+    'package': Package,
+    'briefcase': Briefcase,
+    'target': Target,
+    'lightbulb': Lightbulb,
+    'zap': Zap,
+    'rocket': Rocket,
+    'star': Star,
+    'heart': Heart,
+    'coffee': Coffee,
+    'camera': Camera,
+    'music': Music,
+    'book': Book,
+    'code': Code,
+    'palette': Palette,
+    'globe': Globe,
+    'shield': Shield,
+    'wrench': Wrench,
+    'monitor': Monitor,
+    'smartphone': Smartphone,
+    'megaphone': Megaphone,
+    'checksquare': CheckSquare
+  };
+
+  // Get project icon based on stored preference or smart default
+  const getProjectIcon = () => {
+    const savedIcons = JSON.parse(localStorage.getItem('projectIcons') || '{}');
+    const savedIconKey = iconKey || savedIcons[project.id];
+    
+    // If user has selected a custom icon, use it
+    if (savedIconKey) {
+      return availableIcons[savedIconKey] || availableIcons['package'];
+    }
+    
+    // Otherwise use smart defaults based on project name
+    const lowercaseName = project.name.toLowerCase();
     if (lowercaseName.includes('website') || lowercaseName.includes('web')) {
       return Monitor;
     } else if (lowercaseName.includes('mobile') || lowercaseName.includes('app')) {
       return Smartphone;
     } else if (lowercaseName.includes('marketing') || lowercaseName.includes('campaign')) {
       return Megaphone;
-    } else if (lowercaseName.includes('brand') || lowercaseName.includes('identity')) {
-      return Package;
+    } else if (lowercaseName.includes('code') || lowercaseName.includes('dev')) {
+      return Code;
+    } else if (lowercaseName.includes('design') || lowercaseName.includes('ui')) {
+      return Palette;
     }
     return Package; // default
   };
 
-  const ProjectIcon = getProjectIcon(project.name);
+  const ProjectIcon = getProjectIcon();
 
   return (
     <div
