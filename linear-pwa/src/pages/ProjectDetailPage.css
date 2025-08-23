@@ -1,0 +1,67 @@
+.project-detail-page {
+  min-height: 100vh;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.header-info .page-title {
+  text-align: left;
+  margin: 0;
+}
+
+.project-description {
+  margin-bottom: var(--spacing-xl);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tasks-section h2 {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  gap: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .header-info {
+    order: 2;
+    width: 100%;
+    margin: var(--spacing-sm) 0;
+  }
+  
+  .header-info .page-title {
+    text-align: center;
+  }
+  
+  .refresh-btn {
+    order: 3;
+  }
+}

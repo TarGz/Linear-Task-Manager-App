@@ -1,0 +1,16 @@
+{
+  "name": "linear-task-manager-app",
+  "version": "1.0.0",
+  "description": "A PWA for managing Linear tasks",
+  "main": "test-linear-api.js",
+  "scripts": {
+    "test-api": "node test-linear-api.js"
+  },
+  "keywords": ["linear", "pwa", "task-manager"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.1"
+  }
+}

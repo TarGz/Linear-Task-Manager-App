@@ -1,0 +1,259 @@
+import axios from 'axios';
+
+const LINEAR_API_URL = 'https://api.linear.app/graphql';
+
+class LinearAPI {
+  constructor() {
+    this.apiKey = localStorage.getItem('linearApiKey') || '';
+  }
+
+  setApiKey(key) {
+    this.apiKey = key;
+    localStorage.setItem('linearApiKey', key);
+  }
+
+  getApiKey() {
+    return this.apiKey;
+  }
+
+  clearApiKey() {
+    this.apiKey = '';
+    localStorage.removeItem('linearApiKey');
+  }
+
+  async query(graphqlQuery, variables = {}) {
+    if (!this.apiKey) {
+      throw new Error('API key not set');
+    }
+
+    try {
+      const response = await axios.post(
+        LINEAR_API_URL,
+        {
+          query: graphqlQuery,
+          variables
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': this.apiKey
+          }
+        }
+      );
+
+      if (response.data.errors) {
+        throw new Error(response.data.errors[0].message);
+      }
+
+      return response.data.data;
+    } catch (error) {
+      console.error('Linear API Error:', error);
+      throw error;
+    }
+  }
+
+  async testConnection() {
+    const query = `
+      query {
+        viewer {
+          id
+          name
+          email
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async getProjects() {
+    const query = `
+      query {
+        viewer {
+          teamMemberships {
+            nodes {
+              team {
+                id
+                name
+                projects {
+                  nodes {
+                    id
+                    name
+                    description
+                    state
+                    startedAt
+                    completedAt
+                    createdAt
+                    updatedAt
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async getProjectIssues(projectId) {
+    const query = `
+      query($projectId: String!) {
+        project(id: $projectId) {
+          id
+          name
+          description
+          state
+          issues {
+            nodes {
+              id
+              title
+              description
+              state {
+                id
+                name
+                type
+              }
+              priority
+              dueDate
+              createdAt
+              updatedAt
+              assignee {
+                id
+                name
+                avatarUrl
+              }
+            }
+          }
+        }
+      }
+    `;
+    return this.query(query, { projectId });
+  }
+
+  async getAllIssues() {
+    const query = `
+      query {
+        issues(first: 100) {
+          nodes {
+            id
+            title
+            description
+            state {
+              id
+              name
+              type
+            }
+            priority
+            dueDate
+            createdAt
+            updatedAt
+            project {
+              id
+              name
+            }
+            assignee {
+              id
+              name
+              avatarUrl
+            }
+          }
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async createIssue(input) {
+    const mutation = `
+      mutation($input: IssueCreateInput!) {
+        issueCreate(input: $input) {
+          success
+          issue {
+            id
+            title
+            description
+            state {
+              id
+              name
+            }
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { input });
+  }
+
+  async updateIssue(id, input) {
+    const mutation = `
+      mutation($id: String!, $input: IssueUpdateInput!) {
+        issueUpdate(id: $id, input: $input) {
+          success
+          issue {
+            id
+            title
+            description
+            state {
+              id
+              name
+            }
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { id, input });
+  }
+
+  async createProject(teamId, input) {
+    const mutation = `
+      mutation($teamId: String!, $input: ProjectCreateInput!) {
+        projectCreate(teamId: $teamId, input: $input) {
+          success
+          project {
+            id
+            name
+            description
+            state
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { teamId, input });
+  }
+
+  async updateProject(id, input) {
+    const mutation = `
+      mutation($id: String!, $input: ProjectUpdateInput!) {
+        projectUpdate(id: $id, input: $input) {
+          success
+          project {
+            id
+            name
+            description
+            state
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { id, input });
+  }
+
+  async getWorkflowStates(teamId) {
+    const query = `
+      query($teamId: String!) {
+        team(id: $teamId) {
+          states {
+            nodes {
+              id
+              name
+              type
+              position
+            }
+          }
+        }
+      }
+    `;
+    return this.query(query, { teamId });
+  }
+}
+
+export default new LinearAPI();
