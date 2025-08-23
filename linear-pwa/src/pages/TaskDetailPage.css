@@ -2,6 +2,75 @@
   min-height: 100vh;
 }
 
+.task-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding: 0 10px;
+}
+
+.task-header-row .btn {
+  background: #FFFFFF;
+}
+
+.task-name-header {
+  text-align: center;
+  flex: 1;
+}
+
+.task-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.task-header-icon {
+  color: var(--primary-color);
+}
+
+.task-name:hover {
+  color: var(--primary-color);
+}
+
+.edit-task-input-header {
+  width: 100%;
+  padding: var(--spacing-xs);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.edit-task-input-header:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.task-info-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.task-project-name {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.separator {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
 .header-content {
   display: flex;
   align-items: center;

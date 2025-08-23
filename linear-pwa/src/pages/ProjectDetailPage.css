@@ -2,6 +2,68 @@
   min-height: 100vh;
 }
 
+.project-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+  padding: 0 10px;
+}
+
+.project-header-row .btn {
+  background: #FFFFFF;
+}
+
+.project-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+}
+
+.project-name-text {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: color 0.15s;
+}
+
+.project-name-text:hover {
+  color: var(--primary-color);
+}
+
+.edit-project-input-header {
+  width: 100%;
+  padding: var(--spacing-xs);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.edit-project-input-header:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+}
+
+.project-header-icon {
+  color: var(--primary-color);
+}
+
+
+.project-status-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
 .header-content {
   display: flex;
   align-items: center;

@@ -65,18 +65,6 @@ function ProjectForm({ onSubmit, onCancel }) {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="status">Initial Status</label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-            >
-              <option value="planned">Planning</option>
-              <option value="started">In Progress</option>
-            </select>
-          </div>
 
           <div className="project-form-actions">
             <button 

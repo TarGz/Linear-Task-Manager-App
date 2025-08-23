@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical, CheckCircle } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
@@ -215,56 +215,62 @@ function TaskDetailPage() {
     <div className="task-detail-page">
       <div className="page-header">
         <div className="container">
-          <div className="header-content">
+          <div className="task-header-row">
             <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
               <ArrowLeft size={20} />
             </button>
-            <div className="header-info">
+            <div className="task-name-header">
               {isEditing ? (
-                <div className="edit-task-form">
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    className="edit-task-input"
-                    autoFocus
-                    onBlur={() => {
-                      if (editTitle !== task?.title) {
-                        handleEditTask();
-                      } else {
-                        setIsEditing(false);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleEditTask();
-                      } else if (e.key === 'Escape') {
-                        setEditTitle(task?.title);
-                        setIsEditing(false);
-                      }
-                    }}
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="edit-task-input-header"
+                  autoFocus
+                  onBlur={() => {
+                    if (editTitle !== task?.title) {
+                      handleEditTask();
+                    } else {
+                      setIsEditing(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleEditTask();
+                    } else if (e.key === 'Escape') {
+                      setEditTitle(task?.title);
+                      setIsEditing(false);
+                    }
+                  }}
+                />
               ) : (
-                <>
-                  <h1 className="page-title" onClick={() => setIsEditing(true)}>
-                    {task?.title}
-                  </h1>
-                  <span className={`status-badge status-${getStatusClass(task?.state?.type)}`}>
-                    {getStatusDisplay(task?.state?.type)}
-                  </span>
-                </>
+                <span className="task-name" onClick={() => setIsEditing(true)}>
+                  <CheckCircle size={16} className="task-header-icon" />
+                  {task?.title}
+                </span>
               )}
             </div>
-            <div className="header-actions">
-              <button
-                className="btn btn-icon btn-secondary more-btn"
-                onClick={() => setShowTaskActions(!showTaskActions)}
-                title="More actions"
-              >
-                <MoreVertical size={20} />
-              </button>
+            <button
+              className="btn btn-icon btn-secondary more-btn"
+              onClick={() => setShowTaskActions(!showTaskActions)}
+              title="More actions"
+            >
+              <MoreVertical size={20} />
+            </button>
+          </div>
+          
+          <div className="task-info-row">
+            <div className="task-project-name">
+              {task?.project?.name || 'Personal'}
             </div>
+            <span className="separator">-</span>
+            <button 
+              className={`status-badge status-${getStatusClass(task?.state?.type)} clickable`}
+              onClick={() => handleTaskClick(task)}
+              title="Click to change status"
+            >
+              {getStatusDisplay(task?.state?.type)}
+            </button>
           </div>
         </div>
       </div>

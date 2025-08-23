@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import ProjectForm from '../components/ProjectForm';
@@ -154,10 +154,10 @@ function ProjectsPage() {
       <div className="page-header">
         <div className="container">
           <div className="header-content">
-            <div>
-              <h1 className="page-title">Projects</h1>
-              <p className="page-subtitle">{activeProjects.length} active projects</p>
-            </div>
+            <h1 className="page-title">
+              <Home size={24} className="page-icon" />
+              Projects
+            </h1>
           </div>
         </div>
       </div>
@@ -169,6 +169,7 @@ function ProjectsPage() {
               {error}
             </div>
           )}
+
 
           {projects.length === 0 && !error ? (
             <div className="empty-state">

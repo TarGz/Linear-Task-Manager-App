@@ -2,7 +2,7 @@ import { Calendar } from 'lucide-react';
 import { useRef, useState } from 'react';
 import './TaskCard.css';
 
-function TaskCard({ task, onStatusChange, onClick, onLongPress }) {
+function TaskCard({ task, onStatusChange, onClick, onLongPress, hideProjectName = false }) {
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -107,7 +107,7 @@ function TaskCard({ task, onStatusChange, onClick, onLongPress }) {
       <div className="task-content">
         <div className="task-main">
           <h4 className="task-title">{task.title}</h4>
-          {task.project && (
+          {task.project && !hideProjectName && (
             <span className="task-project">{task.project.name}</span>
           )}
           {task.dueDate && (

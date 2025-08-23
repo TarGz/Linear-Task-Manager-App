@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Edit, Trash2, MoreVertical, ExternalLink, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, MoreVertical, ExternalLink, Palette, Package, Briefcase, Target, Lightbulb, Zap, Rocket, Star, Heart, Coffee, Camera, Music, Book, Code, Globe, Shield, Wrench, Monitor, Smartphone, Megaphone, CheckSquare } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
@@ -210,6 +210,60 @@ function ProjectDetailPage() {
     window.open(`https://linear.app/project/${project.id}`, '_blank');
   };
 
+  // Available project icons
+  const availableIcons = {
+    'package': Package,
+    'briefcase': Briefcase,
+    'target': Target,
+    'lightbulb': Lightbulb,
+    'zap': Zap,
+    'rocket': Rocket,
+    'star': Star,
+    'heart': Heart,
+    'coffee': Coffee,
+    'camera': Camera,
+    'music': Music,
+    'book': Book,
+    'code': Code,
+    'palette': Palette,
+    'globe': Globe,
+    'shield': Shield,
+    'wrench': Wrench,
+    'monitor': Monitor,
+    'smartphone': Smartphone,
+    'megaphone': Megaphone,
+    'checksquare': CheckSquare
+  };
+
+  // Get project icon
+  const getProjectIcon = () => {
+    const savedIcons = JSON.parse(localStorage.getItem('projectIcons') || '{}');
+    const savedIconKey = savedIcons[project?.id];
+    
+    if (savedIconKey && availableIcons[savedIconKey]) {
+      const Icon = availableIcons[savedIconKey];
+      return <Icon size={16} className="project-header-icon" />;
+    }
+    
+    // Smart defaults based on project name
+    const lowercaseName = project?.name?.toLowerCase() || '';
+    let Icon = Package;
+    
+    if (lowercaseName.includes('website') || lowercaseName.includes('web')) {
+      Icon = Monitor;
+    } else if (lowercaseName.includes('mobile') || lowercaseName.includes('app')) {
+      Icon = Smartphone;
+    } else if (lowercaseName.includes('marketing') || lowercaseName.includes('campaign')) {
+      Icon = Megaphone;
+    } else if (lowercaseName.includes('code') || lowercaseName.includes('dev')) {
+      Icon = Code;
+    } else if (lowercaseName.includes('design') || lowercaseName.includes('ui')) {
+      Icon = Palette;
+    }
+    
+    return <Icon size={16} className="project-header-icon" />;
+  };
+
   const getStatusClass = (status) => {
     const statusMap = {
       'planned': 'planning',
@@ -283,56 +337,54 @@ function ProjectDetailPage() {
     <div className="project-detail-page">
       <div className="page-header">
         <div className="container">
-          <div className="header-content">
+          <div className="project-header-row">
             <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
               <ArrowLeft size={20} />
             </button>
-            <div className="header-info">
+            <div className="project-name">
               {isEditing ? (
-                <div className="edit-project-form">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="edit-project-input"
-                    autoFocus
-                    onBlur={() => {
-                      if (editName !== project?.name) {
-                        handleEditProject();
-                      } else {
-                        setIsEditing(false);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleEditProject();
-                      } else if (e.key === 'Escape') {
-                        setEditName(project?.name);
-                        setIsEditing(false);
-                      }
-                    }}
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="edit-project-input-header"
+                  autoFocus
+                  onBlur={() => {
+                    if (editName !== project?.name) {
+                      handleEditProject();
+                    } else {
+                      setIsEditing(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleEditProject();
+                    } else if (e.key === 'Escape') {
+                      setEditName(project?.name);
+                      setIsEditing(false);
+                    }
+                  }}
+                />
               ) : (
-                <>
-                  <h1 className="page-title" onClick={() => setIsEditing(true)}>
-                    {project?.name}
-                  </h1>
-                  <span className={`status-badge status-${getStatusClass(project?.state)}`}>
-                    {getStatusDisplay(project?.state)}
-                  </span>
-                </>
+                <span onClick={() => setIsEditing(true)} className="project-name-text">
+                  {getProjectIcon()} {project?.name}
+                </span>
               )}
             </div>
-            <div className="header-actions">
-              <button
-                className="btn btn-icon btn-secondary more-btn"
-                onClick={() => setShowProjectActions(!showProjectActions)}
-                title="More actions"
-              >
-                <MoreVertical size={20} />
-              </button>
-            </div>
+            <button
+              className="btn btn-icon btn-secondary more-btn"
+              onClick={() => setShowProjectActions(!showProjectActions)}
+              title="More actions"
+            >
+              <MoreVertical size={20} />
+            </button>
+          </div>
+          
+          
+          <div className="project-status-section">
+            <span className={`status-badge status-${getStatusClass(project?.state)}`}>
+              {getStatusDisplay(project?.state)}
+            </span>
           </div>
         </div>
       </div>
@@ -362,6 +414,7 @@ function ProjectDetailPage() {
                     onClick={handleTaskClick}
                     onStatusChange={handleStatusChange}
                     onLongPress={handleTaskLongPress}
+                    hideProjectName={true}
                   />
                 ))}
               </div>

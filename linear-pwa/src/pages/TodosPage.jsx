@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, CheckSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import StatusMenu from '../components/StatusMenu';
@@ -12,17 +12,8 @@ function TodosPage() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
 
-  const filterOptions = [
-    { value: 'all', label: 'All Tasks' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'in-progress', label: 'In Progress' },
-    { value: 'done', label: 'Completed' },
-    { value: 'overdue', label: 'Overdue' }
-  ];
 
   const loadTasks = async () => {
     try {
@@ -68,39 +59,14 @@ function TodosPage() {
     }
   };
 
-  const applyFilter = (tasks, filterType) => {
-    const now = new Date();
-    
-    switch (filterType) {
-      case 'pending':
-        return tasks.filter(task => 
-          task.state?.type !== 'completed' && task.state?.type !== 'canceled'
-        );
-      case 'in-progress':
-        return tasks.filter(task => 
-          task.state?.type === 'started' || 
-          task.state?.name?.toLowerCase().includes('progress')
-        );
-      case 'done':
-        return tasks.filter(task => task.state?.type === 'completed');
-      case 'overdue':
-        return tasks.filter(task => 
-          task.dueDate && 
-          new Date(task.dueDate) < now && 
-          task.state?.type !== 'completed'
-        );
-      default:
-        return tasks;
-    }
-  };
 
   useEffect(() => {
     loadTasks();
   }, []);
 
   useEffect(() => {
-    setFilteredTasks(applyFilter(tasks, filter));
-  }, [tasks, filter]);
+    setFilteredTasks(tasks);
+  }, [tasks]);
 
   const handleTaskClick = (task, event) => {
     navigate(`/task/${task.id}`);
@@ -173,9 +139,6 @@ function TodosPage() {
   };
 
 
-  const getFilterCount = (filterType) => {
-    return applyFilter(tasks, filterType).length;
-  };
 
   if (isLoading) {
     return (
@@ -202,39 +165,14 @@ function TodosPage() {
       <div className="page-header">
         <div className="container">
           <div className="header-content">
-            <h1 className="page-title">All Tasks</h1>
-            <div className="header-actions">
-              <button
-                className="btn btn-icon btn-secondary filter-toggle"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter size={20} />
-              </button>
-            </div>
+            <h1 className="page-title">
+              <CheckSquare size={24} className="page-icon" />
+              All Tasks
+            </h1>
           </div>
         </div>
       </div>
 
-      {showFilters && (
-        <div className="filters-section">
-          <div className="container">
-            <div className="filters-grid">
-              {filterOptions.map(option => (
-                <button
-                  key={option.value}
-                  className={`filter-btn ${filter === option.value ? 'active' : ''}`}
-                  onClick={() => setFilter(option.value)}
-                >
-                  {option.label}
-                  <span className="filter-count">
-                    {getFilterCount(option.value)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
       
       <div className="page-content">
         <div className="container">
@@ -244,18 +182,11 @@ function TodosPage() {
             </div>
           )}
 
-          <div className="tasks-summary">
-            <p>{filteredTasks.length} task{filteredTasks.length !== 1 ? 's' : ''}</p>
-          </div>
 
           {filteredTasks.length === 0 && !error ? (
             <div className="empty-state">
               <h3>No tasks found</h3>
-              <p>
-                {filter === 'all' 
-                  ? "You don't have any tasks yet. Create your first task in Linear to get started."
-                  : `No ${filterOptions.find(f => f.value === filter)?.label.toLowerCase()} tasks found.`
-                }
+              <p>You don't have any tasks yet. Create your first task in Linear to get started.
               </p>
             </div>
           ) : (
@@ -274,9 +205,6 @@ function TodosPage() {
         </div>
       </div>
 
-      <button className="fab" onClick={() => window.open('https://linear.app', '_blank')}>
-        <Plus size={24} />
-      </button>
 
       {selectedTask && (
         <StatusMenu

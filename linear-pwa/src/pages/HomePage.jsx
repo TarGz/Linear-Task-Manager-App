@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Activity } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import ProjectStatusMenu from '../components/ProjectStatusMenu';
@@ -137,15 +137,10 @@ function HomePage() {
       <div className="page-header">
         <div className="container">
           <div className="header-content">
-            <div className="header-info">
-              <h1 className="page-title">
-                <Activity size={24} className="page-icon" />
-                In Progress
-              </h1>
-              <p className="page-subtitle">
-                {inProgressProjects.length} active {inProgressProjects.length === 1 ? 'project' : 'projects'}
-              </p>
-            </div>
+            <h1 className="page-title">
+              <Clock size={24} className="page-icon" />
+              In Progress
+            </h1>
           </div>
         </div>
       </div>
@@ -157,6 +152,7 @@ function HomePage() {
               {error}
             </div>
           )}
+
 
           {inProgressProjects.length === 0 && !error ? (
             <div className="empty-state">
