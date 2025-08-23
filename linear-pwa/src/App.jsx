@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import BottomNav from './components/BottomNav';
+import HomePage from './pages/HomePage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import TodosPage from './pages/TodosPage';
+import TaskDetailPage from './pages/TaskDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import linearApi from './services/linearApi';
 import './App.css';
@@ -42,11 +44,20 @@ function App() {
               path="/" 
               element={
                 isApiKeySet ? 
+                <HomePage /> : 
+                <Navigate to="/settings" replace />
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                isApiKeySet ? 
                 <ProjectsPage /> : 
                 <Navigate to="/settings" replace />
               } 
             />
             <Route path="/project/:id" element={<ProjectDetailPage />} />
+            <Route path="/task/:id" element={<TaskDetailPage />} />
             <Route 
               path="/todos" 
               element={

@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Activity, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
-import ProjectForm from '../components/ProjectForm';
 import ProjectStatusMenu from '../components/ProjectStatusMenu';
 import linearApi from '../services/linearApi';
-import './ProjectsPage.css';
+import './HomePage.css';
 
-function ProjectsPage() {
+function HomePage() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState([]);
+  const [inProgressProjects, setInProgressProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+
 
   const loadProjects = async (showRefreshSpinner = false) => {
     try {
@@ -26,10 +26,15 @@ function ProjectsPage() {
       setError('');
       
       const data = await linearApi.getProjects();
+      const allProjectsList = data.projects?.nodes || [];
+      allProjectsList.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setAllProjects(allProjectsList);
       
-      const allProjects = data.projects?.nodes || [];
-      allProjects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setProjects(allProjects);
+      // Filter in progress projects
+      const inProgressProjectsList = allProjectsList.filter(project => 
+        project.state === 'started' || project.state === 'progress'
+      );
+      setInProgressProjects(inProgressProjectsList);
     } catch (error) {
       setError('Failed to load projects. Please check your connection and try again.');
       console.error('Failed to load projects:', error);
@@ -43,6 +48,14 @@ function ProjectsPage() {
     loadProjects();
   }, []);
 
+  // Update in progress projects when allProjects change
+  useEffect(() => {
+    const inProgressProjectsList = allProjects.filter(project => 
+      project.state === 'started' || project.state === 'progress'
+    );
+    setInProgressProjects(inProgressProjectsList);
+  }, [allProjects]);
+
   const handleProjectClick = (project) => {
     navigate(`/project/${project.id}`);
   };
@@ -51,14 +64,11 @@ function ProjectsPage() {
     try {
       await linearApi.updateProject(projectId, { state: newStatus });
       
-      // Update project locally instead of full reload
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === projectId 
-            ? { ...project, state: newStatus }
-            : project
-        )
-      );
+      // Update projects locally
+      const updateProject = (project) => 
+        project.id === projectId ? { ...project, state: newStatus } : project;
+      
+      setAllProjects(prev => prev.map(updateProject));
       
       setSelectedProject(null);
     } catch (error) {
@@ -74,45 +84,20 @@ function ProjectsPage() {
     loadProjects(true);
   };
 
-  const handleCreateProject = async (projectData) => {
-    try {
-      // Get teams to find a team ID
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
-      if (!teamId) {
-        alert('No team found. Please make sure you have at least one team in Linear.');
-        setShowProjectForm(false);
-        return;
-      }
-
-      await linearApi.createProject({
-        name: projectData.name,
-        teamIds: [teamId],
-        description: projectData.description || ''
-      });
-      
-      setShowProjectForm(false);
-      await loadProjects(); // Refresh to show new project
-    } catch (error) {
-      console.error('Project creation failed:', error);
-      setShowProjectForm(false);
-    }
-  };
 
   if (isLoading) {
     return (
-      <div className="projects-page">
+      <div className="home-page">
         <div className="page-header">
           <div className="container">
-            <h1 className="page-title">Projects</h1>
+            <h1 className="page-title">In Progress</h1>
           </div>
         </div>
         <div className="page-content">
           <div className="container">
             <div className="loading-state">
               <div className="loading-spinner"></div>
-              <p>Loading projects...</p>
+              <p>Loading in progress projects...</p>
             </div>
           </div>
         </div>
@@ -120,16 +105,19 @@ function ProjectsPage() {
     );
   }
 
-  const activeProjects = projects.filter(p => p.state !== 'completed' && p.state !== 'canceled');
-
   return (
-    <div className="projects-page">
+    <div className="home-page">
       <div className="page-header">
         <div className="container">
           <div className="header-content">
-            <div>
-              <h1 className="page-title">Projects</h1>
-              <p className="page-subtitle">{activeProjects.length} active projects</p>
+            <div className="header-info">
+              <h1 className="page-title">
+                <Activity size={24} className="page-icon" />
+                In Progress
+              </h1>
+              <p className="page-subtitle">
+                {inProgressProjects.length} active {inProgressProjects.length === 1 ? 'project' : 'projects'}
+              </p>
             </div>
             <button
               className="btn btn-icon btn-secondary refresh-btn"
@@ -150,14 +138,21 @@ function ProjectsPage() {
             </div>
           )}
 
-          {projects.length === 0 && !error ? (
+          {inProgressProjects.length === 0 && !error ? (
             <div className="empty-state">
-              <h3>No projects found</h3>
-              <p>You don't have any projects yet. Create your first project in Linear to get started.</p>
+              <Activity size={48} className="empty-state-icon" />
+              <h3>No projects in progress</h3>
+              <p>This is your In Progress page. To see ALL your projects, click "Projects" in the bottom navigation. Projects with "In Progress" or "Started" status will appear here.</p>
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/projects')}
+              >
+                Go to All Projects
+              </button>
             </div>
           ) : (
             <div className="projects-list">
-              {projects.map(project => (
+              {inProgressProjects.map(project => (
                 <ProjectCard
                   key={project.id}
                   project={project}
@@ -171,21 +166,6 @@ function ProjectsPage() {
         </div>
       </div>
 
-      <button 
-        className="fab create-project-fab"
-        onClick={() => setShowProjectForm(true)}
-        title="Create New Project"
-      >
-        <Plus size={24} />
-      </button>
-
-      {showProjectForm && (
-        <ProjectForm
-          onSubmit={handleCreateProject}
-          onCancel={() => setShowProjectForm(false)}
-        />
-      )}
-
       {selectedProject && (
         <ProjectStatusMenu
           project={selectedProject}
@@ -197,4 +177,4 @@ function ProjectsPage() {
   );
 }
 
-export default ProjectsPage;
+export default HomePage;

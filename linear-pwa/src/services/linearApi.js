@@ -42,12 +42,16 @@ class LinearAPI {
       );
 
       if (response.data.errors) {
+        console.error('Linear API GraphQL Errors:', response.data.errors);
         throw new Error(response.data.errors[0].message);
       }
 
       return response.data.data;
     } catch (error) {
       console.error('Linear API Error:', error);
+      if (error.response?.data) {
+        console.error('Linear API Response Data:', error.response.data);
+      }
       throw error;
     }
   }
@@ -213,10 +217,10 @@ class LinearAPI {
     return this.query(mutation, { id, input });
   }
 
-  async createProject(teamId, input) {
+  async createProject(input) {
     const mutation = `
-      mutation($teamId: String!, $input: ProjectCreateInput!) {
-        projectCreate(teamId: $teamId, input: $input) {
+      mutation($input: ProjectCreateInput!) {
+        projectCreate(input: $input) {
           success
           project {
             id
@@ -227,7 +231,7 @@ class LinearAPI {
         }
       }
     `;
-    return this.query(mutation, { teamId, input });
+    return this.query(mutation, { input });
   }
 
   async updateProject(id, input) {
@@ -263,6 +267,28 @@ class LinearAPI {
       }
     `;
     return this.query(query, { teamId });
+  }
+
+  async deleteProject(id) {
+    const mutation = `
+      mutation($id: String!) {
+        projectDelete(id: $id) {
+          success
+        }
+      }
+    `;
+    return this.query(mutation, { id });
+  }
+
+  async deleteIssue(id) {
+    const mutation = `
+      mutation($id: String!) {
+        issueDelete(id: $id) {
+          success
+        }
+      }
+    `;
+    return this.query(mutation, { id });
   }
 }
 

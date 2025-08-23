@@ -1,0 +1,1 @@
+- you need to update the version on the app in the settings and in the readme, and in the console log for each new feature major,minor,fix

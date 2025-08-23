@@ -38,3 +38,9 @@
   font-size: 0.75rem;
   font-weight: 500;
 }
+
+@media (max-width: 380px) {
+  .nav-item span {
+    font-size: 0.7rem;
+  }
+}

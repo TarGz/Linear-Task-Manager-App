@@ -1,0 +1,401 @@
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical, RefreshCw } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import StatusMenu from '../components/StatusMenu';
+import linearApi from '../services/linearApi';
+import './TaskDetailPage.css';
+
+function TaskDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [task, setTask] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTaskActions, setShowTaskActions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
+
+  const loadTask = async (showRefreshSpinner = false) => {
+    try {
+      if (showRefreshSpinner) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      setError('');
+      
+      // For now, we'll get the task from the issues list
+      const data = await linearApi.getAllIssues();
+      const foundTask = data.issues.nodes.find(issue => issue.id === id);
+      
+      if (foundTask) {
+        setTask(foundTask);
+        setEditTitle(foundTask.title);
+      } else {
+        setError('Task not found');
+      }
+    } catch (error) {
+      setError('Failed to load task details. Please check your connection and try again.');
+      console.error('Failed to load task:', error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTask();
+  }, [id]);
+
+  const handleTaskClick = (task, event) => {
+    setSelectedTask(task);
+  };
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      // Get teams to find a team ID
+      const teamsData = await linearApi.getTeams();
+      const teamId = teamsData.teams?.nodes?.[0]?.id;
+      
+      if (!teamId) {
+        console.error('No team found');
+        return;
+      }
+
+      const workflowStates = await linearApi.getWorkflowStates(teamId);
+      
+      // Find the appropriate state based on the newStatus value
+      let targetState;
+      if (newStatus === 'completed') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'completed'
+        );
+      } else if (newStatus === 'started') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'started'
+        );
+      } else if (newStatus === 'planned') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'unstarted' || state.type === 'backlog'
+        );
+      } else if (newStatus === 'canceled') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'canceled'
+        );
+      }
+      
+      if (targetState) {
+        await linearApi.updateIssue(taskId, { stateId: targetState.id });
+        
+        // Update the task locally
+        setTask(prevTask => ({
+          ...prevTask,
+          state: {
+            ...prevTask.state,
+            type: targetState.type,
+            id: targetState.id,
+            name: targetState.name
+          }
+        }));
+        
+        setSelectedTask(null); // Close the menu
+      } else {
+        console.error('Target state not found for:', newStatus);
+      }
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+    }
+  };
+
+  const handleRefresh = () => {
+    loadTask(true);
+  };
+
+  const handleEditTask = async () => {
+    if (!editTitle.trim()) return;
+    
+    try {
+      await linearApi.updateIssue(id, { title: editTitle });
+      setTask(prev => ({ ...prev, title: editTitle }));
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    try {
+      setShowTaskActions(false);
+      await linearApi.deleteIssue(id);
+      navigate(-1);
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+    }
+  };
+
+  const handleOpenInLinear = () => {
+    window.open(`https://linear.app/issue/${task.id}`, '_blank');
+  };
+
+  const getStatusClass = (stateType) => {
+    const statusMap = {
+      'unstarted': 'planning',
+      'backlog': 'planning', 
+      'started': 'progress',
+      'completed': 'done',
+      'canceled': 'canceled'
+    };
+    return statusMap[stateType] || 'planning';
+  };
+
+  const getStatusDisplay = (stateType) => {
+    const statusMap = {
+      'unstarted': 'Planning',
+      'backlog': 'Planning',
+      'started': 'In Progress', 
+      'completed': 'Done',
+      'canceled': 'Canceled'
+    };
+    return statusMap[stateType] || 'Planning';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No due date';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric',
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="task-detail-page">
+        <div className="page-header">
+          <div className="container">
+            <div className="header-content">
+              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+                <ArrowLeft size={20} />
+              </button>
+              <h1 className="page-title">Loading...</h1>
+            </div>
+          </div>
+        </div>
+        <div className="page-content">
+          <div className="container">
+            <div className="loading-state">
+              <div className="loading-spinner"></div>
+              <p>Loading task...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="task-detail-page">
+        <div className="page-header">
+          <div className="container">
+            <div className="header-content">
+              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+                <ArrowLeft size={20} />
+              </button>
+              <h1 className="page-title">Error</h1>
+            </div>
+          </div>
+        </div>
+        <div className="page-content">
+          <div className="container">
+            <div className="error-message">
+              {error}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="task-detail-page">
+      <div className="page-header">
+        <div className="container">
+          <div className="header-content">
+            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+            <div className="header-info">
+              {isEditing ? (
+                <div className="edit-task-form">
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="edit-task-input"
+                    autoFocus
+                    onBlur={() => {
+                      if (editTitle !== task?.title) {
+                        handleEditTask();
+                      } else {
+                        setIsEditing(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleEditTask();
+                      } else if (e.key === 'Escape') {
+                        setEditTitle(task?.title);
+                        setIsEditing(false);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <h1 className="page-title" onClick={() => setIsEditing(true)}>
+                    {task?.title}
+                  </h1>
+                  <span className={`status-badge status-${getStatusClass(task?.state?.type)}`}>
+                    {getStatusDisplay(task?.state?.type)}
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="header-actions">
+              <button
+                className="btn btn-icon btn-secondary more-btn"
+                onClick={() => setShowTaskActions(!showTaskActions)}
+                title="More actions"
+              >
+                <MoreVertical size={20} />
+              </button>
+              <button
+                className="btn btn-icon btn-secondary refresh-btn"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="page-content">
+        <div className="container">
+          {task?.description && (
+            <div className="task-description card">
+              <h3>Description</h3>
+              <p>{task.description}</p>
+            </div>
+          )}
+
+          <div className="task-details card">
+            <h3>Task Details</h3>
+            
+            <div className="detail-item">
+              <strong>Status:</strong>
+              <button 
+                className={`status-badge status-${getStatusClass(task?.state?.type)} clickable`}
+                onClick={() => handleTaskClick(task)}
+                title="Click to change status"
+              >
+                {getStatusDisplay(task?.state?.type)}
+              </button>
+            </div>
+
+            {task?.project && (
+              <div className="detail-item">
+                <strong>Project:</strong>
+                <span>{task.project.name}</span>
+              </div>
+            )}
+
+            {task?.assignee && (
+              <div className="detail-item">
+                <strong>Assignee:</strong>
+                <div className="assignee-info">
+                  {task.assignee.avatarUrl ? (
+                    <img src={task.assignee.avatarUrl} alt={task.assignee.name} className="avatar" />
+                  ) : (
+                    <div className="avatar-placeholder">{task.assignee.name.charAt(0)}</div>
+                  )}
+                  <span>{task.assignee.name}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="detail-item">
+              <strong>Due Date:</strong>
+              <span>{formatDate(task?.dueDate)}</span>
+            </div>
+
+            <div className="detail-item">
+              <strong>Created:</strong>
+              <span>{formatDate(task?.createdAt)}</span>
+            </div>
+
+            <div className="detail-item">
+              <strong>Updated:</strong>
+              <span>{formatDate(task?.updatedAt)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showTaskActions && (
+        <div className="task-actions-overlay" onClick={() => setShowTaskActions(false)}>
+          <div className="task-actions-menu card" onClick={(e) => e.stopPropagation()}>
+            <div className="task-actions-header">
+              <h4>Task Actions</h4>
+              <p className="task-title">{task?.title}</p>
+            </div>
+            <div className="task-actions-options">
+              <button
+                className="task-action-option"
+                onClick={() => {
+                  setShowTaskActions(false);
+                  setIsEditing(true);
+                }}
+              >
+                <Edit size={16} />
+                <span>Rename Task</span>
+              </button>
+              <button
+                className="task-action-option"
+                onClick={() => {
+                  setShowTaskActions(false);
+                  handleOpenInLinear();
+                }}
+              >
+                <ExternalLink size={16} />
+                <span>Open in Linear</span>
+              </button>
+              <button
+                className="task-action-option delete"
+                onClick={handleDeleteTask}
+              >
+                <Trash2 size={16} />
+                <span>Delete Task</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedTask && (
+        <StatusMenu
+          task={selectedTask}
+          onStatusChange={handleStatusChange}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+export default TaskDetailPage;

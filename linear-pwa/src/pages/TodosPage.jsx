@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Plus, RefreshCw, Filter } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
+import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
 import './TodosPage.css';
 
 function TodosPage() {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -12,6 +15,7 @@ function TodosPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filter, setFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const filterOptions = [
     { value: 'all', label: 'All Tasks' },
@@ -85,8 +89,12 @@ function TodosPage() {
     setFilteredTasks(applyFilter(tasks, filter));
   }, [tasks, filter]);
 
-  const handleTaskClick = (task) => {
-    window.open(`https://linear.app/issue/${task.id}`, '_blank');
+  const handleTaskClick = (task, event) => {
+    navigate(`/task/${task.id}`);
+  };
+
+  const handleTaskLongPress = (task, event) => {
+    setSelectedTask(task);
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -101,12 +109,29 @@ function TodosPage() {
       }
 
       const workflowStates = await linearApi.getWorkflowStates(teamId);
-      const doneState = workflowStates.team.states.nodes.find(state => 
-        state.type === 'completed' || state.name.toLowerCase().includes('done')
-      );
       
-      if (doneState) {
-        await linearApi.updateIssue(taskId, { stateId: doneState.id });
+      // Find the appropriate state based on the newStatus value
+      let targetState;
+      if (newStatus === 'completed' || newStatus === 'done') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'completed'
+        );
+      } else if (newStatus === 'started') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'started'
+        );
+      } else if (newStatus === 'planned') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'unstarted' || state.type === 'backlog'
+        );
+      } else if (newStatus === 'canceled') {
+        targetState = workflowStates.team.states.nodes.find(state => 
+          state.type === 'canceled'
+        );
+      }
+      
+      if (targetState) {
+        await linearApi.updateIssue(taskId, { stateId: targetState.id });
         
         // Update the task locally instead of reloading all tasks
         setTasks(prevTasks => 
@@ -116,14 +141,18 @@ function TodosPage() {
                   ...task, 
                   state: { 
                     ...task.state, 
-                    type: doneState.type,
-                    id: doneState.id,
-                    name: doneState.name 
+                    type: targetState.type,
+                    id: targetState.id,
+                    name: targetState.name 
                   } 
                 }
               : task
           )
         );
+        
+        setSelectedTask(null); // Close the menu
+      } else {
+        console.error('Target state not found for:', newStatus);
       }
     } catch (error) {
       console.error('Failed to update task status:', error);
@@ -234,6 +263,7 @@ function TodosPage() {
                   task={task}
                   onClick={handleTaskClick}
                   onStatusChange={handleStatusChange}
+                  onLongPress={handleTaskLongPress}
                 />
               ))}
             </div>
@@ -244,6 +274,14 @@ function TodosPage() {
       <button className="fab" onClick={() => window.open('https://linear.app', '_blank')}>
         <Plus size={24} />
       </button>
+
+      {selectedTask && (
+        <StatusMenu
+          task={selectedTask}
+          onStatusChange={handleStatusChange}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </div>
   );
 }

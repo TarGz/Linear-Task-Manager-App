@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Linear Task Manager',
         short_name: 'Linear Tasks',
-        description: 'Manage your Linear tasks offline',
+        description: 'Manage your Linear projects and tasks with favorites, offline support, and more',
         theme_color: '#F18173',
         background_color: '#ffffff',
         display: 'standalone',

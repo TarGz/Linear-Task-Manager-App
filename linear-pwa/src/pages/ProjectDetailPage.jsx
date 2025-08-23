@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Plus, RefreshCw, Edit, Trash2, MoreVertical, ExternalLink } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
@@ -17,6 +17,9 @@ function ProjectDetailPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [showProjectActions, setShowProjectActions] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState('');
 
   const loadProject = async (showRefreshSpinner = false) => {
     try {
@@ -40,6 +43,7 @@ function ProjectDetailPage() {
       });
       
       setTasks(sortedTasks);
+      setEditName(data.project.name);
     } catch (error) {
       setError('Failed to load project details. Please check your connection and try again.');
       console.error('Failed to load project:', error);
@@ -54,6 +58,10 @@ function ProjectDetailPage() {
   }, [id]);
 
   const handleTaskClick = (task, event) => {
+    navigate(`/task/${task.id}`);
+  };
+
+  const handleTaskLongPress = (task, event) => {
     setSelectedTask(task);
   };
 
@@ -161,6 +169,35 @@ function ProjectDetailPage() {
     loadProject(true);
   };
 
+  const handleEditProject = async () => {
+    if (!editName.trim()) return;
+    
+    try {
+      await linearApi.updateProject(id, { name: editName });
+      setProject(prev => ({ ...prev, name: editName }));
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      try {
+        setShowProjectActions(false);
+        await linearApi.deleteProject(id);
+        navigate(-1);
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+        alert('Failed to delete project. Please try again.');
+      }
+    }
+  };
+
+  const handleOpenInLinear = () => {
+    window.open(`https://linear.app/project/${project.id}`, '_blank');
+  };
+
   const getStatusClass = (status) => {
     const statusMap = {
       'planned': 'planning',
@@ -239,18 +276,58 @@ function ProjectDetailPage() {
               <ArrowLeft size={20} />
             </button>
             <div className="header-info">
-              <h1 className="page-title">{project?.name}</h1>
-              <span className={`status-badge status-${getStatusClass(project?.state)}`}>
-                {getStatusDisplay(project?.state)}
-              </span>
+              {isEditing ? (
+                <div className="edit-project-form">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="edit-project-input"
+                    autoFocus
+                    onBlur={() => {
+                      if (editName !== project?.name) {
+                        handleEditProject();
+                      } else {
+                        setIsEditing(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleEditProject();
+                      } else if (e.key === 'Escape') {
+                        setEditName(project?.name);
+                        setIsEditing(false);
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <h1 className="page-title" onClick={() => setIsEditing(true)}>
+                    {project?.name}
+                  </h1>
+                  <span className={`status-badge status-${getStatusClass(project?.state)}`}>
+                    {getStatusDisplay(project?.state)}
+                  </span>
+                </>
+              )}
             </div>
-            <button
-              className="btn btn-icon btn-secondary refresh-btn"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            >
-              <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
-            </button>
+            <div className="header-actions">
+              <button
+                className="btn btn-icon btn-secondary more-btn"
+                onClick={() => setShowProjectActions(!showProjectActions)}
+                title="More actions"
+              >
+                <MoreVertical size={20} />
+              </button>
+              <button
+                className="btn btn-icon btn-secondary refresh-btn"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw size={20} className={isRefreshing ? 'spinning' : ''} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -279,6 +356,7 @@ function ProjectDetailPage() {
                     task={task}
                     onClick={handleTaskClick}
                     onStatusChange={handleStatusChange}
+                    onLongPress={handleTaskLongPress}
                   />
                 ))}
               </div>
@@ -309,6 +387,36 @@ function ProjectDetailPage() {
           onStatusChange={handleStatusChange}
           onClose={() => setSelectedTask(null)}
         />
+      )}
+
+      {showProjectActions && (
+        <div className="project-actions-overlay" onClick={() => setShowProjectActions(false)}>
+          <div className="project-actions-menu card" onClick={(e) => e.stopPropagation()}>
+            <div className="project-actions-header">
+              <h4>Project Actions</h4>
+              <p className="project-title">{project?.name}</p>
+            </div>
+            <div className="project-actions-options">
+              <button
+                className="project-action-option"
+                onClick={() => {
+                  setShowProjectActions(false);
+                  handleOpenInLinear();
+                }}
+              >
+                <ExternalLink size={16} />
+                <span>Open in Linear</span>
+              </button>
+              <button
+                className="project-action-option delete"
+                onClick={handleDeleteProject}
+              >
+                <Trash2 size={16} />
+                <span>Delete Project</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

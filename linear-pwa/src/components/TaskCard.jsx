@@ -2,19 +2,39 @@ import { Calendar, User, Check, Play } from 'lucide-react';
 import { useRef, useState } from 'react';
 import './TaskCard.css';
 
-function TaskCard({ task, onStatusChange, onClick }) {
+function TaskCard({ task, onStatusChange, onClick, onLongPress }) {
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState(null);
+  const [isLongPress, setIsLongPress] = useState(false);
   const cardRef = useRef(null);
 
   const handleTouchStart = (e) => {
     setStartX(e.touches[0].clientX);
     setIsDragging(true);
+    setIsLongPress(false);
+    
+    // Start long press timer
+    const timer = setTimeout(() => {
+      setIsLongPress(true);
+      if (onLongPress) {
+        onLongPress(task, e);
+      }
+    }, 500); // 500ms for long press
+    
+    setLongPressTimer(timer);
   };
 
   const handleTouchMove = (e) => {
     if (!isDragging) return;
+    
+    // Clear long press timer on move
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+    
     setCurrentX(e.touches[0].clientX);
     const diff = e.touches[0].clientX - startX;
     if (cardRef.current && diff > 0) {
@@ -24,10 +44,19 @@ function TaskCard({ task, onStatusChange, onClick }) {
   };
 
   const handleTouchEnd = () => {
-    const diff = currentX - startX;
-    if (diff > 100 && onStatusChange) {
-      onStatusChange(task.id, 'done');
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
     }
+    
+    const diff = currentX - startX;
+    
+    // Handle swipe to complete if not a long press
+    if (!isLongPress && diff > 100 && onStatusChange) {
+      onStatusChange(task.id, 'completed');
+    }
+    
     if (cardRef.current) {
       cardRef.current.style.transform = '';
       cardRef.current.style.opacity = '';
@@ -35,6 +64,7 @@ function TaskCard({ task, onStatusChange, onClick }) {
     setIsDragging(false);
     setStartX(0);
     setCurrentX(0);
+    setIsLongPress(false);
   };
 
   const formatDate = (dateString) => {
@@ -69,7 +99,7 @@ function TaskCard({ task, onStatusChange, onClick }) {
     <div
       ref={cardRef}
       className="task-card card"
-      onClick={(e) => !isDragging && onClick && onClick(task, e)}
+      onClick={(e) => !isDragging && !isLongPress && onClick && onClick(task, e)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

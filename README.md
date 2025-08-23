@@ -1,20 +1,37 @@
-# Linear Task Manager PWA
+# Linear Task Manager PWA v2.1.0
 
-A Progressive Web App for managing your Linear tasks offline. Built with React, Vite, and the Linear API.
+A Progressive Web App for managing your Linear projects and tasks with advanced features. Built with React, Vite, and the Linear API.
 
 ## Features
 
+### Core Functionality
 - 🔐 **Secure API Key Storage** - Store your Linear API key locally on your device
 - 📱 **Mobile-First Design** - Optimized for mobile devices with touch gestures
-- ↔️ **Swipe to Complete** - Swipe right on tasks and projects to mark them as done
 - 🚀 **Offline Support** - Works offline with cached data
 - 🔄 **Real-time Sync** - Syncs with Linear when online
+
+### Project Management (v2.1.0)
+- ⭐ **Favorites System** - Mark projects as favorites for quick access
+- 🏠 **Dedicated Home Page** - View only your favorite projects on the home screen
+- ✏️ **Project Editing** - Edit project names directly in the app
+- 🗑️ **Project Management** - Delete projects with confirmation
+- ➕ **Project Creation** - Create new projects directly from the app
+
+### Task Management
+- ↔️ **Swipe to Complete** - Swipe right on tasks to mark them as done
+- 📱 **Contextual Menus** - Tap tasks to open status update menu (no more Linear redirects!)
+- ⏰ **Long Press Support** - Long press for advanced actions
 - 📊 **Multiple Views**:
-  - **Projects View** - See all your projects and their status
-  - **Project Detail** - View tasks within a specific project
+  - **Favorites** - Quick access to your starred projects
+  - **Projects** - See all your projects and their status  
+  - **Project Detail** - View and manage tasks within a specific project
   - **All Tasks** - Global view of all tasks across projects
+
+### Advanced Features
 - 🏷️ **Smart Filtering** - Filter tasks by status (pending, in progress, done, overdue)
-- 🎨 **Clean UI** - Based on modern design principles with Linear's color scheme
+- 🎯 **Status Management** - Full status workflow support (Planning → In Progress → Done → Canceled)
+- 🎨 **Modern UI** - Clean interface with consistent design patterns
+- 📊 **Progress Tracking** - Visual progress indicators for projects
 
 ## Getting Started
 
@@ -55,15 +72,18 @@ npm run dev
 
 ### Navigation
 
-- **Projects Tab** - View all your Linear projects
-- **All Tasks Tab** - See tasks from all projects in one view
-- **Settings Tab** - Manage your API key and app settings
+- **Favorites Tab** (❤️) - Quick access to your favorite projects
+- **Projects Tab** (🏠) - View all your Linear projects with create/manage options
+- **All Tasks Tab** (☑️) - See tasks from all projects in one view
+- **Settings Tab** (⚙️) - Manage your API key and app settings
 
 ### Gestures
 
-- **Tap** - Open task/project details
+- **Tap** - Open contextual menus for status updates
+- **Long Press** - Alternative way to open contextual menus
 - **Swipe Right** - Mark task or project as completed
-- **Pull to Refresh** - Sync with Linear (coming soon)
+- **Tap Project Title** - Navigate to project detail page
+- **Tap Red FAB (+)** - Create new project (Projects page only)
 
 ### Filtering Tasks
 

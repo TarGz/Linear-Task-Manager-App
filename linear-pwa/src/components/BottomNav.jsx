@@ -1,4 +1,4 @@
-import { Home, CheckSquare, Settings } from 'lucide-react';
+import { Activity, Home, CheckSquare, Settings } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import './BottomNav.css';
 
@@ -6,7 +6,8 @@ function BottomNav() {
   const location = useLocation();
   
   const navItems = [
-    { path: '/', icon: Home, label: 'Projects' },
+    { path: '/', icon: Activity, label: 'Ongoing' },
+    { path: '/projects', icon: Home, label: 'Projects' },
     { path: '/todos', icon: CheckSquare, label: 'All Tasks' },
     { path: '/settings', icon: Settings, label: 'Settings' }
   ];
