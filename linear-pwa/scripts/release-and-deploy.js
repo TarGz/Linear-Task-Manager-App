@@ -115,7 +115,7 @@ Features: ${features}
 Co-Authored-By: Claude <noreply@anthropic.com>`;
 }
 
-function main() {
+async function main() {
   const args = process.argv.slice(2);
   const versionType = args[0] || 'patch';
   const commitType = args[1] || versionType;
@@ -156,6 +156,10 @@ function main() {
   log('yellow', '📤 Pushing to GitHub...');
   execSync('git push', { stdio: 'inherit' });
   
+  // Small delay to ensure GitHub processes the push
+  log('blue', '⏳ Waiting for GitHub to process...');
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
   // Now deploy
   log('blue', '\n🌐 Starting deployment process...');
   
@@ -168,8 +172,29 @@ function main() {
   log('yellow', '📤 Deploying to GitHub Pages...');
   process.chdir('..');
   execSync('git add -A', { stdio: 'inherit' });
-  execSync(`git commit -m "Deploy v${newVersion} to GitHub Pages"`, { stdio: 'inherit' });
-  execSync('git push origin main', { stdio: 'inherit' });
+  
+  // Check if there are changes to commit
+  try {
+    execSync('git diff-index --quiet HEAD --', { stdio: 'pipe' });
+    log('yellow', 'ℹ️  No deployment changes needed.');
+  } catch (diffError) {
+    // There are changes to commit
+    try {
+      execSync(`git commit -m "Deploy v${newVersion} to GitHub Pages"`, { stdio: 'inherit' });
+      execSync('git push origin main', { stdio: 'inherit' });
+    } catch (error) {
+      log('yellow', '⚠️  First push failed, retrying in 3 seconds...');
+      // Small delay and retry
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        execSync('git push origin main', { stdio: 'inherit' });
+        log('green', '✅ Retry successful!');
+      } catch (retryError) {
+        log('red', '❌ Deploy failed after retry. You may need to push manually.');
+        throw retryError;
+      }
+    }
+  }
   
   log('green', '\n✅ Release AND deployment complete!');
   log('cyan', `🔗 Live site will update in a few minutes`);
