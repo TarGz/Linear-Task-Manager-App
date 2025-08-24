@@ -199,6 +199,16 @@ async function main() {
     }
   }
   
+  // Trigger GitHub Pages deployment
+  log('yellow', '🚀 Triggering GitHub Pages deployment...');
+  try {
+    execSync('gh workflow run deploy.yml', { stdio: 'inherit' });
+    log('green', '✅ GitHub Pages deployment triggered!');
+  } catch (workflowError) {
+    log('yellow', '⚠️  Could not trigger workflow automatically');
+    log('yellow', '⚠️  Please manually run: GitHub → Actions → Deploy to GitHub Pages');
+  }
+  
   log('green', '\n✅ Release AND deployment complete!');
   log('cyan', `🔗 Live site will update in a few minutes`);
   log('cyan', `📱 Version ${newVersion} is now deployed`);
