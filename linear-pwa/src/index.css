@@ -17,10 +17,10 @@
   --error: #FF6B6B;
   --info: #339AF0;
   
-  --status-planning: #9E9E9E;
+  --status-planning: #FF6B6B;
   --status-progress: #7C4DFF;
   --status-done: #4CAF50;
-  --status-canceled: #F44336;
+  --status-canceled: #9E9E9E;
   
   --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
@@ -173,7 +173,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .status-planning {
-  background: rgba(158, 158, 158, 0.2);
+  background: rgba(255, 107, 107, 0.15);
   color: var(--status-planning);
 }
 
@@ -188,7 +188,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .status-canceled {
-  background: rgba(244, 67, 54, 0.2);
+  background: rgba(158, 158, 158, 0.15);
   color: var(--status-canceled);
 }
 

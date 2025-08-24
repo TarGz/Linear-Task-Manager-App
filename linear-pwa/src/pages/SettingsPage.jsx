@@ -179,7 +179,7 @@ function SettingsPage({ onApiKeyChange }) {
             <h2>App Information</h2>
             <div className="app-info card">
               <div className="user-item">
-                <strong>Version:</strong> 2.3.1
+                <strong>Version:</strong> 2.3.2
               </div>
               <div className="user-item">
                 <strong>Build:</strong> {new Date().toLocaleDateString()}

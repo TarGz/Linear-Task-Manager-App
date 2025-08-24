@@ -105,21 +105,42 @@ function TaskCard({ task, onStatusChange, onClick, onLongPress, hideProjectName 
       onTouchEnd={handleTouchEnd}
     >
       <div className="task-content">
-        <div className="task-main">
-          <h4 className="task-title">{task.title}</h4>
+        <div className="task-header-section">
+          <h4 className="task-title">
+            {task.title.substring(0, 25)}
+            {task.title.length > 25 ? '...' : ''}
+          </h4>
+          <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
+            {getStatusDisplay(task.state?.type)}
+          </span>
+        </div>
+        
+        <p className="task-mini-description">
+          {task.description ? (
+            <>
+              {task.description.substring(0, 35)}
+              {task.description.length > 35 ? '...' : ''}
+            </>
+          ) : (
+            <span style={{opacity: 0}}>-</span>
+          )}
+        </p>
+        
+        <div className="task-bottom-row">
+          <div className="task-due-date">
+            {task.dueDate ? (
+              <>
+                <Calendar size={12} />
+                <span>{formatDate(task.dueDate)}</span>
+              </>
+            ) : (
+              <span style={{opacity: 0}}>-</span>
+            )}
+          </div>
           {task.project && !hideProjectName && (
             <span className="task-project">{task.project.name}</span>
           )}
-          {task.dueDate && (
-            <div className="task-due-date">
-              <Calendar size={12} />
-              <span>{formatDate(task.dueDate)}</span>
-            </div>
-          )}
         </div>
-        <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
-          {getStatusDisplay(task.state?.type)}
-        </span>
       </div>
     </div>
   );
