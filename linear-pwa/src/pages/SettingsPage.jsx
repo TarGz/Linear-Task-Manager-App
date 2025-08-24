@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone } from 'lucide-react';
+import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw } from 'lucide-react';
 import linearApi from '../services/linearApi';
 import pwaService from '../services/pwaService';
 import { APP_VERSION, APP_FEATURES, BUILD_DATE } from '../config/constants';
@@ -14,6 +14,7 @@ function SettingsPage({ onApiKeyChange }) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [isForceUpdating, setIsForceUpdating] = useState(false);
 
   useEffect(() => {
     const currentKey = linearApi.getApiKey();
@@ -117,6 +118,18 @@ function SettingsPage({ onApiKeyChange }) {
       setMessage({ type: 'error', text: 'Update failed. Please try refreshing manually.' });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       setIsUpdating(false);
+    }
+  };
+
+  const handleForceUpdate = async () => {
+    setIsForceUpdating(true);
+    try {
+      setMessage({ type: 'success', text: 'Clearing cache and forcing update...' });
+      await pwaService.forceUpdate();
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Force update failed. Please try refreshing manually.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      setIsForceUpdating(false);
     }
   };
 
@@ -249,7 +262,7 @@ function SettingsPage({ onApiKeyChange }) {
               <button
                 className="btn btn-secondary"
                 onClick={handleCheckForUpdates}
-                disabled={isCheckingUpdates || isUpdating}
+                disabled={isCheckingUpdates || isUpdating || isForceUpdating}
               >
                 {isCheckingUpdates ? (
                   <div className="loading-spinner-small"></div>
@@ -263,7 +276,7 @@ function SettingsPage({ onApiKeyChange }) {
                 <button
                   className="btn btn-primary"
                   onClick={handleUpdateApp}
-                  disabled={isUpdating || isCheckingUpdates}
+                  disabled={isUpdating || isCheckingUpdates || isForceUpdating}
                 >
                   {isUpdating ? (
                     <div className="loading-spinner-small"></div>
@@ -273,6 +286,20 @@ function SettingsPage({ onApiKeyChange }) {
                   Update App
                 </button>
               )}
+
+              <button
+                className="btn btn-outline btn-secondary"
+                onClick={handleForceUpdate}
+                disabled={isForceUpdating || isUpdating || isCheckingUpdates}
+                title="Clear cache and force reload - use if stuck on old version"
+              >
+                {isForceUpdating ? (
+                  <div className="loading-spinner-small"></div>
+                ) : (
+                  <RotateCcw size={20} />
+                )}
+                Force Update
+              </button>
             </div>
           </div>
 

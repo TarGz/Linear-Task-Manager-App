@@ -66,7 +66,46 @@ class PWAService {
 
   // Force reload the app (fallback for iOS)
   forceReload() {
-    window.location.reload();
+    window.location.reload(true); // Force reload bypassing cache
+  }
+
+  // Clear all caches and force update
+  async clearAllCaches() {
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+          cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+        console.log('All caches cleared');
+        return true;
+      } catch (error) {
+        console.error('Failed to clear caches:', error);
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // Force update with cache clearing
+  async forceUpdate() {
+    try {
+      // Clear all caches
+      await this.clearAllCaches();
+      
+      // Unregister service worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+      }
+      
+      // Force reload
+      window.location.reload(true);
+      return true;
+    } catch (error) {
+      console.error('Failed to force update:', error);
+      return false;
+    }
   }
 
   // Check for updates manually
