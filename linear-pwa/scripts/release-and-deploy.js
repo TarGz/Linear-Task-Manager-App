@@ -71,9 +71,27 @@ function updateConstantsVersion(newVersion) {
   fs.writeFileSync(constantsPath, constantsContent);
 }
 
-function generateCommitMessage(version, features, commitType) {
-  const shortFeatures = features.split(', ').slice(0, 3).join(', ') + (features.split(', ').length > 3 ? '...' : '');
+function updateIndexHtmlVersion(newVersion) {
+  const indexPath = 'index.html';
+  let indexContent = fs.readFileSync(indexPath, 'utf8');
   
+  // Update version meta tag
+  indexContent = indexContent.replace(
+    /<meta name="app-version" content="[^"]+" \/>/,
+    `<meta name="app-version" content="${newVersion}" />`
+  );
+  
+  // Update timestamp
+  const timestamp = new Date().toISOString();
+  indexContent = indexContent.replace(
+    /<meta name="build-timestamp" content="[^"]+" \/>/,
+    `<meta name="build-timestamp" content="${timestamp}" />`
+  );
+  
+  fs.writeFileSync(indexPath, indexContent);
+}
+
+function generateCommitMessage(version, features, commitType) {
   let title;
   switch (commitType) {
     case 'major':
@@ -107,7 +125,7 @@ function main() {
     process.exit(1);
   }
   
-  log('blue', '🚀 Starting release process...\n');
+  log('blue', '🚀 Starting release AND deploy process...\n');
   
   // Get current state
   const currentVersion = getCurrentVersion();
@@ -121,9 +139,10 @@ function main() {
   log('cyan', `✨ Features: ${currentFeatures}\n`);
   
   // Update version in files
-  log('yellow', '🔄 Updating version in package.json and constants.js...');
+  log('yellow', '🔄 Updating version in package.json, constants.js, and index.html...');
   updatePackageVersion(newVersion);
   updateConstantsVersion(newVersion);
+  updateIndexHtmlVersion(newVersion);
   
   // Stage and commit
   log('yellow', '📝 Staging changes...');
@@ -132,15 +151,30 @@ function main() {
   const commitMessage = generateCommitMessage(newVersion, currentFeatures, commitType);
   
   log('yellow', '💾 Creating commit...');
-  log('magenta', `\nCommit message:\n${commitMessage}\n`);
-  
   execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
   
-  log('green', '✅ Release complete!');
-  log('cyan', `\nTo push: git push`);
-  log('cyan', `Version: ${newVersion}`);
-  log('yellow', '\n⚠️  REMEMBER: Run ./deploy.sh from parent directory to update the live site!');
-  log('magenta', 'cd .. && ./deploy.sh');
+  log('yellow', '📤 Pushing to GitHub...');
+  execSync('git push', { stdio: 'inherit' });
+  
+  // Now deploy
+  log('blue', '\n🌐 Starting deployment process...');
+  
+  log('yellow', '📦 Building the app...');
+  execSync('npm run build', { stdio: 'inherit' });
+  
+  log('yellow', '📋 Copying files to parent directory...');
+  execSync('cp -r dist/* ../', { stdio: 'inherit' });
+  
+  log('yellow', '📤 Deploying to GitHub Pages...');
+  process.chdir('..');
+  execSync('git add -A', { stdio: 'inherit' });
+  execSync(`git commit -m "Deploy v${newVersion} to GitHub Pages"`, { stdio: 'inherit' });
+  execSync('git push origin main', { stdio: 'inherit' });
+  
+  log('green', '\n✅ Release AND deployment complete!');
+  log('cyan', `🔗 Live site will update in a few minutes`);
+  log('cyan', `📱 Version ${newVersion} is now deployed`);
+  log('magenta', `🎯 No more manual steps needed!`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
