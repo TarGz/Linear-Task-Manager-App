@@ -206,10 +206,13 @@ class LinearAPI {
             id
             title
             description
+            dueDate
             state {
               id
               name
+              type
             }
+            updatedAt
           }
         }
       }

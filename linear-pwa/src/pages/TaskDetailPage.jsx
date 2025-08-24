@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Edit, Trash2, ExternalLink, MoreVertical, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, ExternalLink, MoreVertical } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
@@ -12,9 +12,12 @@ function TaskDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showTaskActions, setShowTaskActions] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editDueDate, setEditDueDate] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadTask = async () => {
     try {
@@ -28,6 +31,9 @@ function TaskDetailPage() {
       if (foundTask) {
         setTask(foundTask);
         setEditTitle(foundTask.title);
+        setEditDescription(foundTask.description || '');
+        setEditDueDate(foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '');
+        setHasChanges(false);
       } else {
         setError('Task not found');
       }
@@ -42,6 +48,13 @@ function TaskDetailPage() {
   useEffect(() => {
     loadTask();
   }, [id]);
+
+  // Check for changes when edit values change
+  useEffect(() => {
+    if (task) {
+      checkForChanges();
+    }
+  }, [editTitle, editDescription, editDueDate, task]);
 
   const handleTaskClick = (task, event) => {
     setSelectedTask(task);
@@ -104,16 +117,79 @@ function TaskDetailPage() {
   };
 
 
-  const handleEditTask = async () => {
-    if (!editTitle.trim()) return;
-    
+  const handleSaveChanges = async () => {
     try {
-      await linearApi.updateIssue(id, { title: editTitle });
-      setTask(prev => ({ ...prev, title: editTitle }));
-      setIsEditing(false);
+      setIsSaving(true);
+      
+      let updateData = {};
+      let hasUpdates = false;
+      
+      // Check what has changed
+      if (editTitle !== task?.title) {
+        if (!editTitle.trim()) {
+          console.error('Title cannot be empty');
+          return;
+        }
+        updateData.title = editTitle;
+        hasUpdates = true;
+      }
+      
+      if (editDescription !== (task?.description || '')) {
+        updateData.description = editDescription;
+        hasUpdates = true;
+      }
+      
+      const currentDueDate = task?.dueDate ? task.dueDate.split('T')[0] : '';
+      if (editDueDate !== currentDueDate) {
+        updateData.dueDate = editDueDate || null;
+        hasUpdates = true;
+      }
+      
+      if (!hasUpdates) {
+        setHasChanges(false);
+        return;
+      }
+      
+      const response = await linearApi.updateIssue(id, updateData);
+      
+      if (response.issueUpdate.success) {
+        // Update local state with response data
+        const updatedIssue = response.issueUpdate.issue;
+        setTask(prev => ({
+          ...prev,
+          title: updatedIssue.title,
+          description: updatedIssue.description,
+          dueDate: updatedIssue.dueDate,
+          state: updatedIssue.state,
+          updatedAt: updatedIssue.updatedAt
+        }));
+        
+        setHasChanges(false);
+      } else {
+        console.error('Failed to update task: API returned success=false');
+      }
     } catch (error) {
       console.error('Failed to update task:', error);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const discardChanges = () => {
+    // Reset edit values to current task values
+    setEditTitle(task?.title || '');
+    setEditDescription(task?.description || '');
+    setEditDueDate(task?.dueDate ? task.dueDate.split('T')[0] : '');
+    setHasChanges(false);
+  };
+
+  // Check for changes whenever edit values change
+  const checkForChanges = () => {
+    const titleChanged = editTitle !== (task?.title || '');
+    const descriptionChanged = editDescription !== (task?.description || '');
+    const dueDateChanged = editDueDate !== (task?.dueDate ? task.dueDate.split('T')[0] : '');
+    
+    setHasChanges(titleChanged || descriptionChanged || dueDateChanged);
   };
 
   const handleDeleteTask = async () => {
@@ -212,7 +288,7 @@ function TaskDetailPage() {
   }
 
   return (
-    <div className="task-detail-page">
+    <div className={`task-detail-page ${hasChanges ? 'has-changes' : ''}`}>
       <div className="page-header">
         <div className="container">
           <div className="task-header-row">
@@ -220,35 +296,13 @@ function TaskDetailPage() {
               <ArrowLeft size={20} />
             </button>
             <div className="task-name-header">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="edit-task-input-header"
-                  autoFocus
-                  onBlur={() => {
-                    if (editTitle !== task?.title) {
-                      handleEditTask();
-                    } else {
-                      setIsEditing(false);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleEditTask();
-                    } else if (e.key === 'Escape') {
-                      setEditTitle(task?.title);
-                      setIsEditing(false);
-                    }
-                  }}
-                />
-              ) : (
-                <span className="task-name" onClick={() => setIsEditing(true)}>
-                  <CheckCircle size={16} className="task-header-icon" />
-                  {task?.title}
-                </span>
-              )}
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="edit-task-input-header"
+                placeholder="Task title..."
+              />
             </div>
             <button
               className="btn btn-icon btn-secondary more-btn"
@@ -277,12 +331,18 @@ function TaskDetailPage() {
       
       <div className="page-content">
         <div className="container">
-          {task?.description && (
-            <div className="task-description card">
-              <h3>Description</h3>
-              <p>{task.description}</p>
+          <div className="task-description card">
+            <h3>Description</h3>
+            <div className="edit-description">
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                className="edit-task-textarea"
+                rows={4}
+                placeholder="Add a description..."
+              />
             </div>
-          )}
+          </div>
 
           <div className="task-details card">
             <h3>Task Details</h3>
@@ -321,7 +381,14 @@ function TaskDetailPage() {
 
             <div className="detail-item">
               <strong>Due Date:</strong>
-              <span>{formatDate(task?.dueDate)}</span>
+              <div className="edit-due-date-inline">
+                <input
+                  type="date"
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
+                  className="edit-date-input"
+                />
+              </div>
             </div>
 
             <div className="detail-item">
@@ -345,16 +412,6 @@ function TaskDetailPage() {
               <p className="task-title">{task?.title}</p>
             </div>
             <div className="task-actions-options">
-              <button
-                className="task-action-option"
-                onClick={() => {
-                  setShowTaskActions(false);
-                  setIsEditing(true);
-                }}
-              >
-                <Edit size={16} />
-                <span>Rename Task</span>
-              </button>
               <button
                 className="task-action-option"
                 onClick={() => {
@@ -383,6 +440,33 @@ function TaskDetailPage() {
           onStatusChange={handleStatusChange}
           onClose={() => setSelectedTask(null)}
         />
+      )}
+
+      {/* Global Save Bar */}
+      {hasChanges && (
+        <div className="global-save-bar">
+          <div className="save-bar-content">
+            <span className="changes-indicator">
+              You have unsaved changes
+            </span>
+            <div className="save-bar-actions">
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={discardChanges}
+                disabled={isSaving}
+              >
+                Discard
+              </button>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+              >
+                {isSaving ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

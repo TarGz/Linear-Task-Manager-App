@@ -48,6 +48,195 @@
   text-align: center;
 }
 
+/* Editable fields styling */
+.description-content {
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+}
+
+.description-content:hover {
+  background-color: var(--surface-hover);
+}
+
+.empty-description {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.editable-field {
+  cursor: pointer;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.15s;
+  display: inline-block;
+}
+
+.editable-field:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Edit form styling */
+.edit-description {
+  padding: 0;
+}
+
+.edit-due-date-inline {
+  display: inline-flex;
+  align-items: center;
+}
+
+.edit-task-textarea {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.edit-task-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color-dark);
+}
+
+.edit-due-date {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.edit-date-input {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 2px solid var(--primary-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: inherit;
+  max-width: 200px;
+}
+
+.edit-date-input:focus {
+  outline: none;
+  border-color: var(--primary-color-dark);
+}
+
+.edit-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.edit-actions.inline {
+  margin-top: 0;
+  margin-left: var(--spacing-sm);
+}
+
+.btn-sm {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: 0.875rem;
+}
+
+/* Global Save Bar */
+.global-save-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--primary-color);
+  color: white;
+  padding: var(--spacing-md);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideUp 0.3s ease-out;
+}
+
+.save-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.changes-indicator {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.save-bar-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.global-save-bar .btn {
+  background: white;
+  color: var(--primary-color);
+  border: 2px solid white;
+}
+
+.global-save-bar .btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.global-save-bar .btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.global-save-bar .btn-secondary {
+  background: transparent;
+  color: white;
+  border-color: white;
+}
+
+.global-save-bar .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Add bottom padding to page content when save bar is visible */
+.task-detail-page.has-changes .page-content {
+  padding-bottom: 80px;
+}
+
+/* Mobile responsiveness for editing */
+@media (max-width: 768px) {
+  .edit-due-date {
+    flex-direction: column;
+  }
+  
+  .edit-date-input {
+    max-width: 100%;
+  }
+  
+  .edit-task-textarea {
+    min-height: 120px;
+  }
+  
+  .save-bar-content {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    text-align: center;
+  }
+  
+  .save-bar-actions {
+    justify-content: center;
+  }
+}
+
 .edit-task-input-header:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
