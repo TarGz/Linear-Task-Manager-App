@@ -40,7 +40,7 @@
 .edit-task-input-header {
   width: 100%;
   padding: var(--spacing-xs);
-  border: 2px solid var(--primary-color);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-weight: 600;
   background: var(--surface);
@@ -90,7 +90,7 @@
 .edit-task-textarea {
   width: 100%;
   padding: var(--spacing-sm);
-  border: 2px solid var(--primary-color);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text-primary);
@@ -101,7 +101,7 @@
 
 .edit-task-textarea:focus {
   outline: none;
-  border-color: var(--primary-color-dark);
+  border-color: var(--primary-color);
 }
 
 .edit-due-date {
@@ -112,7 +112,7 @@
 
 .edit-date-input {
   padding: var(--spacing-xs) var(--spacing-sm);
-  border: 2px solid var(--primary-color);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text-primary);
@@ -122,7 +122,7 @@
 
 .edit-date-input:focus {
   outline: none;
-  border-color: var(--primary-color-dark);
+  border-color: var(--primary-color);
 }
 
 .edit-actions {
@@ -239,7 +239,8 @@
 
 .edit-task-input-header:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+  border-color: var(--primary-color);
+}
 }
 
 .task-info-row {
