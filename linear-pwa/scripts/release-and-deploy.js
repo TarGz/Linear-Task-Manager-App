@@ -126,6 +126,9 @@ async function main() {
   }
   
   log('blue', '🚀 Starting release AND deploy process...\n');
+  log('yellow', '⚠️  WARNING: This will make 2 commits total (version bump + deployment)');
+  log('yellow', '⚠️  Each commit triggers GitHub Pages auto-deploy from main branch');
+  log('yellow', '⚠️  Use ONLY this script - no manual commits to avoid extra deploys\n');
   
   // Get current state
   const currentVersion = getCurrentVersion();
@@ -144,9 +147,9 @@ async function main() {
   updateConstantsVersion(newVersion);
   updateIndexHtmlVersion(newVersion);
   
-  // Stage and commit
-  log('yellow', '📝 Staging changes...');
-  execSync('git add .', { stdio: 'inherit' });
+  // Stage and commit ALL changes (including any other modifications)
+  log('yellow', '📝 Staging ALL changes to avoid multiple commits...');
+  execSync('git add -A', { stdio: 'inherit' });
   
   const commitMessage = generateCommitMessage(newVersion, currentFeatures, commitType);
   
