@@ -1,7 +1,7 @@
 // App Configuration Constants
-export const APP_VERSION = '2.3.4';
+export const APP_VERSION = '2.4.0';
 export const APP_DESCRIPTION = 'Enhanced Task & Project Management';
-export const APP_FEATURES = 'Project & Task Detail Pages, Swipe Actions, Confirmation Panels, Linear Integration, Status Updates, Offline Support';
+export const APP_FEATURES = 'Project & Task Detail Pages, Swipe Actions, Confirmation Panels, PWA Auto-Update, Linear Integration, Status Updates, Offline Support';
 export const BUILD_DATE = import.meta.env.VITE_BUILD_DATE || new Date().toISOString();
 
 // Status Colors Theme

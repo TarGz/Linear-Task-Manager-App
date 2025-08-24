@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, ExternalLink } from 'lucide-react';
+import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone } from 'lucide-react';
 import linearApi from '../services/linearApi';
+import pwaService from '../services/pwaService';
 import { APP_VERSION, APP_FEATURES, BUILD_DATE } from '../config/constants';
 import './SettingsPage.css';
 
@@ -10,6 +11,9 @@ function SettingsPage({ onApiKeyChange }) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [userInfo, setUserInfo] = useState(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
 
   useEffect(() => {
     const currentKey = linearApi.getApiKey();
@@ -17,6 +21,14 @@ function SettingsPage({ onApiKeyChange }) {
       setApiKey(currentKey);
       loadUserInfo(currentKey);
     }
+
+    // Set up PWA update callback
+    pwaService.setUpdateCallback((available) => {
+      setUpdateAvailable(available);
+    });
+
+    // Check initial update status
+    setUpdateAvailable(pwaService.isUpdateAvailable());
   }, []);
 
   const loadUserInfo = async (key) => {
@@ -67,6 +79,45 @@ function SettingsPage({ onApiKeyChange }) {
     setMessage({ type: 'success', text: 'API key cleared' });
     onApiKeyChange(false);
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  };
+
+  const handleCheckForUpdates = async () => {
+    setIsCheckingUpdates(true);
+    try {
+      await pwaService.checkForUpdates();
+      if (!pwaService.isUpdateAvailable()) {
+        setMessage({ type: 'success', text: 'You have the latest version!' });
+        setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to check for updates' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  };
+
+  const handleUpdateApp = async () => {
+    setIsUpdating(true);
+    try {
+      const success = await pwaService.updateApp();
+      if (success) {
+        setMessage({ type: 'success', text: 'Update installed! App will reload...' });
+        setTimeout(() => {
+          pwaService.forceReload();
+        }, 1000);
+      } else {
+        // Fallback for iOS - force reload
+        setMessage({ type: 'success', text: 'Reloading app with latest version...' });
+        setTimeout(() => {
+          pwaService.forceReload();
+        }, 1000);
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Update failed. Please try refreshing manually.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -177,6 +228,55 @@ function SettingsPage({ onApiKeyChange }) {
           </div>
 
           <div className="settings-section">
+            <h2>App Updates</h2>
+            <p className="section-description">
+              Keep your app up to date with the latest features and improvements.
+            </p>
+            
+            {updateAvailable && (
+              <div className="update-available-notice card">
+                <div className="update-notice-content">
+                  <Smartphone size={20} className="update-icon" />
+                  <div>
+                    <h4>Update Available!</h4>
+                    <p>A new version of the app is ready to install.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="button-group">
+              <button
+                className="btn btn-secondary"
+                onClick={handleCheckForUpdates}
+                disabled={isCheckingUpdates || isUpdating}
+              >
+                {isCheckingUpdates ? (
+                  <div className="loading-spinner-small"></div>
+                ) : (
+                  <RefreshCw size={20} />
+                )}
+                Check for Updates
+              </button>
+              
+              {updateAvailable && (
+                <button
+                  className="btn btn-primary"
+                  onClick={handleUpdateApp}
+                  disabled={isUpdating || isCheckingUpdates}
+                >
+                  {isUpdating ? (
+                    <div className="loading-spinner-small"></div>
+                  ) : (
+                    <Download size={20} />
+                  )}
+                  Update App
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="settings-section">
             <h2>App Information</h2>
             <div className="app-info card">
               <div className="user-item">
@@ -187,6 +287,12 @@ function SettingsPage({ onApiKeyChange }) {
               </div>
               <div className="user-item">
                 <strong>Features:</strong> {APP_FEATURES}
+              </div>
+              <div className="user-item">
+                <strong>Update Status:</strong> {updateAvailable ? '🟡 Update Available' : '🟢 Up to Date'}
+              </div>
+              <div className="user-item">
+                <strong>Offline Support:</strong> {pwaService.isOfflineReady() ? '🟢 Ready' : '🟡 Loading...'}
               </div>
             </div>
           </div>

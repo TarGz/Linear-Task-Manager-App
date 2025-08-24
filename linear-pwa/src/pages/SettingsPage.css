@@ -102,3 +102,22 @@
     flex-direction: column;
   }
 }
+
+/* PWA Update Styles */
+.update-available-notice {
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  margin-bottom: var(--spacing-lg);
+}
+
+.update-notice-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.update-icon {
+  color: #ff9800;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
