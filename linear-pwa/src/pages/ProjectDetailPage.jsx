@@ -5,6 +5,7 @@ import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
 import StatusMenu from '../components/StatusMenu';
 import IconSelector from '../components/IconSelector';
+import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import './ProjectDetailPage.css';
 
@@ -21,6 +22,7 @@ function ProjectDetailPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [showIconSelector, setShowIconSelector] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   const loadProject = async () => {
     try {
@@ -78,6 +80,46 @@ function ProjectDetailPage() {
 
   const handleTaskLongPress = (task, event) => {
     setSelectedTask(task);
+  };
+
+  const handleTaskDelete = (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    setDeleteConfirmation({
+      taskId,
+      title: 'Delete Task',
+      message: `Are you sure you want to delete "${task?.title}"? This action cannot be undone.`,
+      type: 'task'
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation) return;
+    
+    try {
+      if (deleteConfirmation.type === 'task') {
+        const result = await linearApi.deleteIssue(deleteConfirmation.taskId);
+        
+        if (result.issueDelete?.success) {
+          // Remove task from local state
+          setTasks(prev => prev.filter(t => t.id !== deleteConfirmation.taskId));
+        } else {
+          setError('Failed to delete task. Please try again.');
+        }
+      } else if (deleteConfirmation.type === 'project') {
+        setShowProjectActions(false);
+        await linearApi.deleteProject(id);
+        navigate(-1);
+      }
+    } catch (error) {
+      console.error('Failed to delete:', error);
+      if (deleteConfirmation.type === 'task') {
+        setError('Failed to delete task. Please try again.');
+      } else {
+        setError('Failed to delete project. Please try again.');
+      }
+    } finally {
+      setDeleteConfirmation(null);
+    }
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -193,17 +235,12 @@ function ProjectDetailPage() {
     }
   };
 
-  const handleDeleteProject = async () => {
-    if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      try {
-        setShowProjectActions(false);
-        await linearApi.deleteProject(id);
-        navigate(-1);
-      } catch (error) {
-        console.error('Failed to delete project:', error);
-        alert('Failed to delete project. Please try again.');
-      }
-    }
+  const handleDeleteProject = () => {
+    setDeleteConfirmation({
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`,
+      type: 'project'
+    });
   };
 
   const handleOpenInLinear = () => {
@@ -413,6 +450,7 @@ function ProjectDetailPage() {
                     task={task}
                     onClick={handleTaskClick}
                     onStatusChange={handleStatusChange}
+                    onDelete={handleTaskDelete}
                     onLongPress={handleTaskLongPress}
                     hideProjectName={true}
                   />
@@ -494,6 +532,17 @@ function ProjectDetailPage() {
           onClose={() => setShowIconSelector(false)}
         />
       )}
+
+      <ConfirmationPanel
+        isVisible={!!deleteConfirmation}
+        title={deleteConfirmation?.title || ''}
+        message={deleteConfirmation?.message || ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmation(null)}
+        type="danger"
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Eye, EyeOff, ExternalLink } from 'lucide-react';
 import linearApi from '../services/linearApi';
+import { APP_VERSION, APP_FEATURES, BUILD_DATE } from '../config/constants';
 import './SettingsPage.css';
 
 function SettingsPage({ onApiKeyChange }) {
@@ -179,13 +180,13 @@ function SettingsPage({ onApiKeyChange }) {
             <h2>App Information</h2>
             <div className="app-info card">
               <div className="user-item">
-                <strong>Version:</strong> 2.3.2
+                <strong>Version:</strong> {APP_VERSION}
               </div>
               <div className="user-item">
-                <strong>Build:</strong> {new Date().toLocaleDateString()}
+                <strong>Build Date & Time:</strong> {new Date(BUILD_DATE).toLocaleString()}
               </div>
               <div className="user-item">
-                <strong>Features:</strong> Project & Task Detail Pages, Rename/Delete, Linear Integration, Status Updates, Offline Support
+                <strong>Features:</strong> {APP_FEATURES}
               </div>
             </div>
           </div>

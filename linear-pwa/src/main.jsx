@@ -1,10 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
+import { APP_VERSION, BUILD_DATE } from './config/constants'
 import './index.css'
 import App from './App.jsx'
 
-console.log('Linear PWA Version: 2.2.0 - Enhanced Task & Project Management - Built:', new Date().toISOString());
+console.log(`Linear PWA Version: ${APP_VERSION} - Enhanced Task & Project Management - Built: ${BUILD_DATE}`);
 
 const updateSW = registerSW({
   onNeedRefresh() {

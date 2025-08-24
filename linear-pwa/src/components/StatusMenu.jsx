@@ -1,12 +1,13 @@
 import { Check, Clock, Play, X } from 'lucide-react';
+import { STATUS_COLORS, STATUS_LABELS } from '../config/constants';
 import './StatusMenu.css';
 
 function StatusMenu({ task, onStatusChange, onClose }) {
   const statuses = [
-    { value: 'planned', label: 'Todo', icon: Clock, color: '#FF6B6B' },
-    { value: 'started', label: 'In Progress', icon: Play, color: '#7C4DFF' },
-    { value: 'completed', label: 'Done', icon: Check, color: '#4CAF50' },
-    { value: 'canceled', label: 'Canceled', icon: X, color: '#9E9E9E' }
+    { value: 'planned', label: STATUS_LABELS.planned, icon: Clock, color: STATUS_COLORS.planned },
+    { value: 'started', label: STATUS_LABELS.started, icon: Play, color: STATUS_COLORS.started },
+    { value: 'completed', label: STATUS_LABELS.completed, icon: Check, color: STATUS_COLORS.completed },
+    { value: 'canceled', label: STATUS_LABELS.canceled, icon: X, color: STATUS_COLORS.canceled }
   ];
 
   const handleStatusSelect = (statusValue) => {

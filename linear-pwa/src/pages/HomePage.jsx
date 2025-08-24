@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProjectCard from '../components/ProjectCard';
 import ProjectStatusMenu from '../components/ProjectStatusMenu';
+import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import './HomePage.css';
 
@@ -13,6 +14,7 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
 
   const loadProjects = async () => {
@@ -110,6 +112,35 @@ function HomePage() {
     setSelectedProject(project);
   };
 
+  const handleProjectDelete = (projectId) => {
+    const project = allProjects.find(p => p.id === projectId);
+    setDeleteConfirmation({
+      projectId,
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`
+    });
+  };
+
+  const confirmProjectDelete = async () => {
+    if (!deleteConfirmation) return;
+    
+    try {
+      const result = await linearApi.deleteProject(deleteConfirmation.projectId);
+      
+      if (result.projectDelete?.success) {
+        // Remove project from local state
+        setAllProjects(prev => prev.filter(p => p.id !== deleteConfirmation.projectId));
+      } else {
+        setError('Failed to delete project. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      setError('Failed to delete project. Please try again.');
+    } finally {
+      setDeleteConfirmation(null);
+    }
+  };
+
 
 
   if (isLoading) {
@@ -174,6 +205,7 @@ function HomePage() {
                   project={project}
                   onClick={handleProjectClick}
                   onStatusChange={handleStatusChange}
+                  onDelete={handleProjectDelete}
                   onLongPress={handleProjectLongPress}
                 />
               ))}
@@ -189,6 +221,17 @@ function HomePage() {
           onClose={() => setSelectedProject(null)}
         />
       )}
+
+      <ConfirmationPanel
+        isVisible={!!deleteConfirmation}
+        title={deleteConfirmation?.title || ''}
+        message={deleteConfirmation?.message || ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmProjectDelete}
+        onCancel={() => setDeleteConfirmation(null)}
+        type="danger"
+      />
     </div>
   );
 }

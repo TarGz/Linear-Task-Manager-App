@@ -3,6 +3,7 @@ import { Plus, CheckSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import StatusMenu from '../components/StatusMenu';
+import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import './TodosPage.css';
 
@@ -13,6 +14,7 @@ function TodosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
 
   const loadTasks = async () => {
@@ -74,6 +76,35 @@ function TodosPage() {
 
   const handleTaskLongPress = (task, event) => {
     setSelectedTask(task);
+  };
+
+  const handleTaskDelete = (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    setDeleteConfirmation({
+      taskId,
+      title: 'Delete Task',
+      message: `Are you sure you want to delete "${task?.title}"? This action cannot be undone.`
+    });
+  };
+
+  const confirmTaskDelete = async () => {
+    if (!deleteConfirmation) return;
+    
+    try {
+      const result = await linearApi.deleteIssue(deleteConfirmation.taskId);
+      
+      if (result.issueDelete?.success) {
+        // Remove task from local state
+        setTasks(prev => prev.filter(t => t.id !== deleteConfirmation.taskId));
+      } else {
+        setError('Failed to delete task. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      setError('Failed to delete task. Please try again.');
+    } finally {
+      setDeleteConfirmation(null);
+    }
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -197,6 +228,7 @@ function TodosPage() {
                   task={task}
                   onClick={handleTaskClick}
                   onStatusChange={handleStatusChange}
+                  onDelete={handleTaskDelete}
                   onLongPress={handleTaskLongPress}
                 />
               ))}
@@ -213,6 +245,17 @@ function TodosPage() {
           onClose={() => setSelectedTask(null)}
         />
       )}
+
+      <ConfirmationPanel
+        isVisible={!!deleteConfirmation}
+        title={deleteConfirmation?.title || ''}
+        message={deleteConfirmation?.message || ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmTaskDelete}
+        onCancel={() => setDeleteConfirmation(null)}
+        type="danger"
+      />
     </div>
   );
 }

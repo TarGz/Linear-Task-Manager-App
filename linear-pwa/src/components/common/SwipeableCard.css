@@ -1,0 +1,128 @@
+.swipeable-card-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Adjust card border radius when swiped */
+.swipeable-card-container:has(.swipe-action-left.visible) .swipeable-card {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.swipeable-card-container:has(.swipe-action-right.visible) .swipeable-card {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.swipeable-card {
+  position: relative;
+  z-index: 2;
+  background: var(--surface);
+  transition: transform 0.2s ease-out;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+  height: 100px;
+}
+
+/* Position swipe actions relative to the actual card */
+.swipeable-card::before,
+.swipeable-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: -1;
+}
+
+.swipeable-card:active {
+  cursor: grabbing;
+}
+
+.swipeable-card.disabled {
+  cursor: default;
+}
+
+/* Swipe actions - fixed height */
+.swipe-action {
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  z-index: 1;
+}
+
+.swipe-action.visible {
+  opacity: 1;
+}
+
+.swipe-action-left {
+  left: 0;
+  background: linear-gradient(90deg, var(--error) 0%, rgba(255, 107, 107, 0.9) 100%);
+  color: white;
+  border-top-left-radius: var(--radius-md);
+  border-bottom-left-radius: var(--radius-md);
+}
+
+.swipe-action-right {
+  right: 0;
+  background: linear-gradient(-90deg, var(--success) 0%, rgba(76, 175, 80, 0.9) 100%);
+  color: white;
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.swipe-action-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Visual feedback during swipe */
+.swipeable-card[data-swipe-progress] {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Animation when card returns to position */
+.swipeable-card:not([data-swipe-progress]) {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+/* Prevent text selection during swipe */
+.swipeable-card-container * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .swipe-action {
+    width: 100px;
+  }
+  
+  .swipe-action-content {
+    font-size: 0.7rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .swipeable-card,
+  .swipe-action {
+    transition: none !important;
+  }
+}
