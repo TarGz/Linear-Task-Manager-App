@@ -177,10 +177,12 @@ function SettingsPage({ onApiKeyChange }) {
               <div className="input-with-button">
                 <input
                   id="apiKey"
+                  name="apiKey"
                   type={showApiKey ? 'text' : 'password'}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   placeholder="Enter your Linear API key"
+                  autoComplete="password"
                   disabled={isLoading}
                 />
                 <button
