@@ -91,6 +91,19 @@ function updateIndexHtmlVersion(newVersion) {
   fs.writeFileSync(indexPath, indexContent);
 }
 
+function updateReadmeVersion(newVersion) {
+  const readmePath = 'README.md';
+  let readmeContent = fs.readFileSync(readmePath, 'utf8');
+  
+  // Update version in title
+  readmeContent = readmeContent.replace(
+    /# Linear Task Manager PWA v[0-9]+\.[0-9]+\.[0-9]+/,
+    `# Linear Task Manager PWA v${newVersion}`
+  );
+  
+  fs.writeFileSync(readmePath, readmeContent);
+}
+
 function generateCommitMessage(version, features, commitType) {
   let title;
   switch (commitType) {
@@ -142,10 +155,11 @@ async function main() {
   log('cyan', `✨ Features: ${currentFeatures}\n`);
   
   // Update version in files
-  log('yellow', '🔄 Updating version in package.json, constants.js, and index.html...');
+  log('yellow', '🔄 Updating version in package.json, constants.js, index.html, and README.md...');
   updatePackageVersion(newVersion);
   updateConstantsVersion(newVersion);
   updateIndexHtmlVersion(newVersion);
+  updateReadmeVersion(newVersion);
   
   // Stage and commit ALL changes (including any other modifications)
   log('yellow', '📝 Staging ALL changes to avoid multiple commits...');

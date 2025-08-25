@@ -11,11 +11,6 @@ The parent repository (Linear-Task-Manager-App) has GitHub Pages configured to *
 npm run release-deploy
 ```
 
-### ❌ NEVER do manual commits/pushes:
-- Manual commits trigger unwanted deployments
-- Each commit = 1 deployment
-- Multiple commits = Multiple deployments
-
 ## What the Script Does
 
 1. **Version Bump Commit**: Updates version in all files + any pending changes
