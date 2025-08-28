@@ -272,6 +272,18 @@
   margin-bottom: 2px;
 }
 
+/* Completed tasks should have strikethrough and italic */
+.task-item-completed .task-title-compact {
+  text-decoration: line-through;
+  font-style: italic;
+}
+
+/* Canceled tasks should have strikethrough and italic */
+.task-item-canceled .task-title-compact {
+  text-decoration: line-through;
+  font-style: italic;
+}
+
 .task-description-compact {
   font-size: 13px;
   color: var(--text-secondary);

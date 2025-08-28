@@ -36,6 +36,20 @@
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+  
+  /* Z-Index Layer Constants */
+  --z-base: 0;
+  --z-content: 100;
+  --z-dropdown: 500;
+  --z-bottom-nav: 9000;
+  --z-save-bar: 9100;
+  --z-overlay: 10000;
+  --z-modal: 10001;
+  --z-confirmation: 10002;
+  --z-status-menu: 10003;
+  --z-task-form: 10004;
+  --z-project-menu: 10005;
+  --z-toast: 11000;
 }
 
 body {

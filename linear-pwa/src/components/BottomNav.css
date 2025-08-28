@@ -10,7 +10,7 @@
   justify-content: space-around;
   align-items: center;
   height: 80px;
-  z-index: 9999 !important;
+  z-index: var(--z-bottom-nav) !important;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   transform: translateZ(0) !important;
   backface-visibility: hidden;
