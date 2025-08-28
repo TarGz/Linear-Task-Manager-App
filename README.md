@@ -1,5 +1,6 @@
 # Linear Task Manager PWA v2.6.0
 
+
 A Progressive Web App for managing your Linear projects and tasks with advanced features. Built with React, Vite, and the Linear API.
 
 ## Features
@@ -10,7 +11,7 @@ A Progressive Web App for managing your Linear projects and tasks with advanced 
 - 🚀 **Offline Support** - Works offline with cached data
 - 🔄 **Real-time Sync** - Syncs with Linear when online
 
-### Project Management (v2.1.0)
+### Project Management 
 - ⭐ **Favorites System** - Mark projects as favorites for quick access
 - 🏠 **Dedicated Home Page** - View only your favorite projects on the home screen
 - ✏️ **Project Editing** - Edit project names directly in the app
