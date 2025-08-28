@@ -7,10 +7,14 @@
 html {
   /* Disable overscroll bounce globally */
   overscroll-behavior: none;
+  overscroll-behavior-y: none;
   /* Fix height to viewport to prevent bounce */
   height: 100%;
   /* Prevent pull-to-refresh on mobile */
   overflow-x: hidden;
+  /* Lock viewport position */
+  position: fixed;
+  width: 100%;
 }
 
 :root {
@@ -80,15 +84,27 @@ body {
   padding-bottom: calc(88px + var(--safe-area-inset-bottom));
   /* Disable overscroll bounce that moves navigation */
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+  /* Lock body dimensions */
+  height: 100%;
+  width: 100%;
   /* Prevent pull-to-refresh */
   overflow-x: hidden;
+  /* Prevent momentum scrolling issues */
+  position: relative;
 }
 
 #root {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Prevent overscroll from affecting parent */
+  overscroll-behavior: contain;
+  /* Enable momentum scrolling only within container */
+  -webkit-overflow-scrolling: touch;
 }
 
 h1, h2, h3, h4, h5, h6 {
