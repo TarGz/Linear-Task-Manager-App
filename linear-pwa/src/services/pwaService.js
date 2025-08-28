@@ -66,7 +66,10 @@ class PWAService {
 
   // Force reload the app (fallback for iOS)
   forceReload() {
-    window.location.reload(true); // Force reload bypassing cache
+    // Add timestamp to URL to force iOS Safari to bypass cache
+    const url = new URL(window.location.href);
+    url.searchParams.set('_t', Date.now());
+    window.location.href = url.toString();
   }
 
   // Clear all caches and force update
@@ -93,14 +96,25 @@ class PWAService {
       // Clear all caches
       await this.clearAllCaches();
       
+      // Clear localStorage version info to force refresh
+      localStorage.removeItem('pwa-version');
+      localStorage.removeItem('app-cache-timestamp');
+      
       // Unregister service worker
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         await Promise.all(registrations.map(reg => reg.unregister()));
       }
       
-      // Force reload
-      window.location.reload(true);
+      // iOS Safari specific: Clear session storage and add cache busting
+      sessionStorage.clear();
+      
+      // Force reload with cache busting for iOS
+      const url = new URL(window.location.href);
+      url.searchParams.set('_cache_bust', Date.now());
+      url.searchParams.set('_ios_update', '1');
+      window.location.href = url.toString();
+      
       return true;
     } catch (error) {
       console.error('Failed to force update:', error);
