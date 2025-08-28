@@ -20,11 +20,13 @@
   position: relative;
   z-index: 2;
   background: var(--surface);
+  background-color: var(--surface) !important;
   transition: transform 0.2s ease-out;
   user-select: none;
   touch-action: pan-y;
   cursor: grab;
   height: 100px;
+  opacity: 1;
 }
 
 /* Position swipe actions relative to the actual card */
@@ -66,18 +68,29 @@
 
 .swipe-action-left {
   left: 0;
-  background: linear-gradient(90deg, #7C4DFF 0%, rgba(124, 77, 255, 0.9) 100%);
+  background: linear-gradient(90deg, #999 0%, rgba(153, 153, 153, 0.9) 100%);
   color: white;
   border-top-left-radius: var(--radius-md);
   border-bottom-left-radius: var(--radius-md);
+  transition: background 0.2s ease-out;
 }
 
 .swipe-action-right {
   right: 0;
-  background: linear-gradient(-90deg, var(--success) 0%, rgba(76, 175, 80, 0.9) 100%);
+  background: linear-gradient(-90deg, #999 0%, rgba(153, 153, 153, 0.9) 100%);
   color: white;
   border-top-right-radius: var(--radius-md);
   border-bottom-right-radius: var(--radius-md);
+  transition: background 0.2s ease-out;
+}
+
+/* Colored state when action is ready */
+.swipeable-card-container:has(.swipeable-card[data-action-ready="true"]) .swipe-action-left {
+  background: linear-gradient(90deg, #7C4DFF 0%, rgba(124, 77, 255, 0.9) 100%) !important;
+}
+
+.swipeable-card-container:has(.swipeable-card[data-action-ready="true"]) .swipe-action-right {
+  background: linear-gradient(-90deg, var(--success) 0%, rgba(76, 175, 80, 0.9) 100%) !important;
 }
 
 .swipe-action-content {

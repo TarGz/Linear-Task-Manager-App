@@ -159,6 +159,22 @@ function HomePage() {
       const projectsWithTasks = processedProjects.filter(project => project.tasks.length > 0);
       
       setProjects(projectsWithTasks);
+      
+      // Initialize collapsed state based on project status
+      // Projects with 'planned'/'backlog'/'todo' status should be collapsed (closed)
+      // Projects with 'started'/'in_progress'/'active' status should be expanded (open)
+      const newCollapsedProjects = new Set();
+      projectsWithTasks.forEach(project => {
+        const status = project.state?.toLowerCase();
+        const isTodoStatus = ['planned', 'backlog', 'todo', 'planning'].includes(status);
+        
+        if (isTodoStatus) {
+          newCollapsedProjects.add(project.id);
+        }
+        // in_progress/started projects remain open (not added to collapsed set)
+      });
+      
+      setCollapsedProjects(newCollapsedProjects);
     } catch (error) {
       setError('Failed to load projects and tasks. Please check your connection and try again.');
       console.error('Failed to load projects:', error);
@@ -171,7 +187,10 @@ function HomePage() {
     loadProjectsWithTasks();
   }, []);
 
-  const toggleProject = (projectId) => {
+  const toggleProject = async (projectId) => {
+    const isCurrentlyCollapsed = collapsedProjects.has(projectId);
+    
+    // Update collapsed state immediately for UI responsiveness
     setCollapsedProjects(prev => {
       const newSet = new Set(prev);
       if (newSet.has(projectId)) {
@@ -181,6 +200,34 @@ function HomePage() {
       }
       return newSet;
     });
+    
+    // Update project status in Linear
+    try {
+      const newStatus = isCurrentlyCollapsed ? 'started' : 'planned';
+      await linearApi.updateProject(projectId, { state: newStatus });
+      
+      // Update local project state
+      setProjects(prevProjects => 
+        prevProjects.map(project => 
+          project.id === projectId 
+            ? { ...project, state: newStatus }
+            : project
+        )
+      );
+    } catch (error) {
+      console.error('Failed to update project status:', error);
+      
+      // Revert collapsed state if API call failed
+      setCollapsedProjects(prev => {
+        const newSet = new Set(prev);
+        if (isCurrentlyCollapsed) {
+          newSet.add(projectId);
+        } else {
+          newSet.delete(projectId);
+        }
+        return newSet;
+      });
+    }
   };
 
   const handleTaskClick = (task) => {

@@ -12,7 +12,7 @@ function SwipeableCard({
   markDoneLabel = "Done",
   className = ""
 }) {
-  const { elementRef, swipeDirection, handlers, resetCard } = useSwipeActions({
+  const { elementRef, swipeDirection, isActionReady, handlers, resetCard } = useSwipeActions({
     onSwipeLeft: onMarkDone, // Finger moving right to left shows mark done
     onSwipeRight: onDelete,  // Finger moving left to right shows delete
     onLongPress
