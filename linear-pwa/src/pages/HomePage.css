@@ -174,11 +174,13 @@
 }
 
 /* Todo tasks have white/default background */
-.tasks-list-compact .task-item-planned {
+.tasks-list-compact .task-item-planned,
+.task-item-planned {
   background: var(--surface) !important;
 }
 
-.tasks-list-compact .task-item-planned:hover {
+.tasks-list-compact .task-item-planned:hover,
+.task-item-planned:hover {
   background: rgba(0, 0, 0, 0.02) !important;
 }
 
