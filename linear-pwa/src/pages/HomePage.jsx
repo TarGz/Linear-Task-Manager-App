@@ -6,6 +6,8 @@ import SwipeableCard from '../components/common/SwipeableCard';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
 import { formatDateShort } from '../utils/dateUtils';
+import { INTERNAL_STATUS, LINEAR_STATUS } from '../config/constants';
+import { normalizeStatus } from '../utils/statusUtils';
 import './HomePage.css';
 
 function HomePage() {
@@ -82,19 +84,12 @@ function HomePage() {
           return updatedAt > oneDayAgo;
         });
         const sortedTasks = [...relevantTasks].sort((a, b) => {
-          // First sort by due date (earliest first, null dates last)
-          if (a.dueDate && b.dueDate) {
-            return new Date(a.dueDate) - new Date(b.dueDate);
-          }
-          if (a.dueDate) return -1;
-          if (b.dueDate) return 1;
-          
-          // Then by status priority: in-progress → todo → completed → canceled
+          // First by status priority: in-progress → todo → done → canceled
           const statusOrder = {
             'started': 0,      // in-progress
             'unstarted': 1,    // todo
             'backlog': 1,      // todo
-            'completed': 2,    // completed
+            'completed': 2,    // done
             'canceled': 3      // canceled
           };
           
@@ -104,6 +99,13 @@ function HomePage() {
           if (aOrder !== bOrder) {
             return aOrder - bOrder;
           }
+          
+          // Within same status, sort by due date (earliest first, null dates last)
+          if (a.dueDate && b.dueDate) {
+            return new Date(a.dueDate) - new Date(b.dueDate);
+          }
+          if (a.dueDate) return -1;
+          if (b.dueDate) return 1;
           
           // Finally by creation date (newest first)
           return new Date(b.createdAt) - new Date(a.createdAt);
@@ -186,6 +188,7 @@ function HomePage() {
   };
 
   const handleTaskComplete = async (e, taskId) => {
+    console.log('handleTaskComplete called with taskId:', taskId);
     e.stopPropagation();
     try {
       // Get teams to find a team ID
@@ -197,21 +200,23 @@ function HomePage() {
         return;
       }
 
+      console.log('Found team ID:', teamId);
       const workflowStates = await linearApi.getWorkflowStates(teamId);
       const targetState = workflowStates.team.states.nodes.find(state => 
         state.type === 'completed'
       );
       
       if (targetState) {
-        await linearApi.updateIssue(taskId, { stateId: targetState.id });
+        console.log('Target completed state found:', targetState);
+        const updateResult = await linearApi.updateIssue(taskId, { stateId: targetState.id });
+        console.log('Update result:', updateResult);
         
-        // Remove the task from view immediately
-        setProjects(prevProjects => 
-          prevProjects.map(project => ({
-            ...project,
-            tasks: project.tasks.filter(task => task.id !== taskId)
-          })).filter(project => project.tasks.length > 0)
-        );
+        console.log('Starting data refresh...');
+        // Refresh data to get updated grouping and sorting
+        await loadProjectsWithTasks();
+        console.log('Data refresh completed');
+      } else {
+        console.error('No "completed" state found in workflow states');
       }
     } catch (error) {
       console.error('Failed to update task status:', error);
@@ -262,38 +267,21 @@ function HomePage() {
     setShowCreateTask(false);
   };
 
-  // Linear Status to App Status Mapping
+  // Use normalized status from utilities
   const getAppStatus = (task) => {
-    const linearStatus = task.state?.type;
-    const linearStatusName = task.state?.name;
-    console.log('Task:', task.title, 'Linear Type:', linearStatus, 'Linear Name:', linearStatusName);
-    
-    switch (linearStatus) {
-      case 'started':   // "In Progress" or "In Review" in Linear
-        return 'in-progress';
-      case 'unstarted': // "Todo" in Linear  
-        return 'todo';
-      case 'backlog':   // "Backlog" in Linear - should be TODO, not canceled!
-        return 'todo';
-      case 'completed': // "Done" in Linear
-        return 'completed';
-      case 'canceled':  // "Canceled" in Linear
-        return 'canceled';
-      default:
-        return 'todo';
-    }
+    return normalizeStatus(task.state?.type);
   };
 
   const getTaskStatusClass = (task) => {
     const appStatus = getAppStatus(task);
     switch (appStatus) {
-      case 'todo':
+      case INTERNAL_STATUS.PLANNED:
         return 'task-item-planned';
-      case 'in-progress':
+      case INTERNAL_STATUS.STARTED:
         return 'task-item-started';
-      case 'completed':
+      case INTERNAL_STATUS.COMPLETED:
         return 'task-item-completed';
-      case 'canceled':
+      case INTERNAL_STATUS.CANCELED:
         return 'task-item-canceled';
       default:
         return '';
@@ -303,13 +291,13 @@ function HomePage() {
   const getTaskIcon = (task) => {
     const appStatus = getAppStatus(task);
     switch (appStatus) {
-      case 'todo':
+      case INTERNAL_STATUS.PLANNED:
         return <Circle size={16} />;
-      case 'in-progress':
+      case INTERNAL_STATUS.STARTED:
         return <Play size={16} />;
-      case 'completed':
+      case INTERNAL_STATUS.COMPLETED:
         return <Check size={16} />;
-      case 'canceled':
+      case INTERNAL_STATUS.CANCELED:
         return <X size={16} />;
       default:
         return <Circle size={16} />;
@@ -318,7 +306,19 @@ function HomePage() {
 
   const isTaskClickable = (task) => {
     const status = task.state?.type;
-    return status !== 'completed' && status !== 'canceled';
+    return status !== LINEAR_STATUS.COMPLETED && status !== LINEAR_STATUS.CANCELED;
+  };
+
+  // Check if task can be marked as "In Progress" (if it's not already in progress or canceled)
+  const canMarkInProgress = (task) => {
+    const appStatus = getAppStatus(task);
+    return appStatus !== INTERNAL_STATUS.STARTED && appStatus !== INTERNAL_STATUS.CANCELED;
+  };
+
+  // Check if task can be marked as "Complete" (if it's not already completed or canceled)
+  const canMarkComplete = (task) => {
+    const appStatus = getAppStatus(task);
+    return appStatus !== INTERNAL_STATUS.COMPLETED && appStatus !== INTERNAL_STATUS.CANCELED;
   };
 
   const handleTaskLongPress = (task) => {
@@ -338,6 +338,41 @@ function HomePage() {
       );
     } catch (error) {
       console.error('Failed to delete task:', error);
+    }
+  };
+
+  const handleMarkInProgress = async (taskId) => {
+    console.log('handleMarkInProgress called with taskId:', taskId);
+    try {
+      // Get teams to find a team ID
+      const teamsData = await linearApi.getTeams();
+      const teamId = teamsData.teams?.nodes?.[0]?.id;
+      
+      if (!teamId) {
+        console.error('No team found');
+        return;
+      }
+
+      console.log('Team ID found:', teamId);
+      const workflowStates = await linearApi.getWorkflowStates(teamId);
+      console.log('Workflow states:', workflowStates);
+      
+      const targetState = workflowStates.team.states.nodes.find(state => 
+        state.type === LINEAR_STATUS.STARTED
+      );
+      
+      if (targetState) {
+        console.log('Target state found:', targetState);
+        const updateResult = await linearApi.updateIssue(taskId, { stateId: targetState.id });
+        console.log('Update result:', updateResult);
+        
+        // Refresh data to get updated grouping and sorting
+        await loadProjectsWithTasks();
+      } else {
+        console.error('No "started" state found in workflow states');
+      }
+    } catch (error) {
+      console.error('Failed to mark task as in progress:', error);
     }
   };
 
@@ -377,26 +412,8 @@ function HomePage() {
       if (targetState) {
         await linearApi.updateIssue(taskId, { stateId: targetState.id });
         
-        // Update the task in projects
-        setProjects(prevProjects => 
-          prevProjects.map(project => ({
-            ...project,
-            tasks: project.tasks.map(task => 
-              task.id === taskId 
-                ? {
-                    ...task,
-                    state: {
-                      ...task.state,
-                      type: targetState.type,
-                      id: targetState.id,
-                      name: targetState.name
-                    },
-                    updatedAt: new Date().toISOString()
-                  }
-                : task
-            )
-          }))
-        );
+        // Refresh data to get updated grouping and sorting
+        await loadProjectsWithTasks();
         
         setSelectedTaskForStatus(null);
       }
@@ -483,10 +500,10 @@ function HomePage() {
                     {project.tasks.map(task => (
                       <SwipeableCard
                         key={task.id}
-                        onDelete={isTaskClickable(task) ? () => handleTaskDelete(task.id) : null}
-                        onMarkDone={isTaskClickable(task) ? () => handleTaskComplete(null, task.id) : null}
+                        onDelete={canMarkInProgress(task) ? () => handleMarkInProgress(task.id) : null}
+                        onMarkDone={canMarkComplete(task) ? () => handleTaskComplete({ stopPropagation: () => {} }, task.id) : null}
                         onLongPress={() => handleTaskLongPress(task)}
-                        deleteLabel="Delete"
+                        deleteLabel="In Progress"
                         markDoneLabel="Complete"
                         disabled={!isTaskClickable(task)}
                       >

@@ -1,4 +1,4 @@
-import { Trash2, Check } from 'lucide-react';
+import { Play, Check } from 'lucide-react';
 import { useSwipeActions } from '../../hooks/useSwipeActions';
 import './SwipeableCard.css';
 
@@ -41,8 +41,7 @@ function SwipeableCard({
       {/* Left action - appears when card moves RIGHT */}
       <div className={`swipe-action swipe-action-left ${swipeDirection === 'right' ? 'visible' : ''}`}>
         <div className="swipe-action-content" onClick={handleDeleteClick}>
-          <Trash2 size={20} />
-          <span>{deleteLabel}</span>
+          <Play size={20} />
         </div>
       </div>
 
@@ -59,7 +58,6 @@ function SwipeableCard({
       <div className={`swipe-action swipe-action-right ${swipeDirection === 'left' ? 'visible' : ''}`}>
         <div className="swipe-action-content" onClick={handleMarkDoneClick}>
           <Check size={20} />
-          <span>{markDoneLabel}</span>
         </div>
       </div>
     </div>

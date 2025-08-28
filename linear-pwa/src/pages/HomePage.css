@@ -256,6 +256,10 @@
   flex: 1;
   min-width: 0;
   padding-right: 8px;
+  min-height: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .task-title-compact {
@@ -272,6 +276,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-height: 17px;
 }
 
 .task-date-compact {
@@ -403,7 +408,7 @@
 }
 
 .tasks-list-compact .swipe-action {
-  height: auto !important;
+  height: 52px !important;
 }
 
 .tasks-list-compact .swipe-action-left,
