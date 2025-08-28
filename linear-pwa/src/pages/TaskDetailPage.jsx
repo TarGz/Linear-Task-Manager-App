@@ -19,6 +19,18 @@ function TaskDetailPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Auto-resize textarea function
+  const autoResizeTextarea = (textarea) => {
+    if (!textarea) return;
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Set height to scrollHeight to fit content
+    const newHeight = Math.max(textarea.scrollHeight, 60); // Minimum 60px height
+    textarea.style.height = `${newHeight}px`;
+  };
+
   const loadTask = async () => {
     try {
       setIsLoading(true);
@@ -335,11 +347,17 @@ function TaskDetailPage() {
             <h3>Description</h3>
             <div className="edit-description">
               <textarea
+                ref={(textarea) => {
+                  if (textarea) autoResizeTextarea(textarea);
+                }}
                 value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                className="edit-task-textarea"
-                rows={4}
+                onChange={(e) => {
+                  setEditDescription(e.target.value);
+                  autoResizeTextarea(e.target);
+                }}
+                className="edit-task-textarea auto-resize"
                 placeholder="Add a description..."
+                style={{ minHeight: '60px', resize: 'none', overflow: 'hidden' }}
               />
             </div>
           </div>

@@ -1,7 +1,7 @@
 /* Compact Layout Styles */
 .home-page-compact {
   min-height: 100vh;
-  background: var(--background);
+  background: #FBD8FC;
 }
 
 .page-header-compact {
@@ -21,23 +21,31 @@
 }
 
 .page-content-compact {
-  padding: 0;
-  background: var(--background);
+  padding: 6px;
+  background: #FBD8FC;
 }
 
 .error-message-compact {
+  margin: 0 0 6px 0;
   padding: 12px 16px;
   color: var(--danger);
   font-size: 14px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border-color);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .empty-state-compact {
+  margin: 0;
   padding: 40px 16px;
   text-align: center;
   color: var(--text-secondary);
   font-size: 14px;
+  background: var(--surface);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .empty-state-compact p {
@@ -45,15 +53,19 @@
 }
 
 .projects-list-compact {
-  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
 }
 
 .project-group-compact {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.project-group-compact:last-child {
-  border-bottom: none;
+  background: var(--surface);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .project-header-compact {
@@ -61,13 +73,45 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
+  background: var(--surface);
+  gap: 8px;
+}
+
+.project-header-clickable {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
   cursor: pointer;
   transition: background-color 0.2s ease;
   user-select: none;
+  padding: 4px;
+  border-radius: 6px;
+  margin: -4px;
 }
 
-.project-header-compact:hover {
+.project-header-clickable:hover {
   background: rgba(0, 0, 0, 0.02);
+}
+
+.add-task-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.add-task-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--primary);
+  transform: scale(1.1);
 }
 
 .project-header-left-compact {
@@ -118,6 +162,7 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--surface);
 }
 
 .task-item-compact:first-child {
@@ -126,6 +171,40 @@
 
 .task-item-compact:hover {
   background: rgba(0, 0, 0, 0.02);
+}
+
+/* Todo tasks have white/default background */
+.tasks-list-compact .task-item-planned {
+  background: var(--surface) !important;
+}
+
+.tasks-list-compact .task-item-planned:hover {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+.tasks-list-compact .task-item-started {
+  background: rgba(124, 77, 255, 0.08) !important;
+}
+
+.tasks-list-compact .task-item-started:hover {
+  background: rgba(124, 77, 255, 0.12) !important;
+}
+
+.tasks-list-compact .task-item-completed {
+  background: rgba(76, 175, 80, 0.08) !important;
+}
+
+.tasks-list-compact .task-item-completed:hover {
+  background: rgba(76, 175, 80, 0.12) !important;
+}
+
+/* Canceled tasks have red background */
+.tasks-list-compact .task-item-canceled {
+  background: rgba(255, 107, 107, 0.08) !important;
+}
+
+.tasks-list-compact .task-item-canceled:hover {
+  background: rgba(255, 107, 107, 0.12) !important;
 }
 
 .task-checkbox-compact {
@@ -145,6 +224,32 @@
 
 .task-checkbox-compact:hover {
   color: var(--primary);
+}
+
+.task-checkbox-disabled {
+  cursor: default !important;
+}
+
+/* Todo tasks have default gray icon color */
+.task-item-planned .task-checkbox-compact,
+.task-item-planned .task-checkbox-disabled {
+  color: var(--text-secondary);
+}
+
+.task-item-started .task-checkbox-compact,
+.task-item-started .task-checkbox-disabled {
+  color: #7C4DFF;
+}
+
+.task-item-completed .task-checkbox-compact,
+.task-item-completed .task-checkbox-disabled {
+  color: #4CAF50;
+}
+
+/* Canceled tasks have red icon color */
+.task-item-canceled .task-checkbox-compact,
+.task-item-canceled .task-checkbox-disabled {
+  color: #FF6B6B;
 }
 
 .task-content-compact {
@@ -202,19 +307,108 @@
   }
 }
 
+
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
-  .project-header-compact:hover {
+  .home-page-compact {
+    background: #2d1b20;
+  }
+  
+  .page-content-compact {
+    background: #2d1b20;
+  }
+  
+  .project-group-compact {
+    border: 0.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .error-message-compact {
+    border: 0.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .empty-state-compact {
+    border: 0.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+  
+  .project-header-clickable:hover {
     background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .add-task-button:hover {
+    background: rgba(255, 255, 255, 0.1);
   }
   
   .task-item-compact:hover {
     background: rgba(255, 255, 255, 0.05);
   }
   
+  .task-item-planned {
+    background: rgba(255, 107, 107, 0.15) !important;
+  }
+
+  .task-item-planned:hover {
+    background: rgba(255, 107, 107, 0.2) !important;
+  }
+
+  .task-item-started {
+    background: rgba(124, 77, 255, 0.15) !important;
+  }
+
+  .task-item-started:hover {
+    background: rgba(124, 77, 255, 0.2) !important;
+  }
+  
+  .task-item-completed {
+    background: rgba(76, 175, 80, 0.15) !important;
+  }
+
+  .task-item-completed:hover {
+    background: rgba(76, 175, 80, 0.2) !important;
+  }
+
+  .task-item-canceled {
+    background: rgba(158, 158, 158, 0.15) !important;
+  }
+
+  .task-item-canceled:hover {
+    background: rgba(158, 158, 158, 0.2) !important;
+  }
+  
   .task-item-compact {
     border-top-color: rgba(255, 255, 255, 0.08);
   }
+  
+  .close-modal-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* SwipeableCard overrides for compact layout */
+.tasks-list-compact .swipeable-card-container {
+  margin-bottom: 0;
+  border-radius: 0;
+}
+
+.tasks-list-compact .swipeable-card {
+  height: auto !important;
+  background: transparent;
+  border-radius: 0;
+}
+
+.tasks-list-compact .swipe-action {
+  height: auto !important;
+}
+
+.tasks-list-compact .swipe-action-left,
+.tasks-list-compact .swipe-action-right {
+  border-radius: 0;
 }
 
 /* Mobile optimization */

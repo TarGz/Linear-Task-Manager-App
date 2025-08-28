@@ -38,11 +38,10 @@ function StatusMenu({ task, onStatusChange, onClose }) {
             return (
               <button
                 key={status.value}
-                className={`status-option ${isCurrentStatus ? 'current' : ''}`}
+                className={`status-option status-${status.value} ${isCurrentStatus ? 'current' : ''}`}
                 onClick={() => handleStatusSelect(status.value)}
-                style={{ borderLeft: `4px solid ${status.color}` }}
               >
-                <div className="status-option-icon" style={{ color: status.color }}>
+                <div className="status-option-icon">
                   <Icon size={16} />
                 </div>
                 <span className="status-option-label">{status.label}</span>
