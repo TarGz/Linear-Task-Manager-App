@@ -1,23 +1,25 @@
 .bottom-nav {
-  position: fixed !important;
-  bottom: 0 !important;
+  position: fixed;
+  bottom: 0;
   left: 0;
   right: 0;
-  width: 100% !important;
+  width: 100%;
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-around;
   align-items: center;
   height: 80px;
-  z-index: var(--z-bottom-nav) !important;
+  z-index: var(--z-bottom-nav);
   box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-  transform: translateZ(0) !important;
+  /* PWA Safe Area Support */
+  padding-bottom: calc(8px + var(--safe-area-inset-bottom));
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
+  /* Hardware acceleration for smooth performance */
+  transform: translateZ(0);
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  -webkit-transform: translate3d(0, 0, 0);
   will-change: transform;
-  padding-bottom: 8px;
 }
 
 .nav-item {
