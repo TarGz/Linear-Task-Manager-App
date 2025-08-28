@@ -39,7 +39,7 @@
 
 .task-title-input {
   border: none;
-  font-size: 1.1rem;
+  font-size: 18px; /* Explicit size to prevent zoom - 1.1rem ≈ 17.6px */
   font-weight: 500;
   background: transparent;
   padding: var(--spacing-sm) 0;
@@ -58,6 +58,7 @@
   padding: var(--spacing-md);
   resize: vertical;
   min-height: 80px;
+  font-size: 16px; /* Prevent iOS Safari zoom */
 }
 
 .form-row {

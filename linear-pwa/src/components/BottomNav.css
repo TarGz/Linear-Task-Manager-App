@@ -20,6 +20,10 @@
   transform: translateZ(0);
   backface-visibility: hidden;
   will-change: transform;
+  /* CSS Containment to prevent layout shifts */
+  contain: layout style paint;
+  /* Prevent overscroll affecting navigation */
+  overscroll-behavior: none;
 }
 
 .nav-item {

@@ -4,6 +4,15 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Disable overscroll bounce globally */
+  overscroll-behavior: none;
+  /* Fix height to viewport to prevent bounce */
+  height: 100%;
+  /* Prevent pull-to-refresh on mobile */
+  overflow-x: hidden;
+}
+
 :root {
   --primary-color: #FF6B6B;
   --primary-dark: #FF5252;
@@ -69,6 +78,11 @@ body {
   line-height: 1.6;
   /* Prevent content from being hidden behind bottom navigation */
   padding-bottom: calc(88px + var(--safe-area-inset-bottom));
+  /* Disable overscroll bounce that moves navigation */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  /* Prevent pull-to-refresh */
+  overflow-x: hidden;
 }
 
 #root {
