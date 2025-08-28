@@ -1,4 +1,4 @@
-# Linear Task Manager PWA v2.1.0
+# Linear Task Manager PWA v2.6.0
 
 A Progressive Web App for managing your Linear projects and tasks with advanced features. Built with React, Vite, and the Linear API.
 

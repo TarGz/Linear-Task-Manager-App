@@ -43,6 +43,7 @@ class LinearAPI {
 
       if (response.data.errors) {
         console.error('Linear API GraphQL Errors:', response.data.errors);
+        console.error('Full error details:', JSON.stringify(response.data.errors, null, 2));
         throw new Error(response.data.errors[0].message);
       }
 
@@ -51,6 +52,9 @@ class LinearAPI {
       console.error('Linear API Error:', error);
       if (error.response?.data) {
         console.error('Linear API Response Data:', error.response.data);
+        if (error.response.data.errors) {
+          console.error('GraphQL Errors:', JSON.stringify(error.response.data.errors, null, 2));
+        }
       }
       throw error;
     }
@@ -134,6 +138,49 @@ class LinearAPI {
     const query = `
       query {
         issues(first: 100) {
+          nodes {
+            id
+            title
+            description
+            state {
+              id
+              name
+              type
+            }
+            priority
+            dueDate
+            createdAt
+            updatedAt
+            project {
+              id
+              name
+            }
+            assignee {
+              id
+              name
+              avatarUrl
+            }
+          }
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async getProjectsWithIssues() {
+    const query = `
+      query {
+        projects(first: 50) {
+          nodes {
+            id
+            name
+            description
+            state
+            createdAt
+            updatedAt
+          }
+        }
+        issues(first: 200) {
           nodes {
             id
             title
