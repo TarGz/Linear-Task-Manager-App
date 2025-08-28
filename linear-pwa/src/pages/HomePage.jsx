@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
@@ -187,6 +187,77 @@ function HomePage() {
     loadProjectsWithTasks();
   }, []);
 
+  // Helper function to update task status locally without full reload
+  const updateTaskLocallyAndReorder = useCallback((taskId, newStatus, swipeDirection = 'right') => {
+    // Step 1: Immediately add animating-out class to trigger slide-out animation
+    const taskElement = document.querySelector(`[data-task-id="${taskId}"]`);
+    if (taskElement) {
+      // Set transition and start slide-out from current position
+      taskElement.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease, max-height 0.3s ease';
+      taskElement.classList.add('animating-out');
+      taskElement.classList.add(swipeDirection === 'left' ? 'animating-out-left' : 'animating-out-right');
+    }
+    
+    // Step 2: After slide-out animation, update state and reorder
+    setTimeout(() => {
+      setProjects(prevProjects => {
+        const updatedProjects = prevProjects.map(project => ({
+          ...project,
+          tasks: project.tasks.map(task => 
+            task.id === taskId 
+              ? { ...task, state: { ...task.state, type: newStatus }, isAnimatingIn: true, animationKey: Date.now() }
+              : task
+          )
+        }));
+
+        // Re-sort tasks within each project
+        const sortedProjects = updatedProjects.map(project => ({
+          ...project,
+          tasks: [...project.tasks].sort((a, b) => {
+            const statusOrder = {
+              'started': 0,
+              'unstarted': 1,
+              'backlog': 1,
+              'completed': 2,
+              'canceled': 3
+            };
+            
+            const aOrder = statusOrder[a.state?.type] ?? 5;
+            const bOrder = statusOrder[b.state?.type] ?? 5;
+            
+            if (aOrder !== bOrder) {
+              return aOrder - bOrder;
+            }
+            
+            if (a.dueDate && b.dueDate) {
+              return new Date(a.dueDate) - new Date(b.dueDate);
+            }
+            if (a.dueDate) return -1;
+            if (b.dueDate) return 1;
+            
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          })
+        }));
+
+        return sortedProjects;
+      });
+      
+      // Step 3: Clean up animation flag after animation completes
+      setTimeout(() => {
+        setProjects(prevProjects => 
+          prevProjects.map(project => ({
+            ...project,
+            tasks: project.tasks.map(task => 
+              task.id === taskId 
+                ? { ...task, isAnimatingIn: false }
+                : task
+            )
+          }))
+        );
+      }, 500);
+    }, 300);
+  }, []);
+
   const toggleProject = async (projectId) => {
     const isCurrentlyCollapsed = collapsedProjects.has(projectId);
     
@@ -234,11 +305,14 @@ function HomePage() {
     navigate(`/task/${task.id}`);
   };
 
-  const handleTaskComplete = async (e, taskId) => {
-    console.log('handleTaskComplete called with taskId:', taskId);
-    e.stopPropagation();
+  const handleTaskComplete = async (e, taskId, swipeDirection = 'right') => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    
+    // Start animation immediately
+    updateTaskLocallyAndReorder(taskId, 'completed', swipeDirection);
+    
+    // Do API call in background
     try {
-      // Get teams to find a team ID
       const teamsData = await linearApi.getTeams();
       const teamId = teamsData.teams?.nodes?.[0]?.id;
       
@@ -247,26 +321,19 @@ function HomePage() {
         return;
       }
 
-      console.log('Found team ID:', teamId);
       const workflowStates = await linearApi.getWorkflowStates(teamId);
       const targetState = workflowStates.team.states.nodes.find(state => 
         state.type === 'completed'
       );
       
       if (targetState) {
-        console.log('Target completed state found:', targetState);
-        const updateResult = await linearApi.updateIssue(taskId, { stateId: targetState.id });
-        console.log('Update result:', updateResult);
-        
-        console.log('Starting data refresh...');
-        // Refresh data to get updated grouping and sorting
-        await loadProjectsWithTasks();
-        console.log('Data refresh completed');
+        await linearApi.updateIssue(taskId, { stateId: targetState.id });
       } else {
         console.error('No "completed" state found in workflow states');
       }
     } catch (error) {
       console.error('Failed to update task status:', error);
+      // TODO: Could revert animation on API failure
     }
   };
 
@@ -388,10 +455,13 @@ function HomePage() {
     }
   };
 
-  const handleMarkInProgress = async (taskId) => {
-    console.log('handleMarkInProgress called with taskId:', taskId);
+  const handleMarkInProgress = async (taskId, swipeDirection = 'left') => {
+    
+    // Start animation immediately
+    updateTaskLocallyAndReorder(taskId, 'started', swipeDirection);
+    
+    // Do API call in background
     try {
-      // Get teams to find a team ID
       const teamsData = await linearApi.getTeams();
       const teamId = teamsData.teams?.nodes?.[0]?.id;
       
@@ -400,26 +470,20 @@ function HomePage() {
         return;
       }
 
-      console.log('Team ID found:', teamId);
       const workflowStates = await linearApi.getWorkflowStates(teamId);
-      console.log('Workflow states:', workflowStates);
       
       const targetState = workflowStates.team.states.nodes.find(state => 
         state.type === LINEAR_STATUS.STARTED
       );
       
       if (targetState) {
-        console.log('Target state found:', targetState);
-        const updateResult = await linearApi.updateIssue(taskId, { stateId: targetState.id });
-        console.log('Update result:', updateResult);
-        
-        // Refresh data to get updated grouping and sorting
-        await loadProjectsWithTasks();
+        await linearApi.updateIssue(taskId, { stateId: targetState.id });
       } else {
         console.error('No "started" state found in workflow states');
       }
     } catch (error) {
       console.error('Failed to mark task as in progress:', error);
+      // TODO: Could revert animation on API failure
     }
   };
 
@@ -459,8 +523,17 @@ function HomePage() {
       if (targetState) {
         await linearApi.updateIssue(taskId, { stateId: targetState.id });
         
-        // Refresh data to get updated grouping and sorting
-        await loadProjectsWithTasks();
+        // Update task locally with smooth transition
+        const linearToInternalStatus = {
+          'completed': 'completed',
+          'started': 'started', 
+          'unstarted': 'unstarted',
+          'backlog': 'unstarted',
+          'canceled': 'canceled'
+        };
+        
+        const internalStatus = linearToInternalStatus[targetState.type] || newStatus;
+        updateTaskLocallyAndReorder(taskId, internalStatus);
         
         setSelectedTaskForStatus(null);
       }
@@ -546,16 +619,17 @@ function HomePage() {
                   <div className="tasks-list-compact">
                     {project.tasks.map(task => (
                       <SwipeableCard
-                        key={task.id}
-                        onDelete={canMarkInProgress(task) ? () => handleMarkInProgress(task.id) : null}
-                        onMarkDone={canMarkComplete(task) ? () => handleTaskComplete({ stopPropagation: () => {} }, task.id) : null}
+                        key={`${task.id}-${task.animationKey || ''}`}
+                        onDelete={canMarkInProgress(task) ? (swipeDirection) => handleMarkInProgress(task.id, swipeDirection) : null}
+                        onMarkDone={canMarkComplete(task) ? (swipeDirection) => handleTaskComplete({ stopPropagation: () => {} }, task.id, swipeDirection) : null}
                         onLongPress={() => handleTaskLongPress(task)}
                         deleteLabel="In Progress"
                         markDoneLabel="Complete"
                         disabled={!isTaskClickable(task)}
                       >
                         <div
-                          className={`task-item-compact ${getTaskStatusClass(task)}`}
+                          className={`task-item-compact ${getTaskStatusClass(task)} ${task.isAnimatingIn ? 'animating-in' : ''}`}
+                          data-task-id={task.id}
                           onClick={() => handleTaskClick(task)}
                         >
                           {isTaskClickable(task) ? (

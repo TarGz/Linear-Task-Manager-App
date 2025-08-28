@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 
-const SWIPE_THRESHOLD = 40; // Minimum distance to trigger action
+const SWIPE_THRESHOLD = 60; // Minimum distance to trigger action
 const MAX_SWIPE_DISTANCE = 100; // Maximum swipe distance (matches button width)
 const MIN_MOVEMENT = 10; // Minimum movement to start swiping
 
@@ -32,10 +32,12 @@ export const useSwipeActions = ({
     }
   }, []);
 
-  const resetCard = useCallback(() => {
+  const resetCard = useCallback((skipAnimation = false) => {
     if (elementRef.current) {
-      elementRef.current.style.transition = 'transform 0.2s ease-out';
-      elementRef.current.style.transform = '';
+      if (!skipAnimation) {
+        elementRef.current.style.transition = 'transform 0.2s ease-out';
+        elementRef.current.style.transform = '';
+      }
       elementRef.current.removeAttribute('data-swipe-progress');
       elementRef.current.removeAttribute('data-action-ready');
     }
@@ -101,11 +103,8 @@ export const useSwipeActions = ({
       const absTransform = Math.abs(transform);
       actionReady = absTransform >= SWIPE_THRESHOLD;
       
-      console.log('Swipe debug:', { absTransform, SWIPE_THRESHOLD, actionReady, transform });
-      
       // Trigger haptic feedback when transitioning to action-ready state
       if (actionReady && !isActionReady) {
-        console.log('Action ready - triggering haptic');
         triggerHaptic('medium');
       }
       
@@ -121,7 +120,6 @@ export const useSwipeActions = ({
         const progress = Math.min(absTransform / SWIPE_THRESHOLD, 1);
         elementRef.current.setAttribute('data-swipe-progress', progress.toString());
         elementRef.current.setAttribute('data-action-ready', actionReady.toString());
-        console.log('Setting attributes:', { progress, actionReady, element: elementRef.current });
       }
     }
   }, [isDragging, startX, longPressTimer, isActionReady, triggerHaptic]);
@@ -133,28 +131,26 @@ export const useSwipeActions = ({
       setLongPressTimer(null);
     }
     
-    console.log('Touch end:', { isLongPress, isActionReady, swipeDirection });
-    
     // If action is ready and not a long press, trigger the action
     if (!isLongPress && isActionReady && swipeDirection) {
-      console.log('Triggering action:', swipeDirection);
       // Trigger haptic feedback for action execution
       triggerHaptic('heavy');
       
       // Execute the appropriate action
       if (swipeDirection === 'left' && onSwipeLeft) {
-        console.log('Executing onSwipeLeft');
-        onSwipeLeft();
+        onSwipeLeft(swipeDirection);
       } else if (swipeDirection === 'right' && onSwipeRight) {
-        console.log('Executing onSwipeRight');
-        onSwipeRight();
+        onSwipeRight(swipeDirection);
       }
       
-      // Animate card back to original position after action
-      resetCard();
+      // Skip reset animation since we're triggering the action
+      resetCard(true);
     } else {
-      console.log('Resetting card - no action');
-      // Reset card if action not ready or long press
+      // Immediate reset animation if action not ready
+      if (elementRef.current) {
+        elementRef.current.style.transition = 'transform 0.2s ease-out';
+        elementRef.current.style.transform = '';
+      }
       resetCard();
     }
   }, [isLongPress, isActionReady, swipeDirection, onSwipeLeft, onSwipeRight, triggerHaptic, resetCard]);
