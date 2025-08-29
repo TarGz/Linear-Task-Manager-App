@@ -122,7 +122,7 @@ function SettingsPage({ onApiKeyChange }) {
       } else {
         setUpdateAvailable(false);
         setUpdateInfo(null);
-        setMessage({ type: 'success', text: `✅ You're up to date! Running version ${APP_VERSION}` });
+        setMessage({ type: 'success', text: `🎉 You're up to date! Running the latest version ${APP_VERSION}` });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       }
     } catch (error) {
