@@ -101,16 +101,38 @@ class PWAService {
       sessionStorage.clear();
       
       if (this.isIOSPWA()) {
-        console.log('📱 iOS PWA detected - using cache-busting URL reload');
+        console.log('📱 iOS PWA detected - clearing all caches first');
         
-        // For iOS PWA, add cache busting parameters and navigate directly
-        const url = new URL(window.location.href);
-        url.searchParams.set('_pwa_update', Date.now());
-        url.searchParams.set('_ios_cache_bust', Math.random().toString(36).substring(2));
+        // For iOS PWA, we must clear ALL caches before reloading
+        Promise.all([
+          // Clear all cache storage
+          this.clearAllCaches(),
+          // Clear localStorage
+          new Promise(resolve => {
+            try {
+              localStorage.clear();
+              resolve();
+            } catch (e) { resolve(); }
+          }),
+          // Unregister service worker
+          navigator.serviceWorker?.getRegistrations().then(registrations => 
+            Promise.all(registrations.map(reg => reg.unregister()))
+          ).catch(() => {})
+        ]).then(() => {
+          console.log('🧹 All caches cleared, forcing iOS PWA reload...');
+          // Navigate to root with cache busting
+          const rootUrl = new URL(window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/');
+          rootUrl.searchParams.set('_ios_force_update', Date.now());
+          rootUrl.searchParams.set('_v', Math.random().toString(36));
+          
+          console.log('🚀 iOS PWA navigating to:', rootUrl.toString());
+          window.location.href = rootUrl.toString();
+        }).catch(error => {
+          console.error('❌ Cache clearing failed, fallback reload:', error);
+          window.location.reload(true);
+        });
         
-        console.log('🚀 iOS PWA reloading to:', url.toString());
-        window.location.href = url.toString();
-        
+        return; // Exit early for iOS PWA
       } else {
         // Regular browser handling
         const url = new URL(window.location.href);
