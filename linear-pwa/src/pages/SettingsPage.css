@@ -121,3 +121,54 @@
   flex-shrink: 0;
   margin-top: 2px;
 }
+
+.update-timestamp {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+  font-style: italic;
+}
+
+/* Version Information Display */
+.version-info-display {
+  margin-top: var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  background: var(--background);
+}
+
+.version-info-display h4 {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+}
+
+.version-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.version-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  font-size: 0.875rem;
+}
+
+.version-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.version-value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.version-status.up-to-date {
+  color: var(--success);
+}
+
+.version-status.update-available {
+  color: #ff9800;
+}

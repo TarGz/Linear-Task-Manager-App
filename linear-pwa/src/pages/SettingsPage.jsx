@@ -12,6 +12,8 @@ function SettingsPage({ onApiKeyChange }) {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [userInfo, setUserInfo] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
+  const [versionInfo, setVersionInfo] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isForceUpdating, setIsForceUpdating] = useState(false);
@@ -85,12 +87,44 @@ function SettingsPage({ onApiKeyChange }) {
   const handleCheckForUpdates = async () => {
     setIsCheckingUpdates(true);
     try {
-      await pwaService.checkForUpdates();
-      if (!pwaService.isUpdateAvailable()) {
+      console.log('Checking for updates...');
+      const result = await pwaService.checkForUpdates();
+      
+      // Always store version information for display
+      setVersionInfo({
+        currentVersion: result.currentVersion || APP_VERSION,
+        latestVersion: result.latestVersion || APP_VERSION,
+        type: result.type,
+        checked: true
+      });
+
+      if (result.available) {
+        setUpdateAvailable(true);
+        setUpdateInfo(result);
+        
+        if (result.type === 'github') {
+          setMessage({ 
+            type: 'success', 
+            text: `Update available! Version ${result.latestVersion} is ready.` 
+          });
+        } else if (result.type === 'deployed') {
+          const updateTypeText = result.updateType === 'version' ? 'version' : 'build';
+          setMessage({ 
+            type: 'success', 
+            text: `Update available! Newer ${updateTypeText} ${result.latestVersion} is deployed.` 
+          });
+        } else {
+          setMessage({ type: 'success', text: 'PWA update available!' });
+        }
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      } else {
+        setUpdateAvailable(false);
+        setUpdateInfo(null);
         setMessage({ type: 'success', text: 'You have the latest version!' });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       }
     } catch (error) {
+      console.error('Update check failed:', error);
       setMessage({ type: 'error', text: 'Failed to check for updates' });
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } finally {
@@ -248,13 +282,21 @@ function SettingsPage({ onApiKeyChange }) {
               Keep your app up to date with the latest features and improvements.
             </p>
             
-            {updateAvailable && (
+            {updateAvailable && updateInfo && (
               <div className="update-available-notice card">
                 <div className="update-notice-content">
                   <Smartphone size={20} className="update-icon" />
                   <div>
                     <h4>Update Available!</h4>
-                    <p>A new version of the app is ready to install.</p>
+                    <p>
+                      Current version: <strong>{updateInfo.currentVersion}</strong><br />
+                      Latest version: <strong>{updateInfo.latestVersion}</strong>
+                    </p>
+                    {updateInfo.type === 'deployed' && (
+                      <p className="update-timestamp">
+                        New build available from {new Date(updateInfo.deployedTimestamp).toLocaleString()}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -303,6 +345,37 @@ function SettingsPage({ onApiKeyChange }) {
                 Force Update
               </button>
             </div>
+
+            {versionInfo && versionInfo.checked && (
+              <div className="version-info-display card">
+                <h4>Version Information</h4>
+                <div className="version-details">
+                  <div className="version-item">
+                    <span className="version-label">Current Version:</span>
+                    <span className="version-value">{versionInfo.currentVersion}</span>
+                  </div>
+                  <div className="version-item">
+                    <span className="version-label">Latest Available:</span>
+                    <span className="version-value">{versionInfo.latestVersion}</span>
+                  </div>
+                  <div className="version-item">
+                    <span className="version-label">Status:</span>
+                    <span className={`version-status ${versionInfo.currentVersion === versionInfo.latestVersion ? 'up-to-date' : 'update-available'}`}>
+                      {versionInfo.currentVersion === versionInfo.latestVersion ? '🟢 Up to Date' : '🟡 Update Available'}
+                    </span>
+                  </div>
+                  {versionInfo.type && (
+                    <div className="version-item">
+                      <span className="version-label">Source:</span>
+                      <span className="version-value">
+                        {versionInfo.type === 'github' ? 'GitHub Releases' : 
+                         versionInfo.type === 'deployed' ? 'GitHub Pages' : 'PWA Service Worker'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="settings-section">
