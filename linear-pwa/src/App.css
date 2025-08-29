@@ -6,7 +6,8 @@
 
 .app-content {
   flex: 1;
-  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+  /* Match bottom nav: 100px height + 12px padding + safe area */
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
 
 .app-loading {
@@ -118,7 +119,8 @@
 
 @media (max-width: 768px) {
   .app-content {
-    padding-bottom: calc(60px + env(safe-area-inset-bottom));
+    /* Match bottom nav: 100px height + 12px padding + safe area */
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
   }
   
   .page-content {

@@ -23,6 +23,26 @@
 1. Run release script → 2. Version bump commit → 3. Deploy commit → 4. Auto-create GitHub release
 2. App can now detect updates via GitHub Releases API
 
+## Local iPhone Testing Setup
+
+### Quick Development Testing
+```bash
+npm run dev -- --host
+# Access via http://YOUR_LOCAL_IP:5173 on iPhone
+```
+
+### PWA Testing (Recommended)
+```bash
+npm run build && npm run preview -- --host
+# Access via http://YOUR_LOCAL_IP:4173 on iPhone
+# Or use ngrok for HTTPS: ngrok http 4173
+```
+
+### For Update System Testing
+1. Build and serve locally with different version numbers
+2. Use ngrok for HTTPS PWA testing
+3. Test version detection and update flows before releasing
+
 ## CRITICAL: CSS Dev/Prod Parity Rule
 ALWAYS test CSS changes in production build mode before deploying:
 1. After making CSS changes, run `npm run build && npm run preview` to test production build locally

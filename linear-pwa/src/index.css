@@ -80,8 +80,8 @@ body {
   background-color: var(--background);
   color: var(--text-primary);
   line-height: 1.6;
-  /* Prevent content from being hidden behind bottom navigation */
-  padding-bottom: calc(88px + var(--safe-area-inset-bottom));
+  /* Content padding handled by .app-content, not body */
+  padding-bottom: 0;
   /* Disable overscroll bounce that moves navigation */
   overscroll-behavior: none;
   overscroll-behavior-y: none;

@@ -20,7 +20,7 @@ function BottomNav() {
           to={path}
           className={`nav-item ${location.pathname === path ? 'active' : ''}`}
         >
-          <Icon size={24} />
+          <Icon size={28} />
           <span>{label}</span>
         </Link>
       ))}
