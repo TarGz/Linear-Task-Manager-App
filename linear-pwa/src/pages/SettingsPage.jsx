@@ -137,22 +137,27 @@ function SettingsPage({ onApiKeyChange }) {
   const handleUpdateApp = async () => {
     setIsUpdating(true);
     try {
-      const success = await pwaService.updateApp();
-      if (success) {
-        setMessage({ type: 'success', text: 'Update installed! App will reload...' });
-        setTimeout(() => {
-          pwaService.forceReload();
-        }, 1000);
-      } else {
-        // Fallback for iOS - force reload
-        setMessage({ type: 'success', text: 'Reloading app with latest version...' });
-        setTimeout(() => {
-          pwaService.forceReload();
-        }, 1000);
-      }
+      console.log('🔄 User clicked Update App');
+      setMessage({ type: 'success', text: '🔄 Updating app... Please wait...' });
+      
+      // Give user feedback before updating
+      setTimeout(async () => {
+        try {
+          await pwaService.updateApp();
+          // updateApp now handles the reload internally
+        } catch (error) {
+          console.error('❌ Update process failed:', error);
+          setMessage({ type: 'error', text: 'Update failed. Trying force reload...' });
+          setTimeout(() => {
+            pwaService.forceReload();
+          }, 1000);
+        }
+      }, 500);
+      
     } catch (error) {
-      setMessage({ type: 'error', text: 'Update failed. Please try refreshing manually.' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      console.error('❌ Update failed:', error);
+      setMessage({ type: 'error', text: 'Update failed. Please refresh manually or try Force Update.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       setIsUpdating(false);
     }
   };
@@ -160,11 +165,28 @@ function SettingsPage({ onApiKeyChange }) {
   const handleForceUpdate = async () => {
     setIsForceUpdating(true);
     try {
-      setMessage({ type: 'success', text: 'Clearing cache and forcing update...' });
-      await pwaService.forceUpdate();
+      console.log('💪 User clicked Force Update');
+      setMessage({ type: 'success', text: '💪 Force updating... Clearing cache and reloading...' });
+      
+      // Force update with cache clearing
+      setTimeout(async () => {
+        try {
+          await pwaService.forceUpdate();
+          // forceUpdate handles the reload internally
+        } catch (error) {
+          console.error('❌ Force update failed:', error);
+          // Last resort - simple reload
+          setMessage({ type: 'success', text: 'Reloading app...' });
+          setTimeout(() => {
+            window.location.reload(true);
+          }, 1000);
+        }
+      }, 500);
+      
     } catch (error) {
-      setMessage({ type: 'error', text: 'Force update failed. Please try refreshing manually.' });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      console.error('❌ Force update failed:', error);
+      setMessage({ type: 'error', text: 'Force update failed. Please refresh the page manually.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 5000);
       setIsForceUpdating(false);
     }
   };
@@ -369,7 +391,7 @@ function SettingsPage({ onApiKeyChange }) {
           </div>
 
           <div className="settings-section">
-            <h2>App Information</h2>
+            <h2>📱 App Information</h2>
             <div className="app-info card">
               <div className="user-item">
                 <strong>Version:</strong> {APP_VERSION}

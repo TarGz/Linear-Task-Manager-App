@@ -51,25 +51,50 @@ class PWAService {
 
   // Update the app
   async updateApp() {
+    console.log('🔄 Starting update process...');
+    
+    // If we have a service worker update, try it first
     if (this.updateSW && this.needRefresh) {
       try {
+        console.log('📦 Updating via service worker...');
         await this.updateSW(true);
         this.needRefresh = false;
         return true;
       } catch (error) {
-        console.error('Failed to update PWA:', error);
-        return false;
+        console.error('❌ Service worker update failed:', error);
       }
     }
-    return false;
+    
+    // For GitHub Pages updates or when SW update fails, force reload
+    console.log('🔄 Using force reload method...');
+    this.forceReload();
+    return true; // Always return true since forceReload will handle the update
   }
 
   // Force reload the app (fallback for iOS)
   forceReload() {
-    // Add timestamp to URL to force iOS Safari to bypass cache
-    const url = new URL(window.location.href);
-    url.searchParams.set('_t', Date.now());
-    window.location.href = url.toString();
+    console.log('🔄 Force reloading app...');
+    
+    // Clear all possible caches first
+    try {
+      // Clear session storage
+      sessionStorage.clear();
+      
+      // Add multiple cache-busting parameters
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now());
+      url.searchParams.set('_refresh', '1');
+      url.searchParams.set('_v', Math.random().toString(36).substring(2));
+      
+      console.log('🚀 Redirecting to:', url.toString());
+      
+      // Use location.replace for immediate reload without history entry
+      window.location.replace(url.toString());
+    } catch (error) {
+      console.error('❌ Force reload error:', error);
+      // Fallback to simple reload
+      window.location.reload(true);
+    }
   }
 
   // Clear all caches and force update
