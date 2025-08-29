@@ -8,3 +8,4 @@ ALWAYS test CSS changes in production build mode before deploying:
 3. CSS specificity and class names can behave differently between dev and production builds
 4. If colors or styles look correct in dev but wrong in production, it's a build processing issue - fix the CSS specificity, don't just deploy hoping it works
 - never use deploy.sh for deploying but npm
+- We should use npm run release-deploy for deploying
