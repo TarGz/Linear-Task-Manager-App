@@ -202,7 +202,7 @@ function SettingsPage({ onApiKeyChange }) {
       <div className="page-content">
         <div className="container">
           <div className="settings-section">
-            <h2>Linear API Key</h2>
+            <h2>🔑 Linear API Key</h2>
             <p className="section-description">
               Enter your Linear API key to connect to your workspace and sync your tasks.
             </p>
@@ -281,7 +281,7 @@ function SettingsPage({ onApiKeyChange }) {
           </div>
 
           <div className="settings-section">
-            <h2>How to get your API Key</h2>
+            <h2>📚 How to get your API Key</h2>
             <ol className="api-instructions">
               <li>Go to your Linear settings</li>
               <li>Navigate to the API section</li>
