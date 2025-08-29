@@ -184,12 +184,13 @@ class PWAService {
           const deployedTimestamp = new Date(timestampMatch[1]);
           const currentTimestamp = new Date(currentBuildDate);
           
-          console.log(`Deployed version: ${deployedVersion}, Current: ${currentVersion}`);
-          console.log(`Deployed timestamp: ${deployedTimestamp}, Current: ${currentTimestamp}`);
-          
           // Only consider actual version updates, not just newer builds
           const versionCompare = this.compareVersions(currentVersion, deployedVersion);
           const isNewerVersion = versionCompare < 0;
+          
+          console.log(`🔍 Version Check: Deployed=${deployedVersion}, Current=${currentVersion}`);
+          console.log(`📅 Timestamps: Deployed=${deployedTimestamp.toLocaleString()}, Current=${currentTimestamp.toLocaleString()}`);
+          console.log(`🚀 Version comparison result: ${versionCompare} (${versionCompare < 0 ? 'UPDATE NEEDED' : 'UP TO DATE'})`);
           
           return {
             hasUpdate: isNewerVersion,
@@ -273,6 +274,16 @@ class PWAService {
             updateType: deployedCheck.updateType,
             deployedTimestamp: deployedCheck.deployedTimestamp
           };
+        } else {
+          // No update available but return deployed version info
+          console.log('No version update needed, but returning deployed version info');
+          return {
+            type: 'deployed',
+            available: false,
+            currentVersion: APP_VERSION,
+            latestVersion: deployedCheck.latestVersion,
+            deployedTimestamp: deployedCheck.deployedTimestamp
+          };
         }
       }
     } catch (error) {
@@ -281,7 +292,7 @@ class PWAService {
 
     console.log('No updates available');
     
-    // Return version info even when no updates
+    // Return version info even when no updates - fallback
     try {
       const { APP_VERSION } = await import('../config/constants.js');
       return { 

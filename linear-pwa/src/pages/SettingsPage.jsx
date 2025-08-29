@@ -279,7 +279,7 @@ function SettingsPage({ onApiKeyChange }) {
           </div>
 
           <div className="settings-section">
-            <h2>App Updates</h2>
+            <h2>🔄 App Updates</h2>
             <p className="section-description">
               Keep your app up to date with the latest features and improvements.
             </p>
