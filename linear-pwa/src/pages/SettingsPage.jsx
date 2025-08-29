@@ -122,7 +122,7 @@ function SettingsPage({ onApiKeyChange }) {
       } else {
         setUpdateAvailable(false);
         setUpdateInfo(null);
-        setMessage({ type: 'success', text: 'You have the latest version!' });
+        setMessage({ type: 'success', text: `✅ You're up to date! Running version ${APP_VERSION}` });
         setTimeout(() => setMessage({ type: '', text: '' }), 3000);
       }
     } catch (error) {
@@ -173,7 +173,7 @@ function SettingsPage({ onApiKeyChange }) {
     <div className="settings-page">
       <div className="page-header">
         <div className="container">
-          <h1 className="page-title">Settings</h1>
+          <h1 className="page-title">⚙️ Settings</h1>
         </div>
       </div>
       
