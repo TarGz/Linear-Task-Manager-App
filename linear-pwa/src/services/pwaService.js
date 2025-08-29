@@ -52,8 +52,16 @@ class PWAService {
   // Update the app
   async updateApp() {
     console.log('🔄 Starting update process...');
+    console.log('📱 iOS PWA:', this.isIOSPWA(), 'Has SW Update:', !!this.updateSW, 'Need Refresh:', this.needRefresh);
     
-    // If we have a service worker update, try it first
+    // For iOS PWA, skip service worker and go directly to force reload
+    if (this.isIOSPWA()) {
+      console.log('📱 iOS PWA detected - skipping service worker, using force reload');
+      this.forceReload();
+      return true;
+    }
+    
+    // If we have a service worker update, try it first (non-iOS PWA)
     if (this.updateSW && this.needRefresh) {
       try {
         console.log('📦 Updating via service worker...');
@@ -71,25 +79,53 @@ class PWAService {
     return true; // Always return true since forceReload will handle the update
   }
 
-  // Force reload the app (fallback for iOS)
+  // Check if running as iOS PWA
+  isIOSPWA() {
+    return window.navigator.standalone === true || 
+           window.matchMedia('(display-mode: standalone)').matches;
+  }
+
+  // Check if running on iOS
+  isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  // Force reload the app (with iOS PWA specific handling)
   forceReload() {
     console.log('🔄 Force reloading app...');
+    console.log('📱 iOS PWA:', this.isIOSPWA(), 'iOS Device:', this.isIOS());
     
     // Clear all possible caches first
     try {
       // Clear session storage
       sessionStorage.clear();
       
-      // Add multiple cache-busting parameters
-      const url = new URL(window.location.href);
-      url.searchParams.set('_t', Date.now());
-      url.searchParams.set('_refresh', '1');
-      url.searchParams.set('_v', Math.random().toString(36).substring(2));
+      if (this.isIOSPWA()) {
+        console.log('📱 iOS PWA detected - using special reload method');
+        
+        // For iOS PWA, we need to navigate to the base URL without parameters
+        // then reload to ensure proper cache clearing
+        const baseUrl = new URL(window.location.origin + window.location.pathname);
+        
+        // First navigate to base URL
+        window.location.href = baseUrl.toString();
+        
+        // Then reload after a short delay
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 100);
+        
+      } else {
+        // Regular browser handling
+        const url = new URL(window.location.href);
+        url.searchParams.set('_t', Date.now());
+        url.searchParams.set('_refresh', '1');
+        url.searchParams.set('_v', Math.random().toString(36).substring(2));
+        
+        console.log('🚀 Redirecting to:', url.toString());
+        window.location.replace(url.toString());
+      }
       
-      console.log('🚀 Redirecting to:', url.toString());
-      
-      // Use location.replace for immediate reload without history entry
-      window.location.replace(url.toString());
     } catch (error) {
       console.error('❌ Force reload error:', error);
       // Fallback to simple reload
