@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -13,6 +13,7 @@ import './HomePage.css';
 function HomePage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
+  const [allProjects, setAllProjects] = useState([]); // Store unfiltered data
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [collapsedProjects, setCollapsedProjects] = useState(new Set());
@@ -20,6 +21,8 @@ function HomePage() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState('day'); // 'all', 'day', 'week', 'month'
 
   // Short motivational quotes that fit in the title space
   const quotes = [
@@ -40,11 +43,67 @@ function HomePage() {
     "Trust the process"
   ];
 
+  // Function to apply filters to the raw project data
+  const applyFilters = useCallback((projectsList) => {
+    return projectsList.map(project => {
+      // Calculate filter date based on selected filter
+      let filterDate = null;
+      if (selectedFilter !== 'all') {
+        filterDate = new Date();
+        switch (selectedFilter) {
+          case 'day':
+            filterDate.setDate(filterDate.getDate() - 1);
+            break;
+          case 'week':
+            filterDate.setDate(filterDate.getDate() - 7);
+            break;
+          case 'month':
+            filterDate.setMonth(filterDate.getMonth() - 1);
+            break;
+        }
+      }
+      
+      const relevantTasks = project.allTasks.filter(task => {
+        // Always show active tasks
+        if (task.state?.type !== 'completed' && task.state?.type !== 'canceled') {
+          return true;
+        }
+        
+        // Filter completed/canceled tasks based on selected filter
+        if (filterDate) {
+          const updatedAt = new Date(task.updatedAt);
+          return updatedAt > filterDate;
+        }
+        
+        // If 'all' is selected, show all tasks
+        return true;
+      });
+
+      return {
+        ...project,
+        tasks: relevantTasks
+      };
+    }).filter(project => project.tasks.length > 0);
+  }, [selectedFilter]);
+
   // Set random quote on component mount
   useEffect(() => {
     const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
     setMotivationalQuote(randomQuote);
   }, []);
+
+  // Load data on mount
+  useEffect(() => {
+    loadProjectsWithTasks();
+  }, []);
+
+  // Apply filters when selectedFilter changes
+  useEffect(() => {
+    if (allProjects.length > 0) {
+      const filteredProjects = applyFilters(allProjects);
+      setProjects(filteredProjects);
+    }
+  }, [selectedFilter, allProjects, applyFilters]);
 
   const loadProjectsWithTasks = async () => {
     try {
@@ -66,24 +125,10 @@ function HomePage() {
         }
       });
       
-      // Process projects and their tasks
+      // Process projects and their tasks (store all tasks)
       const processedProjects = projectsList.map(project => {
-        // Get tasks for this project and filter out old completed/canceled tasks
         const projectTasks = issuesByProject[project.id] || [];
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-        
-        const relevantTasks = projectTasks.filter(task => {
-          // Always show active tasks
-          if (task.state?.type !== 'completed' && task.state?.type !== 'canceled') {
-            return true;
-          }
-          
-          // Show completed/canceled tasks only if they were updated within the last day
-          const updatedAt = new Date(task.updatedAt);
-          return updatedAt > oneDayAgo;
-        });
-        const sortedTasks = [...relevantTasks].sort((a, b) => {
+        const sortedTasks = [...projectTasks].sort((a, b) => {
           // First by status priority: in-progress → todo → done → canceled
           const statusOrder = {
             'started': 0,      // in-progress
@@ -113,7 +158,8 @@ function HomePage() {
         
         return {
           ...project,
-          tasks: sortedTasks,
+          allTasks: sortedTasks, // Store all tasks
+          tasks: sortedTasks, // Will be filtered later
           // Calculate earliest due date for project sorting (only active tasks)
           earliestDueDate: sortedTasks
             .filter(task => task.dueDate && task.state?.type !== 'completed' && task.state?.type !== 'canceled')
@@ -155,16 +201,18 @@ function HomePage() {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
       
-      // Filter out projects with no active tasks
-      const projectsWithTasks = processedProjects.filter(project => project.tasks.length > 0);
+      // Store all projects data
+      setAllProjects(processedProjects);
       
-      setProjects(projectsWithTasks);
+      // Apply initial filters
+      const filteredProjects = applyFilters(processedProjects);
+      setProjects(filteredProjects);
       
       // Initialize collapsed state based on project status
       // Projects with 'planned'/'backlog'/'todo' status should be collapsed (closed)
       // Projects with 'started'/'in_progress'/'active' status should be expanded (open)
       const newCollapsedProjects = new Set();
-      projectsWithTasks.forEach(project => {
+      filteredProjects.forEach(project => {
         const status = project.state?.toLowerCase();
         const isTodoStatus = ['planned', 'backlog', 'todo', 'planning'].includes(status);
         
@@ -420,19 +468,19 @@ function HomePage() {
 
   const isTaskClickable = (task) => {
     const status = task.state?.type;
-    return status !== LINEAR_STATUS.COMPLETED && status !== LINEAR_STATUS.CANCELED;
+    return status !== LINEAR_STATUS.COMPLETED; // Allow canceled tasks to be clickable/swipeable
   };
 
-  // Check if task can be marked as "In Progress" (if it's not already in progress or canceled)
+  // Check if task can be marked as "In Progress" (if it's not already in progress)
   const canMarkInProgress = (task) => {
     const appStatus = getAppStatus(task);
-    return appStatus !== INTERNAL_STATUS.STARTED && appStatus !== INTERNAL_STATUS.CANCELED;
+    return appStatus !== INTERNAL_STATUS.STARTED; // Allow canceled tasks to be marked as in progress
   };
 
-  // Check if task can be marked as "Complete" (if it's not already completed or canceled)
+  // Check if task can be marked as "Complete" (if it's not already completed - allow canceled tasks)
   const canMarkComplete = (task) => {
     const appStatus = getAppStatus(task);
-    return appStatus !== INTERNAL_STATUS.COMPLETED && appStatus !== INTERNAL_STATUS.CANCELED;
+    return appStatus !== INTERNAL_STATUS.COMPLETED;
   };
 
   const handleTaskLongPress = (task) => {
@@ -563,11 +611,76 @@ function HomePage() {
   return (
     <div className="home-page-compact">
       <div className="page-header-compact">
-        <h1 className="page-title-compact">
-          <Clock size={20} />
-          {motivationalQuote}
-        </h1>
+        <div className="header-row-compact">
+          <h1 className="page-title-compact">
+            <Clock size={20} />
+            {motivationalQuote}
+          </h1>
+          <button 
+            className="filter-button-compact"
+            onClick={() => setShowFilterMenu(!showFilterMenu)}
+          >
+            <Filter size={18} />
+            {selectedFilter !== 'all' && <span className="filter-badge"></span>}
+          </button>
+        </div>
       </div>
+      
+      {/* Filter Menu */}
+      {showFilterMenu && (
+        <div className="filter-menu-overlay" onClick={() => setShowFilterMenu(false)}>
+          <div className="filter-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="filter-menu-header">
+              <h4>Filter Old Tasks</h4>
+              <button onClick={() => setShowFilterMenu(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="filter-options">
+              <button 
+                className={`filter-option ${selectedFilter === 'all' ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedFilter('all');
+                  setShowFilterMenu(false);
+                }}
+              >
+                <span>Show All Tasks</span>
+                <Check size={16} style={{opacity: selectedFilter === 'all' ? 1 : 0}} />
+              </button>
+              <button 
+                className={`filter-option ${selectedFilter === 'day' ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedFilter('day');
+                  setShowFilterMenu(false);
+                }}
+              >
+                <span>Hide Older than 1 Day</span>
+                <Check size={16} style={{opacity: selectedFilter === 'day' ? 1 : 0}} />
+              </button>
+              <button 
+                className={`filter-option ${selectedFilter === 'week' ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedFilter('week');
+                  setShowFilterMenu(false);
+                }}
+              >
+                <span>Hide Older than 1 Week</span>
+                <Check size={16} style={{opacity: selectedFilter === 'week' ? 1 : 0}} />
+              </button>
+              <button 
+                className={`filter-option ${selectedFilter === 'month' ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedFilter('month');
+                  setShowFilterMenu(false);
+                }}
+              >
+                <span>Hide Older than 1 Month</span>
+                <Check size={16} style={{opacity: selectedFilter === 'month' ? 1 : 0}} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="page-content-compact">
         {error && (
@@ -620,11 +733,11 @@ function HomePage() {
                     {project.tasks.map(task => (
                       <SwipeableCard
                         key={`${task.id}-${task.animationKey || ''}`}
-                        onDelete={canMarkInProgress(task) ? (swipeDirection) => handleMarkInProgress(task.id, swipeDirection) : null}
-                        onMarkDone={canMarkComplete(task) ? (swipeDirection) => handleTaskComplete({ stopPropagation: () => {} }, task.id, swipeDirection) : null}
+                        onSwipeActionLeft={canMarkInProgress(task) ? (swipeDirection) => handleMarkInProgress(task.id, swipeDirection) : null}
+                        onSwipeActionRight={canMarkComplete(task) ? (swipeDirection) => handleTaskComplete({ stopPropagation: () => {} }, task.id, swipeDirection) : null}
                         onLongPress={() => handleTaskLongPress(task)}
-                        deleteLabel="In Progress"
-                        markDoneLabel="Complete"
+                        leftActionLabel="In Progress"
+                        rightActionLabel="Complete"
                         disabled={!isTaskClickable(task)}
                       >
                         <div

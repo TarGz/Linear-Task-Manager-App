@@ -6,10 +6,12 @@ import './TaskCard.css';
 
 function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hideProjectName = false }) {
   const handleMarkDone = () => {
+    // Allow marking any non-completed task as done (including canceled tasks)
     if (onStatusChange && task.state?.type !== 'completed') {
       onStatusChange(task.id, 'completed');
     }
   };
+
 
   const handleDelete = () => {
     if (onDelete) {
@@ -31,12 +33,12 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hidePr
 
   return (
     <SwipeableCard
-      onDelete={handleDelete}
-      onMarkDone={handleMarkDone}
+      onSwipeActionLeft={onDelete ? handleDelete : null}
+      onSwipeActionRight={onStatusChange && task.state?.type !== 'completed' ? handleMarkDone : null}
       onLongPress={handleLongPress}
-      deleteLabel="Delete"
-      markDoneLabel={task.state?.type === 'completed' ? 'Done' : 'Mark Done'}
-      disabled={!onDelete && !onStatusChange}
+      leftActionLabel="Delete"
+      rightActionLabel={task.state?.type === 'completed' ? 'Done' : 'Mark Done'}
+      disabled={task.state?.type === 'completed'}
     >
       <div
         className="task-card card"

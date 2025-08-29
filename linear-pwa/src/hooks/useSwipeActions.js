@@ -91,38 +91,41 @@ export const useSwipeActions = ({
     let actionReady = false;
     
     if (Math.abs(diff) > MIN_MOVEMENT) { // Minimum movement to start swiping
-      if (diff < 0) { // Finger moving right to left
+      if (diff < 0 && onSwipeLeft) { // Finger moving right to left, only if left action available
         direction = 'left';
         transform = Math.max(diff, -MAX_SWIPE_DISTANCE); // Card moves left with finger
-      } else { // Finger moving left to right
+      } else if (diff > 0 && onSwipeRight) { // Finger moving left to right, only if right action available
         direction = 'right';
         transform = Math.min(diff, MAX_SWIPE_DISTANCE); // Card moves right with finger
       }
       
-      // Check if action is ready (button fully visible and colored)
-      const absTransform = Math.abs(transform);
-      actionReady = absTransform >= SWIPE_THRESHOLD;
-      
-      // Trigger haptic feedback when transitioning to action-ready state
-      if (actionReady && !isActionReady) {
-        triggerHaptic('medium');
-      }
-      
-      setSwipeDirection(direction);
-      setIsActionReady(actionReady);
-      
-      // Apply transform to the element
-      if (elementRef.current) {
-        elementRef.current.style.transform = `translateX(${transform}px)`;
-        elementRef.current.style.transition = 'none';
+      // Only proceed if we have a valid direction with available action
+      if (direction) {
+        // Check if action is ready (button fully visible and colored)
+        const absTransform = Math.abs(transform);
+        actionReady = absTransform >= SWIPE_THRESHOLD;
         
-        // Add visual feedback based on swipe distance
-        const progress = Math.min(absTransform / SWIPE_THRESHOLD, 1);
-        elementRef.current.setAttribute('data-swipe-progress', progress.toString());
-        elementRef.current.setAttribute('data-action-ready', actionReady.toString());
+        // Trigger haptic feedback when transitioning to action-ready state
+        if (actionReady && !isActionReady) {
+          triggerHaptic('medium');
+        }
+        
+        setSwipeDirection(direction);
+        setIsActionReady(actionReady);
+        
+        // Apply transform to the element
+        if (elementRef.current) {
+          elementRef.current.style.transform = `translateX(${transform}px)`;
+          elementRef.current.style.transition = 'none';
+          
+          // Add visual feedback based on swipe distance
+          const progress = Math.min(absTransform / SWIPE_THRESHOLD, 1);
+          elementRef.current.setAttribute('data-swipe-progress', progress.toString());
+          elementRef.current.setAttribute('data-action-ready', actionReady.toString());
+        }
       }
     }
-  }, [isDragging, startX, longPressTimer, isActionReady, triggerHaptic]);
+  }, [isDragging, startX, longPressTimer, isActionReady, triggerHaptic, onSwipeLeft, onSwipeRight]);
 
   const handleTouchEnd = useCallback(() => {
     // Clear long press timer
@@ -133,18 +136,30 @@ export const useSwipeActions = ({
     
     // If action is ready and not a long press, trigger the action
     if (!isLongPress && isActionReady && swipeDirection) {
-      // Trigger haptic feedback for action execution
-      triggerHaptic('heavy');
+      let actionExecuted = false;
       
-      // Execute the appropriate action
+      // Execute the appropriate action only if callback exists
       if (swipeDirection === 'left' && onSwipeLeft) {
+        triggerHaptic('heavy');
         onSwipeLeft(swipeDirection);
+        actionExecuted = true;
       } else if (swipeDirection === 'right' && onSwipeRight) {
+        triggerHaptic('heavy');
         onSwipeRight(swipeDirection);
+        actionExecuted = true;
       }
       
-      // Skip reset animation since we're triggering the action
-      resetCard(true);
+      if (actionExecuted) {
+        // Skip reset animation since we're triggering the action
+        resetCard(true);
+      } else {
+        // No action available, reset with animation
+        if (elementRef.current) {
+          elementRef.current.style.transition = 'transform 0.2s ease-out';
+          elementRef.current.style.transform = '';
+        }
+        resetCard();
+      }
     } else {
       // Immediate reset animation if action not ready
       if (elementRef.current) {

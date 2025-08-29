@@ -6,7 +6,7 @@
 
 .app-content {
   flex: 1;
-  padding-bottom: 100px;
+  padding-bottom: 60px;
 }
 
 .app-loading {
@@ -118,7 +118,7 @@
 
 @media (max-width: 768px) {
   .app-content {
-    padding-bottom: 90px;
+    padding-bottom: 60px;
   }
   
   .page-content {

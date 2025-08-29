@@ -10,6 +10,12 @@
   border-bottom: 1px solid var(--border-color);
 }
 
+.header-row-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .page-title-compact {
   margin: 0;
   font-size: 18px;
@@ -18,6 +24,107 @@
   align-items: center;
   gap: 8px;
   color: var(--text-primary);
+}
+
+.filter-button-compact {
+  position: relative;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-button-compact:hover {
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+.filter-button-compact .filter-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--primary-color);
+  border-radius: 50%;
+}
+
+/* Filter Menu */
+.filter-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-menu {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.filter-menu-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-menu-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.filter-menu-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.filter-options {
+  padding: 8px 0;
+}
+
+.filter-option {
+  width: 100%;
+  padding: 16px 20px;
+  background: transparent;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.filter-option:hover {
+  background: var(--background);
+}
+
+.filter-option.active {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--primary-color);
+}
+
+.filter-option span {
+  text-align: left;
 }
 
 .page-content-compact {
