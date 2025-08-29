@@ -14,6 +14,7 @@ function SettingsPage({ onApiKeyChange }) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateInfo, setUpdateInfo] = useState(null);
   const [versionInfo, setVersionInfo] = useState(null);
+  const [hasCheckedForUpdates, setHasCheckedForUpdates] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isForceUpdating, setIsForceUpdating] = useState(false);
@@ -97,6 +98,7 @@ function SettingsPage({ onApiKeyChange }) {
         type: result.type,
         checked: true
       });
+      setHasCheckedForUpdates(true);
 
       if (result.available) {
         setUpdateAvailable(true);
@@ -289,14 +291,9 @@ function SettingsPage({ onApiKeyChange }) {
                   <div>
                     <h4>Update Available!</h4>
                     <p>
-                      Current version: <strong>{updateInfo.currentVersion}</strong><br />
+                      Current version: <strong>{updateInfo.currentVersion || APP_VERSION}</strong><br />
                       Latest version: <strong>{updateInfo.latestVersion}</strong>
                     </p>
-                    {updateInfo.type === 'deployed' && (
-                      <p className="update-timestamp">
-                        New build available from {new Date(updateInfo.deployedTimestamp).toLocaleString()}
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -331,31 +328,33 @@ function SettingsPage({ onApiKeyChange }) {
                 </button>
               )}
 
-              <button
-                className="btn btn-outline btn-secondary"
-                onClick={handleForceUpdate}
-                disabled={isForceUpdating || isUpdating || isCheckingUpdates}
-                title="Clear cache and force reload - use if stuck on old version"
-              >
-                {isForceUpdating ? (
-                  <div className="loading-spinner-small"></div>
-                ) : (
-                  <RotateCcw size={20} />
-                )}
-                Force Update
-              </button>
+              {hasCheckedForUpdates && (
+                <button
+                  className="btn btn-outline btn-secondary"
+                  onClick={handleForceUpdate}
+                  disabled={isForceUpdating || isUpdating || isCheckingUpdates}
+                  title="Clear cache and force reload - use if stuck on old version"
+                >
+                  {isForceUpdating ? (
+                    <div className="loading-spinner-small"></div>
+                  ) : (
+                    <RotateCcw size={20} />
+                  )}
+                  Force Update
+                </button>
+              )}
             </div>
 
             {versionInfo && versionInfo.checked && (
               <div className="version-info-display card">
-                <h4>Version Information</h4>
+                <h4>Version Check Results</h4>
                 <div className="version-details">
                   <div className="version-item">
-                    <span className="version-label">Current Version:</span>
+                    <span className="version-label">Current:</span>
                     <span className="version-value">{versionInfo.currentVersion}</span>
                   </div>
                   <div className="version-item">
-                    <span className="version-label">Latest Available:</span>
+                    <span className="version-label">Latest:</span>
                     <span className="version-value">{versionInfo.latestVersion}</span>
                   </div>
                   <div className="version-item">
@@ -364,15 +363,6 @@ function SettingsPage({ onApiKeyChange }) {
                       {versionInfo.currentVersion === versionInfo.latestVersion ? '🟢 Up to Date' : '🟡 Update Available'}
                     </span>
                   </div>
-                  {versionInfo.type && (
-                    <div className="version-item">
-                      <span className="version-label">Source:</span>
-                      <span className="version-value">
-                        {versionInfo.type === 'github' ? 'GitHub Releases' : 
-                         versionInfo.type === 'deployed' ? 'GitHub Pages' : 'PWA Service Worker'}
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
             )}
