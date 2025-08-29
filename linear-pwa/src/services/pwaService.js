@@ -224,84 +224,20 @@ class PWAService {
     return { hasUpdate: false, latestVersion: currentVersion };
   }
 
-  // Check for updates by comparing build timestamp from deployed app
-  async checkDeployedVersion(currentVersion, currentBuildDate) {
-    try {
-      // Check the deployed index.html for version info
-      const response = await fetch('https://targz.github.io/Linear-Task-Manager-App/index.html', { 
-        cache: 'no-store' 
-      });
-      
-      if (response.ok) {
-        const html = await response.text();
-        
-        // Extract app-version meta tag
-        const versionMatch = html.match(/<meta name="app-version" content="([^"]+)"/);
-        // Extract build-timestamp meta tag  
-        const timestampMatch = html.match(/<meta name="build-timestamp" content="([^"]+)"/);
-        
-        if (versionMatch && timestampMatch) {
-          const deployedVersion = versionMatch[1];
-          const deployedTimestamp = new Date(timestampMatch[1]);
-          const currentTimestamp = new Date(currentBuildDate);
-          
-          // Only consider actual version updates, not just newer builds
-          const versionCompare = this.compareVersions(currentVersion, deployedVersion);
-          const isNewerVersion = versionCompare < 0;
-          
-          console.log(`🔍 Version Check: Deployed=${deployedVersion}, Current=${currentVersion}`);
-          console.log(`📅 Timestamps: Deployed=${deployedTimestamp.toLocaleString()}, Current=${currentTimestamp.toLocaleString()}`);
-          console.log(`🚀 Version comparison result: ${versionCompare} (${versionCompare < 0 ? 'UPDATE NEEDED' : 'UP TO DATE'})`);
-          
-          return {
-            hasUpdate: isNewerVersion,
-            latestVersion: deployedVersion,
-            deployedTimestamp: deployedTimestamp.toISOString(),
-            updateType: 'version',
-            currentVersion,
-            buildTimestamp: currentBuildDate
-          };
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check deployed version:', error);
-    }
-    return { hasUpdate: false };
-  }
 
-  // Enhanced update checking with multiple methods
+  // Simplified update checking using GitHub releases only
   async checkForUpdates() {
-    console.log('Checking for updates...');
+    console.log('🔍 Checking for updates via GitHub Releases API...');
     
-    // First check service worker for PWA updates
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration) {
-          await registration.update();
-          
-          // Give service worker time to detect updates
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          if (this.needRefresh) {
-            console.log('PWA update detected via service worker');
-            return { type: 'pwa', available: true };
-          }
-        }
-      } catch (error) {
-        console.error('Failed to check service worker updates:', error);
-      }
-    }
-
-    // Import current version and check for updates
     try {
-      const { APP_VERSION, BUILD_DATE } = await import('../config/constants.js');
+      const { APP_VERSION } = await import('../config/constants.js');
+      console.log(`📦 Current version: ${APP_VERSION}`);
       
-      // First try GitHub releases
+      // Check GitHub releases (primary and only method)
       const githubCheck = await this.checkGitHubVersion(APP_VERSION);
       
       if (githubCheck.hasUpdate) {
-        console.log('GitHub version update available');
+        console.log('✅ GitHub version update available!');
         this.needRefresh = true;
         if (this.updateCallback) {
           this.updateCallback(true);
@@ -316,54 +252,37 @@ class PWAService {
         };
       }
       
-      // If no GitHub releases, check deployed version
-      if (githubCheck.noReleases) {
-        console.log('No GitHub releases found, checking deployed version...');
-        const deployedCheck = await this.checkDeployedVersion(APP_VERSION, BUILD_DATE);
-        
-        if (deployedCheck.hasUpdate) {
-          console.log('Deployed version update available');
-          this.needRefresh = true;
-          if (this.updateCallback) {
-            this.updateCallback(true);
-          }
-          return {
-            type: 'deployed',
-            available: true,
-            currentVersion: APP_VERSION,
-            latestVersion: deployedCheck.latestVersion,
-            updateType: deployedCheck.updateType,
-            deployedTimestamp: deployedCheck.deployedTimestamp
-          };
-        } else {
-          // No update available but return deployed version info
-          console.log('No version update needed, but returning deployed version info');
-          return {
-            type: 'deployed',
-            available: false,
-            currentVersion: APP_VERSION,
-            latestVersion: deployedCheck.latestVersion,
-            deployedTimestamp: deployedCheck.deployedTimestamp
-          };
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check for updates:', error);
-    }
-
-    console.log('No updates available');
-    
-    // Return version info even when no updates - fallback
-    try {
-      const { APP_VERSION } = await import('../config/constants.js');
-      return { 
-        type: 'none', 
-        available: false, 
+      // No update available but return current version info
+      console.log('📋 No updates available - app is up to date');
+      return {
+        type: 'github',
+        available: false,
         currentVersion: APP_VERSION,
-        latestVersion: APP_VERSION
+        latestVersion: githubCheck.latestVersion || APP_VERSION,
+        releaseUrl: githubCheck.releaseUrl,
+        noReleases: githubCheck.noReleases
       };
+      
     } catch (error) {
-      return { type: 'none', available: false };
+      console.error('❌ Failed to check for updates:', error);
+      
+      // Fallback - return current version
+      try {
+        const { APP_VERSION } = await import('../config/constants.js');
+        return { 
+          type: 'error', 
+          available: false, 
+          currentVersion: APP_VERSION,
+          latestVersion: APP_VERSION,
+          error: error.message
+        };
+      } catch (importError) {
+        return { 
+          type: 'error', 
+          available: false,
+          error: 'Failed to load version information'
+        };
+      }
     }
   }
 }

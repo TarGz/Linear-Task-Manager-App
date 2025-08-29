@@ -128,6 +128,40 @@ Features: ${features}
 Co-Authored-By: Claude <noreply@anthropic.com>`;
 }
 
+function getReleaseTitle(commitType) {
+  switch (commitType) {
+    case 'major':
+      return 'Major Release';
+    case 'minor':
+      return 'New Features';
+    case 'patch':
+    default:
+      return 'Bug Fixes & Improvements';
+  }
+}
+
+function generateReleaseNotes(version, features, commitType) {
+  const emoji = {
+    major: '🚀',
+    minor: '✨', 
+    patch: '🐛'
+  }[commitType] || '📦';
+  
+  const description = {
+    major: '**Major Release** - This version includes breaking changes and significant new features.',
+    minor: '**New Features** - This version adds new functionality while maintaining compatibility.',
+    patch: '**Bug Fixes & Improvements** - This version includes bug fixes and minor enhancements.'
+  }[commitType] || 'Release notes';
+
+  return `${emoji} ${description}
+
+## Current Features
+${features.split(', ').map(f => `- ${f.trim()}`).join('\\n')}
+
+---
+*This release enables automatic update detection through the GitHub Releases API.*`;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const versionType = args[0] || 'patch';
@@ -223,10 +257,25 @@ async function main() {
     log('yellow', '⚠️  Please manually run: GitHub → Actions → Deploy to GitHub Pages');
   }
   
+  // Create GitHub release
+  log('blue', '\n📋 Creating GitHub release...');
+  try {
+    const releaseTitle = `v${newVersion}: ${getReleaseTitle(commitType)}`;
+    const releaseNotes = generateReleaseNotes(newVersion, currentFeatures, commitType);
+    
+    execSync(`gh release create v${newVersion} --title "${releaseTitle}" --notes "${releaseNotes}"`, { stdio: 'inherit' });
+    log('green', '✅ GitHub release created!');
+  } catch (releaseError) {
+    log('yellow', '⚠️  Could not create GitHub release automatically');
+    log('yellow', `⚠️  Please manually create release v${newVersion} at: https://github.com/TarGz/Linear-Task-Manager-App/releases/new`);
+    log('yellow', `⚠️  This is CRITICAL for the update system to work properly!`);
+  }
+
   log('green', '\n✅ Release AND deployment complete!');
   log('cyan', `🔗 Live site will update in a few minutes`);
   log('cyan', `📱 Version ${newVersion} is now deployed`);
-  log('magenta', `🎯 No more manual steps needed!`);
+  log('cyan', `📋 GitHub release: https://github.com/TarGz/Linear-Task-Manager-App/releases/tag/v${newVersion}`);
+  log('magenta', `🎯 Update system can now detect this version!`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
