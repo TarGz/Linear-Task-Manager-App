@@ -101,19 +101,15 @@ class PWAService {
       sessionStorage.clear();
       
       if (this.isIOSPWA()) {
-        console.log('📱 iOS PWA detected - using special reload method');
+        console.log('📱 iOS PWA detected - using cache-busting URL reload');
         
-        // For iOS PWA, we need to navigate to the base URL without parameters
-        // then reload to ensure proper cache clearing
-        const baseUrl = new URL(window.location.origin + window.location.pathname);
+        // For iOS PWA, add cache busting parameters and navigate directly
+        const url = new URL(window.location.href);
+        url.searchParams.set('_pwa_update', Date.now());
+        url.searchParams.set('_ios_cache_bust', Math.random().toString(36).substring(2));
         
-        // First navigate to base URL
-        window.location.href = baseUrl.toString();
-        
-        // Then reload after a short delay
-        setTimeout(() => {
-          window.location.reload(true);
-        }, 100);
+        console.log('🚀 iOS PWA reloading to:', url.toString());
+        window.location.href = url.toString();
         
       } else {
         // Regular browser handling
