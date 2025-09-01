@@ -22,7 +22,7 @@ async function testLinearAPI() {
           name
           email
         }
-        issues(first: 5) {
+        issues(first: 10) {
           nodes {
             id
             title
@@ -31,6 +31,7 @@ async function testLinearAPI() {
               name
             }
             priority
+            dueDate
             createdAt
             updatedAt
           }
@@ -81,7 +82,12 @@ async function testLinearAPI() {
         console.log(`\n   Title: ${issue.title}`);
         console.log(`   State: ${issue.state.name}`);
         console.log(`   Priority: ${issue.priority || 'None'}`);
-        console.log(`   Created: ${new Date(issue.createdAt).toLocaleDateString()}`);
+        console.log(`   Due Date: ${issue.dueDate || 'None'}`);
+        console.log(`   Due Date Type: ${issue.dueDate ? typeof issue.dueDate : 'N/A'}`);
+        if (issue.dueDate) {
+          console.log(`   Due Date Parsed: ${new Date(issue.dueDate).toString()}`);
+        }
+        console.log(`   Created: ${new Date(issue.createdAt).toString()}`);
       });
     }
 
