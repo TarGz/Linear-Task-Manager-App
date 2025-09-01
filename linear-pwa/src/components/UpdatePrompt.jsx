@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
+import pwaService from '../services/pwaService';
 import './UpdatePrompt.css';
 
 function UpdatePrompt() {
@@ -32,20 +33,10 @@ function UpdatePrompt() {
 
   const handleUpdate = async () => {
     try {
-      // Clear all possible caches before updating
-      if ('caches' in window) {
-        const cacheNames = await caches.keys();
-        await Promise.all(cacheNames.map(name => caches.delete(name)));
-      }
-      
-      // Force service worker update
+      // Ask SW to update then use centralized update flow
       updateServiceWorker(true);
       setShowPrompt(false);
-      
-      // Force reload after short delay
-      setTimeout(() => {
-        window.location.reload(true);
-      }, 1000);
+      await pwaService.updateApp();
     } catch (error) {
       console.error('Update failed:', error);
       // Fallback to simple reload
