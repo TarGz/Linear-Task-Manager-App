@@ -1,0 +1,73 @@
+.update-prompt {
+  position: fixed;
+  bottom: 80px; /* Above bottom navigation */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  max-width: 90%;
+  width: 340px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.update-prompt-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.update-prompt-message {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.update-prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.update-prompt-dismiss,
+.update-prompt-update {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.update-prompt-dismiss {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.update-prompt-dismiss:hover {
+  background: #e0e0e0;
+}
+
+.update-prompt-update {
+  background: #7C4DFF;
+  color: white;
+}
+
+.update-prompt-update:hover {
+  background: #6234E8;
+}

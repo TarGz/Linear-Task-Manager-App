@@ -7,6 +7,7 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import TodosPage from './pages/TodosPage';
 import TaskDetailPage from './pages/TaskDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import UpdatePrompt from './components/UpdatePrompt';
 import linearApi from './services/linearApi';
 import './App.css';
 
@@ -38,6 +39,7 @@ function App() {
   return (
     <Router basename={basename}>
       <div className="app">
+        <UpdatePrompt />
         <div className="app-content">
           <Routes>
             <Route 

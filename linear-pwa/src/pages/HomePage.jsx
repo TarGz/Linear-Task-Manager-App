@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -8,6 +8,7 @@ import linearApi from '../services/linearApi';
 import { formatDateShort } from '../utils/dateUtils';
 import { INTERNAL_STATUS, LINEAR_STATUS } from '../config/constants';
 import { normalizeStatus } from '../utils/statusUtils';
+import { useNotifications } from '../hooks/useNotifications';
 import './HomePage.css';
 
 function HomePage() {
@@ -23,6 +24,9 @@ function HomePage() {
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('day'); // 'all', 'day', 'week', 'month'
+  
+  // Notifications hook
+  const { requestPermission, checkTasksDue, hasPermission } = useNotifications();
 
   // Short motivational quotes that fit in the title space
   const quotes = [
@@ -223,6 +227,11 @@ function HomePage() {
       });
       
       setCollapsedProjects(newCollapsedProjects);
+      
+      // Check for due tasks and show notifications
+      const allTasks = processedProjects.flatMap(p => p.allTasks || []);
+      checkTasksDue(allTasks);
+      
     } catch (error) {
       setError('Failed to load projects and tasks. Please check your connection and try again.');
       console.error('Failed to load projects:', error);
@@ -616,13 +625,38 @@ function HomePage() {
             <Clock size={20} />
             {motivationalQuote}
           </h1>
-          <button 
-            className="filter-button-compact"
-            onClick={() => setShowFilterMenu(!showFilterMenu)}
-          >
-            <Filter size={18} />
-            {selectedFilter !== 'all' && <span className="filter-badge"></span>}
-          </button>
+          <div style={{display: 'flex', gap: '8px'}}>
+            <button 
+              className="notification-button"
+              onClick={async () => {
+                if (!hasPermission) {
+                  const granted = await requestPermission();
+                  if (granted) {
+                    // Re-check tasks for notifications
+                    const allTasks = allProjects.flatMap(p => p.allTasks || []);
+                    checkTasksDue(allTasks);
+                  }
+                }
+              }}
+              title={hasPermission ? "Notifications enabled" : "Enable notifications"}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '6px',
+                cursor: 'pointer',
+                color: hasPermission ? '#7C4DFF' : '#999'
+              }}
+            >
+              {hasPermission ? <Bell size={18} /> : <BellOff size={18} />}
+            </button>
+            <button 
+              className="filter-button-compact"
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+            >
+              <Filter size={18} />
+              {selectedFilter !== 'all' && <span className="filter-badge"></span>}
+            </button>
+          </div>
         </div>
       </div>
       
