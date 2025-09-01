@@ -84,6 +84,12 @@ class PWAService {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   }
 
+  // Back-compat helper: specifically detect iOS installed PWA
+  // Used by SettingsPage; keep logic narrow to iOS + standalone
+  isIOSPWA() {
+    return this.isIOS() && window.matchMedia('(display-mode: standalone)').matches;
+  }
+
   // Force reload the app (with iOS PWA specific handling)
   forceReload() {
     console.log('🔄 Force reloading app...');
