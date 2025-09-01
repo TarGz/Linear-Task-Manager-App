@@ -25,6 +25,10 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        additionalManifestEntries: [{
+          url: '/',
+          revision: Date.now().toString()
+        }],
         navigateFallback: null,
         runtimeCaching: [
           {

@@ -30,9 +30,27 @@ function UpdatePrompt() {
     }
   }, [needRefresh]);
 
-  const handleUpdate = () => {
-    updateServiceWorker(true);
-    setShowPrompt(false);
+  const handleUpdate = async () => {
+    try {
+      // Clear all possible caches before updating
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      
+      // Force service worker update
+      updateServiceWorker(true);
+      setShowPrompt(false);
+      
+      // Force reload after short delay
+      setTimeout(() => {
+        window.location.reload(true);
+      }, 1000);
+    } catch (error) {
+      console.error('Update failed:', error);
+      // Fallback to simple reload
+      window.location.reload(true);
+    }
   };
 
   const handleDismiss = () => {
