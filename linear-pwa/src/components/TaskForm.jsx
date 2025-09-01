@@ -5,7 +5,12 @@ import './TaskForm.css';
 function TaskForm({ projectId, onSubmit, onCancel }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  // Default due date to today in local timezone (YYYY-MM-DD)
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
