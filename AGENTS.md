@@ -38,3 +38,6 @@
 - The app stores the Linear API key in `localStorage` via Settings; do not hardcode keys.
 - Review network calls in `linear-pwa/src/services/linearApi.js` when changing auth or scopes.
 
+## Release Process
+- Recommended: from repo root run `npm run release-deploy` for a patch release. For minor/major, use `release-deploy:minor` / `release-deploy:major`.
+- Details and prerequisites: see `doc/RELEASE.md`.

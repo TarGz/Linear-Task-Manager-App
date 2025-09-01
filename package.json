@@ -4,7 +4,13 @@
   "description": "A PWA for managing Linear tasks",
   "main": "test-linear-api.js",
   "scripts": {
-    "test-api": "node test-linear-api.js"
+    "test-api": "node test-linear-api.js",
+    "release": "npm --prefix linear-pwa run release",
+    "release:minor": "npm --prefix linear-pwa run release:minor",
+    "release:major": "npm --prefix linear-pwa run release:major",
+    "release-deploy": "npm --prefix linear-pwa run release-deploy",
+    "release-deploy:minor": "npm --prefix linear-pwa run release-deploy:minor",
+    "release-deploy:major": "npm --prefix linear-pwa run release-deploy:major"
   },
   "keywords": ["linear", "pwa", "task-manager"],
   "author": "",

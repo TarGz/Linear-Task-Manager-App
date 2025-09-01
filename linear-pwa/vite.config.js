@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const isProd = process.env.NODE_ENV === 'production'
+const base = isProd ? '/Linear-Task-Manager-App/' : '/'
+
 export default defineConfig({
   define: {
     'import.meta.env.VITE_BUILD_DATE': JSON.stringify(new Date().toISOString())
@@ -26,7 +29,7 @@ export default defineConfig({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         additionalManifestEntries: [{
-          url: '/',
+          url: base,
           revision: Date.now().toString()
         }],
         navigateFallback: null,
@@ -52,6 +55,8 @@ export default defineConfig({
         theme_color: '#FFF9FA',
         background_color: '#FFF9FA',
         display: 'standalone',
+        start_url: base,
+        scope: base,
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -67,5 +72,5 @@ export default defineConfig({
       }
     })
   ],
-  base: process.env.NODE_ENV === 'production' ? '/Linear-Task-Manager-App/' : '/'
+  base
 })

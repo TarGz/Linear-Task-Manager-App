@@ -52,10 +52,10 @@ class PWAService {
   // Update the app
   async updateApp() {
     console.log('🔄 Starting update process...');
-    console.log('📱 iOS PWA:', this.isIOSPWA(), 'Has SW Update:', !!this.updateSW, 'Need Refresh:', this.needRefresh);
+    console.log('📱 iOS Device:', this.isIOS(), 'Standalone:', window.matchMedia('(display-mode: standalone)').matches, 'Has SW Update:', !!this.updateSW, 'Need Refresh:', this.needRefresh);
     
-    // For iOS PWA, skip service worker and go directly to force reload
-    if (this.isIOSPWA()) {
+    // For iOS devices, skip service worker and go directly to force reload
+    if (this.isIOS()) {
       console.log('📱 iOS PWA detected - skipping service worker, using force reload');
       this.forceReload();
       return true;
@@ -79,12 +79,6 @@ class PWAService {
     return true; // Always return true since forceReload will handle the update
   }
 
-  // Check if running as iOS PWA
-  isIOSPWA() {
-    return window.navigator.standalone === true || 
-           window.matchMedia('(display-mode: standalone)').matches;
-  }
-
   // Check if running on iOS
   isIOS() {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -93,14 +87,14 @@ class PWAService {
   // Force reload the app (with iOS PWA specific handling)
   forceReload() {
     console.log('🔄 Force reloading app...');
-    console.log('📱 iOS PWA:', this.isIOSPWA(), 'iOS Device:', this.isIOS());
+    console.log('📱 Standalone:', window.matchMedia('(display-mode: standalone)').matches, 'iOS Device:', this.isIOS());
     
     // Clear all possible caches first
     try {
       // Clear session storage
       sessionStorage.clear();
       
-      if (this.isIOSPWA()) {
+      if (this.isIOS()) {
         console.log('📱 iOS PWA detected - clearing all caches first');
         
         // For iOS PWA, we must clear ALL caches before reloading
@@ -119,9 +113,10 @@ class PWAService {
             Promise.all(registrations.map(reg => reg.unregister()))
           ).catch(() => {})
         ]).then(() => {
-          console.log('🧹 All caches cleared, forcing iOS PWA reload...');
-          // Navigate to root with cache busting
-          const rootUrl = new URL(window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/');
+          console.log('🧹 All caches cleared, forcing iOS reload...');
+          // Navigate to app base with cache busting
+          const base = (import.meta.env.BASE_URL || '/');
+          const rootUrl = new URL(base, window.location.origin);
           rootUrl.searchParams.set('_ios_force_update', Date.now());
           rootUrl.searchParams.set('_v', Math.random().toString(36));
           
