@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff, Briefcase, Home } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -24,6 +24,7 @@ function HomePage() {
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('day'); // 'all', 'day', 'week', 'month'
+  const [workFilter, setWorkFilter] = useState('all'); // 'all', 'work', 'personal'
   
   // Notifications hook
   const { requestPermission, checkTasksDue, hasPermission } = useNotifications();
@@ -49,7 +50,26 @@ function HomePage() {
 
   // Function to apply filters to the raw project data
   const applyFilters = useCallback((projectsList) => {
-    return projectsList.map(project => {
+    // First, filter projects based on work/personal filter
+    let filteredProjects = projectsList;
+    
+    if (workFilter !== 'all') {
+      filteredProjects = projectsList.filter(project => {
+        const projectHasWorkLabel = project.labels?.nodes?.some(label => label.name === 'Work');
+        
+        if (workFilter === 'work') {
+          // Only show projects with Work label
+          return projectHasWorkLabel;
+        } else if (workFilter === 'personal') {
+          // Only show projects without Work label
+          return !projectHasWorkLabel;
+        }
+        return true;
+      });
+    }
+    
+    // Then apply time filters to tasks within remaining projects
+    return filteredProjects.map(project => {
       // Calculate filter date based on selected filter
       let filterDate = null;
       if (selectedFilter !== 'all') {
@@ -88,7 +108,7 @@ function HomePage() {
         tasks: relevantTasks
       };
     }).filter(project => project.tasks.length > 0);
-  }, [selectedFilter]);
+  }, [selectedFilter, workFilter]);
 
   // Set random quote on component mount
   useEffect(() => {
@@ -101,13 +121,13 @@ function HomePage() {
     loadProjectsWithTasks();
   }, []);
 
-  // Apply filters when selectedFilter changes
+  // Apply filters when selectedFilter or workFilter changes
   useEffect(() => {
     if (allProjects.length > 0) {
       const filteredProjects = applyFilters(allProjects);
       setProjects(filteredProjects);
     }
-  }, [selectedFilter, allProjects, applyFilters]);
+  }, [selectedFilter, workFilter, allProjects, applyFilters]);
 
   const loadProjectsWithTasks = async () => {
     try {
@@ -410,12 +430,25 @@ function HomePage() {
         return;
       }
 
+      // Check if the project has the Work label
+      const project = allProjects.find(p => p.id === taskData.projectId);
+      let labelIds = [];
+      
+      if (project?.labels?.nodes?.some(label => label.name === 'Work')) {
+        // This is a work project, ensure task gets Work label
+        const workLabel = await linearApi.ensureWorkLabel();
+        if (workLabel?.id) {
+          labelIds = [workLabel.id];
+        }
+      }
+
       const submitData = {
         title: taskData.title,
         description: taskData.description || undefined,
         projectId: taskData.projectId,
         teamId: teamId,
-        dueDate: taskData.dueDate || undefined
+        dueDate: taskData.dueDate || undefined,
+        ...(labelIds.length > 0 && { labelIds })
       };
 
       const result = await linearApi.createIssue(submitData);
@@ -626,6 +659,32 @@ function HomePage() {
             {motivationalQuote}
           </h1>
           <div style={{display: 'flex', gap: '8px'}}>
+            <button 
+              className={`work-filter-toggle ${workFilter === 'work' ? 'active-work' : workFilter === 'personal' ? 'active-personal' : ''}`}
+              onClick={() => {
+                if (workFilter === 'all') setWorkFilter('work');
+                else if (workFilter === 'work') setWorkFilter('personal');
+                else setWorkFilter('all');
+              }}
+              title={workFilter === 'work' ? 'Showing work tasks' : workFilter === 'personal' ? 'Showing personal tasks' : 'Showing all tasks'}
+              style={{
+                background: workFilter === 'work' ? '#FF6B6B' : workFilter === 'personal' ? '#4ECDC4' : 'transparent',
+                border: '1px solid',
+                borderColor: workFilter !== 'all' ? 'transparent' : '#e0e0e0',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                cursor: 'pointer',
+                color: workFilter !== 'all' ? 'white' : '#666',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '12px',
+                fontWeight: workFilter !== 'all' ? '600' : '400'
+              }}
+            >
+              {workFilter === 'work' ? <Briefcase size={14} /> : workFilter === 'personal' ? <Home size={14} /> : null}
+              {workFilter === 'work' ? 'Work' : workFilter === 'personal' ? 'Personal' : 'All'}
+            </button>
             <button 
               className="notification-button"
               onClick={async () => {

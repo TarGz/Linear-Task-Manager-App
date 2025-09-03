@@ -178,6 +178,13 @@ class LinearAPI {
             state
             createdAt
             updatedAt
+            labels {
+              nodes {
+                id
+                name
+                color
+              }
+            }
           }
         }
         issues(first: 200) {
@@ -202,6 +209,13 @@ class LinearAPI {
               id
               name
               avatarUrl
+            }
+            labels {
+              nodes {
+                id
+                name
+                color
+              }
             }
           }
         }
@@ -339,6 +353,58 @@ class LinearAPI {
       }
     `;
     return this.query(mutation, { id });
+  }
+
+  async getLabels() {
+    const query = `
+      query {
+        issueLabels(first: 50) {
+          nodes {
+            id
+            name
+            color
+            description
+          }
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async createLabel(name, color = '#7C4DFF') {
+    const mutation = `
+      mutation($name: String!, $color: String!) {
+        issueLabelCreate(input: { name: $name, color: $color }) {
+          success
+          issueLabel {
+            id
+            name
+            color
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { name, color });
+  }
+
+  async ensureWorkLabel() {
+    try {
+      const labelsData = await this.getLabels();
+      const existingLabel = labelsData.issueLabels?.nodes?.find(
+        label => label.name === 'Work'
+      );
+      
+      if (existingLabel) {
+        return existingLabel;
+      }
+      
+      // Create Work label if it doesn't exist
+      const result = await this.createLabel('Work', '#FF6B6B');
+      return result.issueLabelCreate?.issueLabel;
+    } catch (error) {
+      console.error('Error ensuring Work label:', error);
+      return null;
+    }
   }
 }
 

@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Briefcase, Home } from 'lucide-react';
 import './ProjectForm.css';
 
 function ProjectForm({ onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    status: 'planned'
+    status: 'planned',
+    type: 'personal' // 'work' or 'personal'
   });
 
   const handleSubmit = (e) => {
@@ -65,6 +66,27 @@ function ProjectForm({ onSubmit, onCancel }) {
             />
           </div>
 
+          <div className="form-group">
+            <label htmlFor="type">Project Type</label>
+            <div className="type-selector">
+              <button
+                type="button"
+                className={`type-button ${formData.type === 'personal' ? 'active' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, type: 'personal' }))}
+              >
+                <Home size={16} />
+                Personal
+              </button>
+              <button
+                type="button"
+                className={`type-button ${formData.type === 'work' ? 'active' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, type: 'work' }))}
+              >
+                <Briefcase size={16} />
+                Work
+              </button>
+            </div>
+          </div>
 
           <div className="project-form-actions">
             <button 

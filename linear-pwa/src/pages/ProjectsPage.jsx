@@ -144,10 +144,20 @@ function ProjectsPage() {
         return;
       }
 
+      // Get or create Work label if this is a work project
+      let labelIds = [];
+      if (projectData.type === 'work') {
+        const workLabel = await linearApi.ensureWorkLabel();
+        if (workLabel?.id) {
+          labelIds = [workLabel.id];
+        }
+      }
+
       await linearApi.createProject({
         name: projectData.name,
         teamIds: [teamId],
-        description: projectData.description || ''
+        description: projectData.description || '',
+        ...(labelIds.length > 0 && { labelIds })
       });
       
       setShowProjectForm(false);
