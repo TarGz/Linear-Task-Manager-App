@@ -341,6 +341,40 @@ function TaskDetailPage() {
         </div>
       </div>
       
+      {showTaskActions && (
+        <div className="task-actions-overlay" onClick={() => setShowTaskActions(false)}>
+          <div className="task-actions-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="task-actions-header">
+              <h4>Task Actions</h4>
+              <p className="task-title">{task?.title}</p>
+            </div>
+            <div className="task-actions-options">
+              <button
+                className="task-action-option"
+                onClick={() => {
+                  setShowTaskActions(false);
+                  handleOpenInLinear();
+                }}
+              >
+                <ExternalLink size={16} />
+                <span>Open in Linear</span>
+              </button>
+              <button
+                className="task-action-option delete"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+                    handleDeleteTask();
+                  }
+                }}
+              >
+                <Trash2 size={16} />
+                <span>Delete Task</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="page-content">
         <div className="container">
           <div className="task-description card">
@@ -422,35 +456,6 @@ function TaskDetailPage() {
         </div>
       </div>
 
-      {showTaskActions && (
-        <div className="task-actions-overlay" onClick={() => setShowTaskActions(false)}>
-          <div className="task-actions-menu card" onClick={(e) => e.stopPropagation()}>
-            <div className="task-actions-header">
-              <h4>Task Actions</h4>
-              <p className="task-title">{task?.title}</p>
-            </div>
-            <div className="task-actions-options">
-              <button
-                className="task-action-option"
-                onClick={() => {
-                  setShowTaskActions(false);
-                  handleOpenInLinear();
-                }}
-              >
-                <ExternalLink size={16} />
-                <span>Open in Linear</span>
-              </button>
-              <button
-                className="task-action-option delete"
-                onClick={handleDeleteTask}
-              >
-                <Trash2 size={16} />
-                <span>Delete Task</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {selectedTask && (
         <StatusMenu

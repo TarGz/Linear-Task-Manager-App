@@ -107,22 +107,46 @@
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .type-button:hover {
   border-color: var(--primary);
   color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .type-button.active {
-  border-color: var(--primary);
-  background: var(--primary);
+  border-color: #007AFF;
+  background: #007AFF;
   color: white;
+  font-weight: 600;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 122, 255, 0.4);
 }
 
 .type-button.active svg {
   color: white;
+}
+
+.type-button.active::after {
+  content: '✓';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #4CAF50;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .project-form-actions {

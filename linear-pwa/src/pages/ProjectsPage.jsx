@@ -144,26 +144,50 @@ function ProjectsPage() {
         return;
       }
 
-      // Get or create Work label if this is a work project
+      // Store work type in project name and get Work label if needed
+      console.log('🔍 Full projectData received:', projectData);
+      console.log('🔍 projectData.type:', projectData.type);
+      console.log('🔍 projectData.type === "work":', projectData.type === 'work');
+      
+      let projectName = projectData.name;
       let labelIds = [];
+      
       if (projectData.type === 'work') {
+        projectName = `🏢 ${projectData.name}`;
+        console.log('✅ Creating WORK project with name:', projectName);
+        
+        // Get Work label ID for work projects
+        console.log('🏷️ Getting Work label for project...');
         const workLabel = await linearApi.ensureWorkLabel();
+        console.log('🏷️ Retrieved Work label for project:', workLabel);
+        
         if (workLabel?.id) {
           labelIds = [workLabel.id];
+          console.log('✅ Will create project with Work label ID:', workLabel.id);
+        } else {
+          console.log('❌ Could not get Work label ID for project');
         }
+      } else {
+        console.log('❌ Not a work project, type is:', projectData.type);
       }
 
-      await linearApi.createProject({
-        name: projectData.name,
+      const createData = {
+        name: projectName,
         teamIds: [teamId],
         description: projectData.description || '',
         ...(labelIds.length > 0 && { labelIds })
-      });
+      };
+      
+      console.log('Creating project with data:', createData);
+      console.log('🏷️ Project label IDs being applied:', labelIds);
+      
+      const result = await linearApi.createProject(createData);
+      console.log('✅ Project creation result:', result);
       
       setShowProjectForm(false);
       await loadProjects(); // Refresh to show new project
     } catch (error) {
-      console.error('Project creation failed:', error);
+      console.error('❌ Project creation failed:', error);
       setShowProjectForm(false);
     }
   };
@@ -199,6 +223,13 @@ function ProjectsPage() {
               <Home size={24} className="page-icon" />
               Projects
             </h1>
+            <button 
+              className="btn btn-primary create-project-header-btn"
+              onClick={() => setShowProjectForm(true)}
+              title="Create New Project"
+            >
+              <Plus size={20} />
+            </button>
           </div>
         </div>
       </div>

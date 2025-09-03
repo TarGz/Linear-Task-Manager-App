@@ -14,6 +14,7 @@ function ProjectForm({ onSubmit, onCancel }) {
     e.preventDefault();
     if (!formData.name.trim()) return;
     
+    console.log('💫 Form submitting data:', formData);
     onSubmit(formData);
   };
 

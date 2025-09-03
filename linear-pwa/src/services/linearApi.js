@@ -26,6 +26,10 @@ class LinearAPI {
       throw new Error('API key not set');
     }
 
+    console.log('🔍 LINEAR API CALL:');
+    console.log('Query:', graphqlQuery);
+    console.log('Variables:', variables);
+
     try {
       const response = await axios.post(
         LINEAR_API_URL,
@@ -282,6 +286,7 @@ class LinearAPI {
   }
 
   async createProject(input) {
+    console.log('Linear API createProject called with input:', input);
     const mutation = `
       mutation($input: ProjectCreateInput!) {
         projectCreate(input: $input) {
@@ -295,7 +300,9 @@ class LinearAPI {
         }
       }
     `;
-    return this.query(mutation, { input });
+    const result = await this.query(mutation, { input });
+    console.log('Linear API createProject result:', result);
+    return result;
   }
 
   async updateProject(id, input) {
@@ -389,20 +396,23 @@ class LinearAPI {
 
   async ensureWorkLabel() {
     try {
+      console.log('🏷️ Getting existing labels...');
       const labelsData = await this.getLabels();
+      console.log('🏷️ Available labels:', labelsData.issueLabels?.nodes);
+      
       const existingLabel = labelsData.issueLabels?.nodes?.find(
         label => label.name === 'Work'
       );
       
       if (existingLabel) {
+        console.log('✅ Found existing Work label:', existingLabel);
         return existingLabel;
       }
       
-      // Create Work label if it doesn't exist
-      const result = await this.createLabel('Work', '#FF6B6B');
-      return result.issueLabelCreate?.issueLabel;
+      console.log('❌ Work label not found, this should not happen! Please create a "Work" label in Linear first.');
+      return null;
     } catch (error) {
-      console.error('Error ensuring Work label:', error);
+      console.error('Error getting Work label:', error);
       return null;
     }
   }

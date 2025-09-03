@@ -21,6 +21,7 @@ function HomePage() {
   const [motivationalQuote, setMotivationalQuote] = useState('');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('day'); // 'all', 'day', 'week', 'month'
@@ -55,14 +56,20 @@ function HomePage() {
     
     if (workFilter !== 'all') {
       filteredProjects = projectsList.filter(project => {
-        const projectHasWorkLabel = project.labels?.nodes?.some(label => label.name === 'Work');
+        // Check for 🏢 emoji in name, [WORK] tag in description, OR Work label (for backward compatibility)
+        const hasWorkName = project.name?.includes('🏢');
+        const hasWorkTag = project.description?.includes('[WORK]');
+        const hasWorkLabel = project.labels?.nodes?.some(label => label.name === 'Work');
+        const isWorkProject = hasWorkName || hasWorkTag || hasWorkLabel;
+        
+        console.log(`Project: ${project.name}, HasWorkName: ${hasWorkName}, HasWorkTag: ${hasWorkTag}, HasWorkLabel: ${hasWorkLabel}, IsWorkProject: ${isWorkProject}`);
         
         if (workFilter === 'work') {
-          // Only show projects with Work label
-          return projectHasWorkLabel;
+          // Only show work projects
+          return isWorkProject;
         } else if (workFilter === 'personal') {
-          // Only show projects without Work label
-          return !projectHasWorkLabel;
+          // Only show personal projects (not work)
+          return !isWorkProject;
         }
         return true;
       });
@@ -379,7 +386,13 @@ function HomePage() {
   };
 
   const handleTaskClick = (task) => {
-    navigate(`/task/${task.id}`);
+    // Check if we're on desktop (screen width > 768px) to show edit panel
+    if (window.innerWidth > 768) {
+      setEditingTask(task);
+    } else {
+      // On mobile, navigate to task detail page
+      navigate(`/task/${task.id}`);
+    }
   };
 
   const handleTaskComplete = async (e, taskId, swipeDirection = 'right') => {
@@ -430,16 +443,37 @@ function HomePage() {
         return;
       }
 
-      // Check if the project has the Work label
+      // Check if the project is a work project
       const project = allProjects.find(p => p.id === taskData.projectId);
       let labelIds = [];
       
-      if (project?.labels?.nodes?.some(label => label.name === 'Work')) {
+      console.log('🔍 Creating task for project:', project);
+      
+      const isWorkProject = project?.name?.includes('🏢') ||
+                           project?.description?.includes('[WORK]') || 
+                           project?.labels?.nodes?.some(label => label.name === 'Work');
+      
+      console.log('🔍 Project work indicators:', {
+        hasWorkName: project?.name?.includes('🏢'),
+        hasWorkTag: project?.description?.includes('[WORK]'),
+        hasWorkLabel: project?.labels?.nodes?.some(label => label.name === 'Work'),
+        isWorkProject
+      });
+      
+      if (isWorkProject) {
         // This is a work project, ensure task gets Work label
+        console.log('🏷️ This is a work project, getting Work label...');
         const workLabel = await linearApi.ensureWorkLabel();
+        console.log('🏷️ Retrieved Work label:', workLabel);
+        
         if (workLabel?.id) {
           labelIds = [workLabel.id];
+          console.log('✅ Will create task with Work label ID:', workLabel.id);
+        } else {
+          console.log('❌ Could not get Work label ID');
         }
+      } else {
+        console.log('👤 This is a personal project, no Work label needed');
       }
 
       const submitData = {
@@ -451,7 +485,11 @@ function HomePage() {
         ...(labelIds.length > 0 && { labelIds })
       };
 
+      console.log('🔄 Creating task with submitData:', submitData);
+      console.log('🏷️ Label IDs being applied:', labelIds);
+      
       const result = await linearApi.createIssue(submitData);
+      console.log('✅ Task creation result:', result);
       
       if (result.issueCreate?.success) {
         // Close the form
@@ -460,15 +498,42 @@ function HomePage() {
         // Reload projects to show the new task
         await loadProjectsWithTasks();
       } else {
-        console.error('Failed to create task');
+        console.error('❌ Failed to create task - result not successful');
       }
     } catch (error) {
-      console.error('Failed to create task:', error);
+      console.error('❌ Failed to create task:', error);
     }
   };
 
   const handleTaskCancel = () => {
     setShowCreateTask(false);
+    setEditingTask(null);
+  };
+
+  const handleTaskEdit = async (taskData) => {
+    try {
+      console.log('🔄 Editing task with data:', taskData);
+      
+      const result = await linearApi.updateIssue(taskData.id, {
+        title: taskData.title,
+        description: taskData.description || undefined,
+        dueDate: taskData.dueDate || undefined
+      });
+      
+      console.log('✅ Task edit result:', result);
+      
+      if (result.issueUpdate?.success) {
+        // Close the form
+        setEditingTask(null);
+        
+        // Reload projects to show updated task
+        await loadProjectsWithTasks();
+      } else {
+        console.error('❌ Failed to update task - result not successful');
+      }
+    } catch (error) {
+      console.error('❌ Failed to update task:', error);
+    }
   };
 
   // Use normalized status from utilities
@@ -838,18 +903,16 @@ function HomePage() {
                           data-task-id={task.id}
                           onClick={() => handleTaskClick(task)}
                         >
-                          {isTaskClickable(task) ? (
-                            <button
-                              className="task-checkbox-compact"
-                              onClick={(e) => handleTaskComplete(e, task.id)}
-                            >
-                              {getTaskIcon(task)}
-                            </button>
-                          ) : (
-                            <div className="task-checkbox-compact task-checkbox-disabled">
-                              {getTaskIcon(task)}
-                            </div>
-                          )}
+                          <button
+                            className="task-checkbox-compact"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTaskLongPress(task);
+                            }}
+                            title="Change task status"
+                          >
+                            {getTaskIcon(task)}
+                          </button>
                           <div className="task-content-compact">
                             <div className="task-title-compact">
                               {task.title}
@@ -862,9 +925,16 @@ function HomePage() {
                             )}
                           </div>
                           {task.dueDate && (
-                            <div className="task-date-compact">
+                            <button 
+                              className="task-date-compact clickable-date"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/task/${task.id}`);
+                              }}
+                              title="View task details"
+                            >
                               {formatDateShort(task.dueDate)}
-                            </div>
+                            </button>
                           )}
                         </div>
                       </SwipeableCard>
@@ -882,6 +952,15 @@ function HomePage() {
         <TaskForm
           projectId={selectedProjectId}
           onSubmit={handleTaskSubmit}
+          onCancel={handleTaskCancel}
+        />
+      )}
+
+      {/* Task Edit Form */}
+      {editingTask && (
+        <TaskForm
+          task={editingTask}
+          onSubmit={handleTaskEdit}
           onCancel={handleTaskCancel}
         />
       )}

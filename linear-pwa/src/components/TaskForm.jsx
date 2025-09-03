@@ -1,26 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import './TaskForm.css';
 
-function TaskForm({ projectId, onSubmit, onCancel }) {
+function TaskForm({ projectId, task, onSubmit, onCancel }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Default due date to today in local timezone (YYYY-MM-DD)
+  // Default due date to today in local timezone (YYYY-MM-DD) for new tasks
   const [dueDate, setDueDate] = useState(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().split('T')[0];
   });
 
+  // Initialize form with existing task data if editing
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title || '');
+      setDescription(task.description || '');
+      if (task.dueDate) {
+        // Convert task due date to YYYY-MM-DD format
+        const taskDate = new Date(task.dueDate);
+        taskDate.setMinutes(taskDate.getMinutes() - taskDate.getTimezoneOffset());
+        setDueDate(taskDate.toISOString().split('T')[0]);
+      }
+    }
+  }, [task]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) return;
 
     onSubmit({
+      ...(task && { id: task.id }), // Include task ID if editing
       title: title.trim(),
       description: description.trim(),
       dueDate,
-      projectId
+      projectId: projectId || task?.project?.id
     });
   };
 
@@ -71,7 +86,7 @@ function TaskForm({ projectId, onSubmit, onCancel }) {
               className="btn btn-primary add-task-btn"
               disabled={!title.trim()}
             >
-              Add Task
+              {task ? 'Update Task' : 'Add Task'}
             </button>
             <button
               type="button"

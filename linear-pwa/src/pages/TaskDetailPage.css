@@ -218,31 +218,36 @@
   padding: 6px !important;
 }
 
-/* Task actions overlay */
+/* Task actions overlay - appears on top of everything */
 .task-actions-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: fadeIn 0.2s ease-out;
 }
 
 .task-actions-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
-  border-radius: 12px 12px 0 0;
-  overflow: hidden;
-  animation: slideUpMobile 0.2s ease-out;
-  transform: none;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUpMobile 0.3s ease-out;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUpMobile {
@@ -255,7 +260,7 @@
 }
 
 .task-actions-header {
-  padding: 12px;
+  padding: 20px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -276,22 +281,22 @@
 }
 
 .task-actions-options {
-  padding: 6px 0;
+  padding: 8px 0;
 }
 
 .task-action-option {
   width: 100%;
-  padding: 10px 12px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: transparent;
   border: none;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
 }
