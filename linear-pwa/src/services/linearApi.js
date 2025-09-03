@@ -394,6 +394,39 @@ class LinearAPI {
     return this.query(mutation, { name, color });
   }
 
+  // Project labels
+  async getProjectLabels() {
+    const query = `
+      query {
+        projectLabels(first: 50) {
+          nodes {
+            id
+            name
+            color
+            description
+          }
+        }
+      }
+    `;
+    return this.query(query);
+  }
+
+  async createProjectLabel(name, color = '#7C4DFF') {
+    const mutation = `
+      mutation($name: String!, $color: String!) {
+        projectLabelCreate(input: { name: $name, color: $color }) {
+          success
+          projectLabel {
+            id
+            name
+            color
+          }
+        }
+      }
+    `;
+    return this.query(mutation, { name, color });
+  }
+
   async ensureWorkLabel() {
     try {
       console.log('🏷️ Getting existing labels...');
@@ -413,6 +446,29 @@ class LinearAPI {
       return null;
     } catch (error) {
       console.error('Error getting Work label:', error);
+      return null;
+    }
+  }
+
+  async ensureWorkProjectLabel() {
+    try {
+      console.log('🏷️ Getting existing project labels...');
+      const labelsData = await this.getProjectLabels();
+      console.log('🏷️ Available project labels:', labelsData.projectLabels?.nodes);
+
+      const existingLabel = labelsData.projectLabels?.nodes?.find(
+        label => label.name === 'Work'
+      );
+
+      if (existingLabel) {
+        console.log('✅ Found existing Work project label:', existingLabel);
+        return existingLabel;
+      }
+
+      console.log('❌ Work project label not found. Please create a "Work" project label in Linear.');
+      return null;
+    } catch (error) {
+      console.error('Error getting Work project label:', error);
       return null;
     }
   }

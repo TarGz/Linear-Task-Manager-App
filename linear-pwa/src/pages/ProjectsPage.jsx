@@ -144,7 +144,7 @@ function ProjectsPage() {
         return;
       }
 
-      // Store work type in project name and get Work label if needed
+      // Store work type in project name and get Work PROJECT label if needed
       console.log('🔍 Full projectData received:', projectData);
       console.log('🔍 projectData.type:', projectData.type);
       console.log('🔍 projectData.type === "work":', projectData.type === 'work');
@@ -156,16 +156,16 @@ function ProjectsPage() {
         projectName = `🏢 ${projectData.name}`;
         console.log('✅ Creating WORK project with name:', projectName);
         
-        // Get Work label ID for work projects
-        console.log('🏷️ Getting Work label for project...');
-        const workLabel = await linearApi.ensureWorkLabel();
-        console.log('🏷️ Retrieved Work label for project:', workLabel);
+        // Get Work PROJECT label ID for work projects
+        console.log('🏷️ Getting Work project label...');
+        const workLabel = await linearApi.ensureWorkProjectLabel();
+        console.log('🏷️ Retrieved Work project label:', workLabel);
         
         if (workLabel?.id) {
           labelIds = [workLabel.id];
-          console.log('✅ Will create project with Work label ID:', workLabel.id);
+          console.log('✅ Will create project with Work PROJECT label ID:', workLabel.id);
         } else {
-          console.log('❌ Could not get Work label ID for project');
+          console.log('❌ Could not get Work PROJECT label ID');
         }
       } else {
         console.log('❌ Not a work project, type is:', projectData.type);
