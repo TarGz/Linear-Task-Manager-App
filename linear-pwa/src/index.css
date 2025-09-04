@@ -245,6 +245,11 @@ input:focus, textarea:focus, select:focus {
   color: var(--status-canceled);
 }
 
+.status-archived {
+  background: rgba(120, 120, 120, 0.15);
+  color: #777;
+}
+
 .avatar {
   width: 32px;
   height: 32px;

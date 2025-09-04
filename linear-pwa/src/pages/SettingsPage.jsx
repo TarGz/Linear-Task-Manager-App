@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw } from 'lucide-react';
+import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw, Archive } from 'lucide-react';
 import linearApi from '../services/linearApi';
 import pwaService from '../services/pwaService';
 import { APP_VERSION, APP_FEATURES, BUILD_DATE } from '../config/constants';
@@ -18,12 +18,16 @@ function SettingsPage({ onApiKeyChange }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isForceUpdating, setIsForceUpdating] = useState(false);
+  const [issueCounts, setIssueCounts] = useState(null);
+  const [isCountingIssues, setIsCountingIssues] = useState(false);
+  const [isCleaningIssues, setIsCleaningIssues] = useState(false);
 
   useEffect(() => {
     const currentKey = linearApi.getApiKey();
     if (currentKey) {
       setApiKey(currentKey);
       loadUserInfo(currentKey);
+      loadIssueCounts();
     }
 
     // Set up PWA update callback
@@ -40,8 +44,56 @@ function SettingsPage({ onApiKeyChange }) {
       linearApi.setApiKey(key);
       const data = await linearApi.testConnection();
       setUserInfo(data.viewer);
+      await loadIssueCounts();
     } catch (error) {
       console.error('Failed to load user info:', error);
+    }
+  };
+
+  const loadIssueCounts = async () => {
+    try {
+      setIsCountingIssues(true);
+      const data = await linearApi.getAllIssues({ includeArchived: true });
+      const nodes = data?.issues?.nodes || [];
+      const archived = nodes.filter(n => !!n.archivedAt);
+      const active = nodes.filter(n => !n.archivedAt);
+      const done = active.filter(n => n?.state?.type === 'completed');
+      const canceled = active.filter(n => n?.state?.type === 'canceled');
+      const open = active.filter(n => n?.state?.type !== 'completed' && n?.state?.type !== 'canceled');
+      setIssueCounts({ totalAll: nodes.length, archived: archived.length, active: active.length, done: done.length, canceled: canceled.length, open: open.length });
+    } catch (error) {
+      console.error('Failed to load issue counts:', error);
+    } finally {
+      setIsCountingIssues(false);
+    }
+  };
+
+  const handleCleanIssues = async () => {
+    if (!window.confirm('Archive all Done and Canceled issues? This cannot be undone easily.')) return;
+    try {
+      setIsCleaningIssues(true);
+      setMessage({ type: '', text: '' });
+      const data = await linearApi.getAllIssues();
+      const nodes = data?.issues?.nodes || [];
+      const targets = nodes.filter(n => !n.archivedAt && (n?.state?.type === 'completed' || n?.state?.type === 'canceled'));
+      let success = 0;
+      for (const issue of targets) {
+        try {
+          const res = await linearApi.archiveIssue(issue.id);
+          if (res?.issueArchive?.success) success += 1;
+        } catch (e) {
+          console.error('Archive failed for issue', issue.id, e);
+        }
+      }
+      setMessage({ type: 'success', text: `Archived ${success} of ${targets.length} issues.` });
+      setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+      await loadIssueCounts();
+    } catch (error) {
+      console.error('Clean issues failed:', error);
+      setMessage({ type: 'error', text: 'Failed to archive issues.' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+    } finally {
+      setIsCleaningIssues(false);
     }
   };
 
@@ -322,6 +374,50 @@ function SettingsPage({ onApiKeyChange }) {
               <ExternalLink size={20} />
               Open Linear API Settings
             </a>
+          </div>
+
+          <div className="settings-section">
+            <h2>🧮 Issues Overview</h2>
+            <p className="section-description">
+              Quick counts for your workspace and a cleanup tool to archive completed and canceled issues.
+            </p>
+
+            <div className="user-info card">
+              {issueCounts ? (
+                <div className="user-details">
+                  <div className="user-item"><strong>Total (all):</strong> {issueCounts.totalAll}</div>
+                  <div className="user-item"><strong>Active:</strong> {issueCounts.active}</div>
+                  <div className="user-item"><strong>Open:</strong> {issueCounts.open}</div>
+                  <div className="user-item"><strong>Done:</strong> {issueCounts.done}</div>
+                  <div className="user-item"><strong>Canceled:</strong> {issueCounts.canceled}</div>
+                  <div className="user-item"><strong>Archived:</strong> {issueCounts.archived}</div>
+                </div>
+              ) : (
+                <div className="user-details">
+                  <div className="user-item">No data yet. Save API key and refresh.</div>
+                </div>
+              )}
+            </div>
+
+            <div className="button-group">
+              <button
+                className="btn btn-secondary"
+                onClick={loadIssueCounts}
+                disabled={isCountingIssues || isCleaningIssues}
+              >
+                {isCountingIssues ? <div className="loading-spinner-small"></div> : <RefreshCw size={20} />}
+                Refresh Counts
+              </button>
+              <button
+                className="btn btn-outline btn-secondary"
+                onClick={handleCleanIssues}
+                disabled={isCleaningIssues || isCountingIssues}
+                title="Archive all completed and canceled issues"
+              >
+                {isCleaningIssues ? <div className="loading-spinner-small"></div> : <Archive size={20} />}
+                Clean: Archive Done + Canceled
+              </button>
+            </div>
           </div>
 
           <div className="settings-section">

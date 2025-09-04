@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckSquare } from 'lucide-react';
+import { Plus, CheckSquare, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import StatusMenu from '../components/StatusMenu';
@@ -15,6 +15,9 @@ function TodosPage() {
   const [error, setError] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isUnarchiving, setIsUnarchiving] = useState(false);
 
 
   const loadTasks = async () => {
@@ -22,7 +25,7 @@ function TodosPage() {
       setIsLoading(true);
       setError('');
       
-      const data = await linearApi.getAllIssues();
+      const data = await linearApi.getAllIssues({ includeArchived });
       
       const sortedTasks = data.issues.nodes.sort((a, b) => {
         // First sort by status priority: In Progress, Todo, Done, Canceled
@@ -64,11 +67,20 @@ function TodosPage() {
 
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [includeArchived]);
 
   useEffect(() => {
-    setFilteredTasks(tasks);
-  }, [tasks]);
+    const q = searchQuery.trim().toLowerCase();
+    const next = tasks.filter(t => {
+      if (!includeArchived && t.archivedAt) return false;
+      if (!q) return true;
+      const inTitle = t.title?.toLowerCase().includes(q);
+      const inDesc = t.description?.toLowerCase().includes(q);
+      const inProject = t.project?.name?.toLowerCase().includes(q);
+      return inTitle || inDesc || inProject;
+    });
+    setFilteredTasks(next);
+  }, [tasks, includeArchived, searchQuery]);
 
   const handleTaskClick = (task, event) => {
     navigate(`/task/${task.id}`);
@@ -76,6 +88,20 @@ function TodosPage() {
 
   const handleTaskLongPress = (task, event) => {
     setSelectedTask(task);
+  };
+
+  const handleUnarchiveTask = async (task) => {
+    try {
+      setIsUnarchiving(true);
+      await linearApi.unarchiveIssue(task.id);
+      setTasks(prev => prev.map(t => t.id === task.id ? { ...t, archivedAt: null } : t));
+    } catch (e) {
+      console.error('Failed to unarchive task:', e);
+      setError('Failed to unarchive task. Please try again.');
+      setTimeout(() => setError(''), 2500);
+    } finally {
+      setIsUnarchiving(false);
+    }
   };
 
   const handleTaskDelete = (taskId) => {
@@ -207,6 +233,26 @@ function TodosPage() {
       
       <div className="page-content">
         <div className="container">
+          <div className="toolbar" style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+            <div className="search" style={{ position: 'relative', flex: 1 }}>
+              <Search size={16} style={{ position: 'absolute', top: '50%', left: '10px', transform: 'translateY(-50%)', opacity: 0.6 }} />
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ width: '100%', padding: '8px 10px 8px 30px' }}
+              />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+              <input
+                type="checkbox"
+                checked={includeArchived}
+                onChange={(e) => setIncludeArchived(e.target.checked)}
+              />
+              Include archived
+            </label>
+          </div>
           {error && (
             <div className="error-message">
               {error}
@@ -230,6 +276,7 @@ function TodosPage() {
                   onStatusChange={handleStatusChange}
                   onDelete={handleTaskDelete}
                   onLongPress={handleTaskLongPress}
+                  onUnarchive={handleUnarchiveTask}
                 />
               ))}
             </div>

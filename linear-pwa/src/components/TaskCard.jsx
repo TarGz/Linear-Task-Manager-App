@@ -4,7 +4,8 @@ import { getStatusClass, getStatusDisplay } from '../utils/statusUtils';
 import SwipeableCard from './common/SwipeableCard';
 import './TaskCard.css';
 
-function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hideProjectName = false }) {
+function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, onUnarchive, hideProjectName = false }) {
+  const isArchived = !!task.archivedAt;
   const handleMarkDone = () => {
     // Allow marking any non-completed task as done (including canceled tasks)
     if (onStatusChange && task.state?.type !== 'completed') {
@@ -20,6 +21,10 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hidePr
   };
 
   const handleClick = (e) => {
+    if (isArchived && onUnarchive) {
+      onUnarchive(task);
+      return;
+    }
     if (onClick) {
       onClick(task, e);
     }
@@ -33,12 +38,12 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hidePr
 
   return (
     <SwipeableCard
-      onSwipeActionLeft={onDelete ? handleDelete : null}
-      onSwipeActionRight={onStatusChange && task.state?.type !== 'completed' ? handleMarkDone : null}
+      onSwipeActionLeft={isArchived ? null : (onDelete ? handleDelete : null)}
+      onSwipeActionRight={isArchived ? null : (onStatusChange && task.state?.type !== 'completed' ? handleMarkDone : null)}
       onLongPress={handleLongPress}
-      leftActionLabel="Delete"
-      rightActionLabel={task.state?.type === 'completed' ? 'Done' : 'Mark Done'}
-      disabled={task.state?.type === 'completed'}
+      leftActionLabel={isArchived ? null : 'Delete'}
+      rightActionLabel={isArchived ? null : (task.state?.type === 'completed' ? 'Done' : 'Mark Done')}
+      disabled={isArchived || task.state?.type === 'completed'}
     >
       <div
         className="task-card card"
@@ -53,6 +58,9 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, hidePr
             <span className={`status-badge status-${getStatusClass(task.state?.type)}`}>
               {getStatusDisplay(task.state?.type)}
             </span>
+            {isArchived && (
+              <span className="status-badge status-archived" title="Archived">Archived</span>
+            )}
           </div>
           
           <p className="task-mini-description">

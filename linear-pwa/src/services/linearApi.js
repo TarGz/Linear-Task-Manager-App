@@ -140,14 +140,17 @@ class LinearAPI {
     return this.query(query, { projectId });
   }
 
-  async getAllIssues() {
+  async getAllIssues(options = {}) {
+    const { includeArchived = false } = options;
+    const includeArg = includeArchived ? ', includeArchived: true' : '';
     const query = `
       query {
-        issues(first: 100) {
+        issues(first: 200${includeArg}) {
           nodes {
             id
             title
             description
+            archivedAt
             state {
               id
               name
@@ -171,6 +174,28 @@ class LinearAPI {
       }
     `;
     return this.query(query);
+  }
+
+  async archiveIssue(id) {
+    const mutation = `
+      mutation($id: String!) {
+        issueArchive(id: $id) {
+          success
+        }
+      }
+    `;
+    return this.query(mutation, { id });
+  }
+
+  async unarchiveIssue(id) {
+    const mutation = `
+      mutation($id: String!) {
+        issueUnarchive(id: $id) {
+          success
+        }
+      }
+    `;
+    return this.query(mutation, { id });
   }
 
   async getIssue(id) {
