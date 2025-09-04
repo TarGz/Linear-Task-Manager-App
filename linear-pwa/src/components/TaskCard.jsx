@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react';
+import { renderMarkdownInline } from '../utils/markdownUtils';
 import { formatDateShort } from '../utils/dateUtils';
 import { getStatusClass, getStatusDisplay } from '../utils/statusUtils';
 import SwipeableCard from './common/SwipeableCard';
@@ -21,6 +22,10 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, onUnar
   };
 
   const handleClick = (e) => {
+    if (e.target && e.target.closest && e.target.closest('a')) {
+      // Let anchor clicks proceed without card navigation
+      return;
+    }
     if (isArchived && onUnarchive) {
       onUnarchive(task);
       return;
@@ -63,16 +68,11 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, onUnar
             )}
           </div>
           
-          <p className="task-mini-description">
-            {task.description ? (
-              <>
-                {task.description.substring(0, 35)}
-                {task.description.length > 35 ? '...' : ''}
-              </>
-            ) : (
-              <span style={{opacity: 0}}>-</span>
-            )}
-          </p>
+          <div
+            className="task-mini-description"
+            onClick={(e) => e.stopPropagation()}
+            dangerouslySetInnerHTML={{ __html: task.description ? renderMarkdownInline(task.description) : '' }}
+          />
           
           <div className="task-bottom-row">
             <div className="task-due-date">

@@ -6,6 +6,7 @@ import SwipeableCard from '../components/common/SwipeableCard';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
 import { formatDateShort } from '../utils/dateUtils';
+import { renderMarkdownInline } from '../utils/markdownUtils';
 import { INTERNAL_STATUS, LINEAR_STATUS } from '../config/constants';
 import { normalizeStatus } from '../utils/statusUtils';
 import { useNotifications } from '../hooks/useNotifications';
@@ -918,10 +919,11 @@ function HomePage() {
                               {task.title}
                             </div>
                             {task.description && (
-                              <div className="task-description-compact">
-                                {task.description.substring(0, 80)}
-                                {task.description.length > 80 ? '...' : ''}
-                              </div>
+                              <div
+                                className="task-description-compact"
+                                onClick={(e) => e.stopPropagation()}
+                                dangerouslySetInnerHTML={{ __html: renderMarkdownInline(task.description) }}
+                              />
                             )}
                           </div>
                           {task.dueDate && (
