@@ -1,4 +1,4 @@
-# Linear Task Manager PWA v3.3.0
+# Linear Task Manager PWA v3.3.1
 
 A comprehensive Progressive Web App for managing Linear tasks and projects with offline support, swipe actions, and real-time synchronization.
 

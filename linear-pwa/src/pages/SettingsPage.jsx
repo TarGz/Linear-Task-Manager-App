@@ -60,7 +60,7 @@ function SettingsPage({ onApiKeyChange }) {
       const done = active.filter(n => n?.state?.type === 'completed');
       const canceled = active.filter(n => n?.state?.type === 'canceled');
       const open = active.filter(n => n?.state?.type !== 'completed' && n?.state?.type !== 'canceled');
-      setIssueCounts({ totalAll: nodes.length, archived: archived.length, active: active.length, done: done.length, canceled: canceled.length, open: open.length });
+      setIssueCounts({ total: active.length, archived: archived.length, done: done.length, canceled: canceled.length, open: open.length });
     } catch (error) {
       console.error('Failed to load issue counts:', error);
     } finally {
@@ -385,8 +385,7 @@ function SettingsPage({ onApiKeyChange }) {
             <div className="user-info card">
               {issueCounts ? (
                 <div className="user-details">
-                  <div className="user-item"><strong>Total (all):</strong> {issueCounts.totalAll}</div>
-                  <div className="user-item"><strong>Active:</strong> {issueCounts.active}</div>
+                  <div className="user-item"><strong>Total:</strong> {issueCounts.total}</div>
                   <div className="user-item"><strong>Open:</strong> {issueCounts.open}</div>
                   <div className="user-item"><strong>Done:</strong> {issueCounts.done}</div>
                   <div className="user-item"><strong>Canceled:</strong> {issueCounts.canceled}</div>

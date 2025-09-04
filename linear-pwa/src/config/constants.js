@@ -1,5 +1,5 @@
 // App Configuration Constants
-export const APP_VERSION = '3.3.0';
+export const APP_VERSION = '3.3.1';
 export const APP_DESCRIPTION = 'Enhanced Task & Project Management';
 export const APP_FEATURES = 'Project & Task Detail Pages, Swipe Actions, Confirmation Panels, PWA Auto-Update, Cache Management, Linear Integration, Status Updates, Offline Support';
 export const BUILD_DATE = import.meta.env.VITE_BUILD_DATE || new Date().toISOString();

@@ -22,10 +22,19 @@ export function renderMarkdown(md) {
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-  // Links [text](https://...) and [text](/relative)
+  // Links [text](https://...), [text](mailto:...), [text](tel:...), and [text](/relative)
   const base = (typeof window !== 'undefined') ? (document.querySelector('base')?.getAttribute('href') || (window.location.origin + (import.meta.env?.BASE_URL || '/'))) : '';
+  // mailto links
+  text = text.replace(/\[(.+?)\]\((mailto:[^\s)]+)\)/g, '<a href="$2">$1</a>');
+  // tel links
+  text = text.replace(/\[(.+?)\]\((tel:[^\s)]+)\)/g, '<a href="$2">$1</a>');
   text = text.replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  text = text.replace(/\[(.+?)\]\((\/[^(\s)]+)\)/g, (_, label, path) => `<a href="${base}${path.replace(/^\//,'')}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+  // absolute root-relative paths
+  text = text.replace(/\[(.+?)\]\((\/[\S^)]+)\)/g, (_, label, path) => `<a href="${base}${path.replace(/^\//,'')}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+
+  // Autolink bare URLs and emails
+  text = text.replace(/(^|\s)(https?:\/\/[^\s<>)+]+)/g, '$1<a href="$2" target="_blank" rel="noopener noreferrer">$2</a>');
+  text = text.replace(/(^|\s)([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/g, '$1<a href="mailto:$2">$2</a>');
 
   // Simple lists: group consecutive lines starting with "- ", "* ", or "+ " (optionally indented)
   const lines = text.split(/\n/);
