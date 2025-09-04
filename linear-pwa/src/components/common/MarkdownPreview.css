@@ -1,0 +1,13 @@
+.md-preview {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--surface);
+}
+
+.md-preview h1 { font-size: 1.25rem; margin: 0 0 8px; }
+.md-preview h2 { font-size: 1.1rem; margin: 12px 0 6px; }
+.md-preview p { margin: 6px 0; }
+.md-preview ul { margin: 6px 0 6px 18px; }
+.md-preview a { color: var(--primary-color); text-decoration: underline; }
+

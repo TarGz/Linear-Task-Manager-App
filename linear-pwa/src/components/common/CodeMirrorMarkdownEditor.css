@@ -1,0 +1,25 @@
+.cm-md-editor .cm-editor { outline: none; }
+.cm-md-editor .cm-editor:focus-within { box-shadow: 0 0 0 2px rgba(0,0,0,0.04) inset; }
+
+.cm-toolbar { display:flex; gap:8px; padding:8px; border:1px solid var(--border); border-bottom:none; border-radius:8px 8px 0 0; background: var(--surface); }
+.cm-toolbar .divider { flex:0 0 1px; background: var(--border); height:20px; align-self:center; }
+.cm-toolbar button { background:#f6f7f8; border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:12px; }
+.cm-toolbar button:hover { background:#eee; }
+
+/* Make the editor area taller and comfortable for long notes */
+.cm-md-editor .cm-editor,
+.cm-md-editor .cm-scroller { min-height: 320px; }
+
+@media (min-height: 900px) {
+  .cm-md-editor .cm-editor,
+  .cm-md-editor .cm-scroller { min-height: 420px; }
+}
+
+/* Resizable host so the user can drag to grow/shrink */
+.cm-md-editor .cm-host {
+  resize: vertical;
+  overflow: auto;
+  min-height: 320px;
+}
+.cm-md-editor .cm-host > .cm-editor { height: 100%; }
+.cm-md-editor .cm-host > .cm-editor .cm-scroller { height: 100%; }

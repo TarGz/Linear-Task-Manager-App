@@ -1,0 +1,58 @@
+import './MarkdownPreview.css';
+
+export function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function renderMarkdown(md) {
+  if (!md) return '';
+  // Basic escaping first
+  let text = escapeHtml(md);
+
+  // Headings (H1/H2) at line start
+  text = text.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+  // Bold and italic
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Links [text](https://...)
+  text = text.replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+  // Simple lists: group consecutive lines starting with "- "
+  const lines = text.split(/\n/);
+  const out = [];
+  let inList = false;
+  for (const line of lines) {
+    const m = line.match(/^\-\s+(.*)$/);
+    if (m) {
+      if (!inList) { out.push('<ul>'); inList = true; }
+      out.push(`<li>${m[1]}</li>`);
+    } else {
+      if (inList) { out.push('</ul>'); inList = false; }
+      if (line.trim().length === 0) {
+        out.push('');
+      } else {
+        out.push(`<p>${line}</p>`);
+      }
+    }
+  }
+  if (inList) out.push('</ul>');
+
+  return out.join('\n');
+}
+
+function MarkdownPreview({ value }) {
+  const html = renderMarkdown(value || '');
+  return (
+    <div className="md-preview" dangerouslySetInnerHTML={{ __html: html }} />
+  );
+}
+
+export default MarkdownPreview;

@@ -215,7 +215,8 @@ async function main() {
   log('blue', '\n🌐 Starting deployment process...');
   
   log('yellow', '📦 Building the app...');
-  execSync('npm run build', { stdio: 'inherit' });
+  const buildCmd = process.env.PWA_DISABLE === 'true' ? 'PWA_DISABLE=true npm run build' : 'npm run build';
+  execSync(buildCmd, { stdio: 'inherit' });
   
   log('yellow', '📋 Copying files to parent directory...');
   execSync('cp -r dist/* ../', { stdio: 'inherit' });

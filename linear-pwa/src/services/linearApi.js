@@ -86,6 +86,7 @@ class LinearAPI {
             name
             description
             state
+            icon
             createdAt
             updatedAt
             issues {
@@ -111,6 +112,7 @@ class LinearAPI {
           name
           description
           state
+          icon
           issues {
             nodes {
               id

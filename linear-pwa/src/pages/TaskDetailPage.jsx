@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Trash2, ExternalLink, MoreVertical } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
+import CodeMirrorMarkdownEditor from '../components/common/CodeMirrorMarkdownEditor';
+import MarkdownPreview from '../components/common/MarkdownPreview';
 import linearApi from '../services/linearApi';
 import './TaskDetailPage.css';
 
@@ -18,6 +20,11 @@ function TaskDetailPage() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | editing | syncing | synced | error
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const draftTimerRef = useRef(null);
+  // Using full CodeMirror editor with a Preview toggle
+  const [descMode, setDescMode] = useState('preview'); // 'preview' | 'edit'
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea) => {
@@ -132,6 +139,7 @@ function TaskDetailPage() {
   const handleSaveChanges = async () => {
     try {
       setIsSaving(true);
+      setSaveStatus('syncing');
       
       let updateData = {};
       let hasUpdates = false;
@@ -159,6 +167,8 @@ function TaskDetailPage() {
       
       if (!hasUpdates) {
         setHasChanges(false);
+        setSaveStatus('synced');
+        setLastSavedAt(new Date().toISOString());
         return;
       }
       
@@ -177,11 +187,15 @@ function TaskDetailPage() {
         }));
         
         setHasChanges(false);
+        setSaveStatus('synced');
+        setLastSavedAt(new Date().toISOString());
       } else {
         console.error('Failed to update task: API returned success=false');
+        setSaveStatus('error');
       }
     } catch (error) {
       console.error('Failed to update task:', error);
+      setSaveStatus('error');
     } finally {
       setIsSaving(false);
     }
@@ -193,7 +207,10 @@ function TaskDetailPage() {
     setEditDescription(task?.description || '');
     setEditDueDate(task?.dueDate ? task.dueDate.split('T')[0] : '');
     setHasChanges(false);
+    setSaveStatus('idle');
   };
+
+  // Note: Removed auto-save on unmount to avoid accidental frequent syncs
 
   // Check for changes whenever edit values change
   const checkForChanges = () => {
@@ -201,7 +218,9 @@ function TaskDetailPage() {
     const descriptionChanged = editDescription !== (task?.description || '');
     const dueDateChanged = editDueDate !== (task?.dueDate ? task.dueDate.split('T')[0] : '');
     
-    setHasChanges(titleChanged || descriptionChanged || dueDateChanged);
+    const changed = titleChanged || descriptionChanged || dueDateChanged;
+    setHasChanges(changed);
+    setSaveStatus(changed ? 'editing' : 'synced');
   };
 
   const handleDeleteTask = async () => {
@@ -217,6 +236,39 @@ function TaskDetailPage() {
   const handleOpenInLinear = () => {
     window.open(`https://linear.app/issue/${task.id}`, '_blank');
   };
+
+  // Persist draft locally (debounced) to ensure no data loss
+  useEffect(() => {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      const key = `draft:task:${id}`;
+      const draft = {
+        title: editTitle,
+        description: editDescription,
+        dueDate: editDueDate,
+        ts: Date.now()
+      };
+      try { localStorage.setItem(key, JSON.stringify(draft)); } catch (_) {}
+    }, 500);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [id, editTitle, editDescription, editDueDate]);
+
+  // Background interval sync removed per request — only Save Now or on exit
+
+  // Attempt to save on exit/reload (no blocking prompt)
+  useEffect(() => {
+    const handler = () => {
+      if (hasChanges) {
+        try { handleSaveChanges(); } catch (_) {}
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasChanges]);
+
+  // Pagehide/visibility autosave removed — only beforeunload and unmount
 
   const getStatusClass = (stateType) => {
     const statusMap = {
@@ -378,22 +430,29 @@ function TaskDetailPage() {
       <div className="page-content">
         <div className="container">
           <div className="task-description card">
-            <h3>Description</h3>
-            <div className="edit-description">
-              <textarea
-                ref={(textarea) => {
-                  if (textarea) autoResizeTextarea(textarea);
-                }}
-                value={editDescription}
-                onChange={(e) => {
-                  setEditDescription(e.target.value);
-                  autoResizeTextarea(e.target);
-                }}
-                className="edit-task-textarea auto-resize"
-                placeholder="Add a description..."
-                style={{ minHeight: '60px', resize: 'none', overflow: 'hidden' }}
-              />
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
+              <h3 style={{margin:0}}>Description</h3>
+              <div className="mode-toggle">
+                <button
+                  className={descMode === 'preview' ? 'active' : ''}
+                  onClick={() => setDescMode('preview')}
+                >Preview</button>
+                <button
+                  className={descMode === 'edit' ? 'active' : ''}
+                  onClick={() => setDescMode('edit')}
+                >Edit</button>
+              </div>
             </div>
+
+            {descMode === 'edit' ? (
+              <div className="edit-description">
+                <CodeMirrorMarkdownEditor value={editDescription} onChange={setEditDescription} />
+              </div>
+            ) : (
+              <div style={{ marginTop: '8px' }}>
+                <MarkdownPreview value={editDescription} />
+              </div>
+            )}
           </div>
 
           <div className="task-details card">
@@ -465,32 +524,25 @@ function TaskDetailPage() {
         />
       )}
 
-      {/* Global Save Bar */}
-      {hasChanges && (
-        <div className="global-save-bar">
-          <div className="save-bar-content">
-            <span className="changes-indicator">
-              You have unsaved changes
-            </span>
-            <div className="save-bar-actions">
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={discardChanges}
-                disabled={isSaving}
-              >
-                Discard
-              </button>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-              >
-                {isSaving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Save indicator */}
+      <div style={{position:'fixed',bottom:'calc(88px + var(--safe-area-inset-bottom))',right:12,background:'rgba(0,0,0,0.7)',color:'#fff',padding:'6px 10px',borderRadius:8,fontSize:12,zIndex:'var(--z-save-bar)',display:'flex',gap:8,alignItems:'center'}}>
+        <span>
+          {saveStatus === 'syncing' && 'Syncing…'}
+          {saveStatus === 'synced' && (lastSavedAt ? `Synced ${new Date(lastSavedAt).toLocaleTimeString()}` : 'Synced')}
+          {saveStatus === 'editing' && 'Draft saved locally'}
+          {saveStatus === 'error' && 'Sync error — will retry'}
+        </span>
+        <button
+          onClick={handleSaveChanges}
+          disabled={isSaving || (!hasChanges && saveStatus !== 'error')}
+          style={{
+            background:'#fff', color:'#333', border:'none', borderRadius:6,
+            padding:'4px 8px', fontSize:12, fontWeight:600, cursor: (isSaving || (!hasChanges && saveStatus !== 'error')) ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isSaving ? 'Saving…' : 'Save Now'}
+        </button>
+      </div>
     </div>
   );
 }

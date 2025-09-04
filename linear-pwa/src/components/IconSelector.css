@@ -5,7 +5,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,6 +20,18 @@
   max-height: 80vh;
   overflow: hidden;
   animation: slideUp 0.2s ease-out;
+}
+
+.icon-sections {
+  padding: var(--spacing-lg);
+  padding-top: 0;
+}
+
+.section-title {
+  margin: var(--spacing-md) 0 var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 @keyframes slideUp {

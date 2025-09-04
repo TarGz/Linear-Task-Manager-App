@@ -4,10 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
 import StatusMenu from '../components/StatusMenu';
-import IconSelector from '../components/IconSelector';
+// Icon editing removed; using standard icons only
 import ConfirmationPanel from '../components/common/ConfirmationPanel';
+import AppOverlay from '../components/common/AppOverlay';
 import linearApi from '../services/linearApi';
 import './ProjectDetailPage.css';
+import { linearIconNameToEmoji } from '../utils/iconUtils';
 
 function ProjectDetailPage() {
   const { id } = useParams();
@@ -21,7 +23,7 @@ function ProjectDetailPage() {
   const [showProjectActions, setShowProjectActions] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState('');
-  const [showIconSelector, setShowIconSelector] = useState(false);
+  // Icon selector disabled
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
 
   const loadProject = async () => {
@@ -235,12 +237,26 @@ function ProjectDetailPage() {
     }
   };
 
+  // Auto-save project name on leave
+  useEffect(() => {
+    return () => {
+      if (project && editName && editName !== project.name) {
+        try { linearApi.updateProject(id, { name: editName }); } catch (_) {}
+      }
+    };
+  }, [editName, project, id]);
+
   const handleDeleteProject = () => {
-    setDeleteConfirmation({
-      title: 'Delete Project',
-      message: `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`,
-      type: 'project'
-    });
+    // Close action sheet so it doesn't overlay the confirmation
+    setShowProjectActions(false);
+    // Defer opening confirmation until the sheet unmounts
+    setTimeout(() => {
+      setDeleteConfirmation({
+        title: 'Delete Project',
+        message: `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`,
+        type: 'project'
+      });
+    }, 0);
   };
 
   const handleOpenInLinear = () => {
@@ -272,20 +288,19 @@ function ProjectDetailPage() {
     'checksquare': CheckSquare
   };
 
-  // Get project icon
+  // Get project icon: use standard local icon logic only
   const getProjectIcon = () => {
     const savedIcons = JSON.parse(localStorage.getItem('projectIcons') || '{}');
     const savedIconKey = savedIcons[project?.id];
-    
+
     if (savedIconKey && availableIcons[savedIconKey]) {
       const Icon = availableIcons[savedIconKey];
       return <Icon size={16} className="project-header-icon" />;
     }
-    
-    // Smart defaults based on project name
+
     const lowercaseName = project?.name?.toLowerCase() || '';
     let Icon = Package;
-    
+
     if (lowercaseName.includes('website') || lowercaseName.includes('web')) {
       Icon = Monitor;
     } else if (lowercaseName.includes('mobile') || lowercaseName.includes('app')) {
@@ -297,7 +312,7 @@ function ProjectDetailPage() {
     } else if (lowercaseName.includes('design') || lowercaseName.includes('ui')) {
       Icon = Palette;
     }
-    
+
     return <Icon size={16} className="project-header-icon" />;
   };
 
@@ -486,52 +501,31 @@ function ProjectDetailPage() {
       )}
 
       {showProjectActions && (
-        <div className="project-actions-overlay" onClick={() => setShowProjectActions(false)}>
-          <div className="project-actions-menu card" onClick={(e) => e.stopPropagation()}>
-            <div className="project-actions-header">
-              <h4>Project Actions</h4>
-              <p className="project-title">{project?.name}</p>
-            </div>
-            <div className="project-actions-options">
-              <button
-                className="project-action-option"
-                onClick={() => {
-                  setShowProjectActions(false);
-                  setShowIconSelector(true);
-                }}
-              >
-                <Palette size={16} />
-                <span>Change Icon</span>
-              </button>
-              <button
-                className="project-action-option"
-                onClick={() => {
-                  setShowProjectActions(false);
-                  handleOpenInLinear();
-                }}
-              >
-                <ExternalLink size={16} />
-                <span>Open in Linear</span>
-              </button>
-              <button
-                className="project-action-option delete"
-                onClick={handleDeleteProject}
-              >
-                <Trash2 size={16} />
-                <span>Delete Project</span>
-              </button>
-            </div>
+        <AppOverlay isOpen={showProjectActions} onClose={() => setShowProjectActions(false)} variant="sheet" title="Project Actions">
+          <p className="project-title" style={{ marginTop: 0 }}>{project?.name}</p>
+          <div className="project-actions-options" style={{ padding: 0 }}>
+            <button
+              className="project-action-option"
+              onClick={() => {
+                setShowProjectActions(false);
+                handleOpenInLinear();
+              }}
+            >
+              <ExternalLink size={16} />
+              <span>Open in Linear</span>
+            </button>
+            <button
+              className="project-action-option delete"
+              onClick={handleDeleteProject}
+            >
+              <Trash2 size={16} />
+              <span>Delete Project</span>
+            </button>
           </div>
-        </div>
+        </AppOverlay>
       )}
 
-      {showIconSelector && (
-        <IconSelector
-          projectId={id}
-          currentIcon={null}
-          onClose={() => setShowIconSelector(false)}
-        />
-      )}
+      {/* Icon selector removed */}
 
       <ConfirmationPanel
         isVisible={!!deleteConfirmation}

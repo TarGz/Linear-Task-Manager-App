@@ -57,6 +57,11 @@
   color: var(--primary-color);
 }
 
+.project-header-emoji {
+  font-size: 16px;
+  line-height: 1;
+}
+
 
 .project-status-section {
   display: flex;
@@ -182,7 +187,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: var(--z-project-menu);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -218,6 +218,29 @@
   padding: 6px !important;
 }
 
+/* Mode toggle for description */
+.mode-toggle {
+  display: inline-flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px;
+}
+.mode-toggle button {
+  background: transparent;
+  border: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.mode-toggle button.active {
+  background: var(--background);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Task actions overlay - appears on top of everything */
 .task-actions-overlay {
   position: fixed;

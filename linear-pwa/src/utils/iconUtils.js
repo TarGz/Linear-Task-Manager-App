@@ -96,3 +96,47 @@ export const saveProjectIcon = (projectId, iconKey) => {
     detail: { projectId, iconKey } 
   }));
 };
+
+// Map Linear's icon name identifiers to emoji glyphs for display
+const LINEAR_ICON_TO_EMOJI = {
+  package: '📦',
+  briefcase: '💼',
+  target: '🎯',
+  lightbulb: '💡',
+  zap: '⚡️',
+  rocket: '🚀',
+  star: '⭐️',
+  heart: '❤️',
+  coffee: '☕️',
+  camera: '📸',
+  music: '🎵',
+  book: '📚',
+  code: '💻',
+  palette: '🎨',
+  globe: '🌐',
+  shield: '🛡️',
+  wrench: '🛠️',
+  monitor: '🖥️',
+  smartphone: '📱',
+  megaphone: '📣',
+  checksquare: '✅',
+  check: '✅',
+  bug: '🐞',
+  database: '🗄️',
+  server: '🖧',
+  cloud: '☁️',
+  folder: '📁',
+  file: '📄',
+  key: '🔑',
+  lock: '🔒',
+  flag: '🚩',
+  calendar: '📅',
+  chart: '📊'
+};
+
+// Convert a Linear icon name to an emoji; return null if unknown
+export const linearIconNameToEmoji = (name) => {
+  if (!name || typeof name !== 'string') return null;
+  const key = name.trim().toLowerCase();
+  return LINEAR_ICON_TO_EMOJI[key] || null;
+};

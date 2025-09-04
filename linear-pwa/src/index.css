@@ -58,7 +58,8 @@ html {
   --z-save-bar: 9100;
   --z-overlay: 10000;
   --z-modal: 10001;
-  --z-confirmation: 10002;
+  /* Ensure confirmation dialogs appear above all menus */
+  --z-confirmation: 11001;
   --z-status-menu: 10003;
   --z-task-form: 10004;
   --z-project-menu: 10005;

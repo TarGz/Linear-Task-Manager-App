@@ -1,0 +1,38 @@
+.md-editor {
+  width: 100%;
+}
+
+.md-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--surface);
+}
+
+.md-toolbar .divider { flex: 0 0 1px; background: var(--border); height: 20px; align-self: center; }
+
+.md-toolbar button {
+  background: #f6f7f8;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.md-toolbar button:hover { background: #eee; }
+
+.md-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: none;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+

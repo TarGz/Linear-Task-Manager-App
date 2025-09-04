@@ -1,0 +1,16 @@
+.rte { width: 100%; }
+.rte-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--surface);
+}
+.rte-toolbar .divider { flex: 0 0 1px; background: var(--border); height: 20px; align-self: center; }
+.rte-toolbar button { background: #f6f7f8; border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 12px; }
+.rte-toolbar button:hover { background: #eee; }
+.rte-surface { border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); padding: 12px; min-height: 120px; }
+.rte-surface:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,0,0,0.04) inset; }
+

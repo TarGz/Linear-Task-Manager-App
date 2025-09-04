@@ -22,6 +22,10 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Allow disabling PWA generation via env for CI/sandbox builds
+      disable: process.env.PWA_DISABLE === 'true',
+      // Disable SW minification to avoid terser issues in constrained environments
+      minify: false,
       registerType: 'prompt',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
