@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, ExternalLink, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Trash2, ExternalLink, MoreVertical, CheckCircle, AlertTriangle, HardDrive, RefreshCw } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
 import CodeMirrorMarkdownEditor from '../components/common/CodeMirrorMarkdownEditor';
@@ -49,10 +49,31 @@ function TaskDetailPage() {
       
       if (foundTask) {
         setTask(foundTask);
-        setEditTitle(foundTask.title);
-        setEditDescription(foundTask.description || '');
-        setEditDueDate(foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '');
-        setHasChanges(false);
+        // Attempt to restore a locally saved draft
+        try {
+          const key = `draft:task:${id}`;
+          const raw = localStorage.getItem(key);
+          const draft = raw ? JSON.parse(raw) : null;
+          if (draft && (draft.title || draft.description || draft.dueDate)) {
+            setEditTitle(draft.title ?? foundTask.title);
+            setEditDescription(draft.description ?? (foundTask.description || ''));
+            setEditDueDate(draft.dueDate ?? (foundTask.dueDate ? foundTask.dueDate.split('T')[0] : ''));
+            setHasChanges(true);
+            setSaveStatus('draft');
+          } else {
+            setEditTitle(foundTask.title);
+            setEditDescription(foundTask.description || '');
+            setEditDueDate(foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '');
+            setHasChanges(false);
+            setSaveStatus('synced');
+          }
+        } catch (_) {
+          setEditTitle(foundTask.title);
+          setEditDescription(foundTask.description || '');
+          setEditDueDate(foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '');
+          setHasChanges(false);
+          setSaveStatus('synced');
+        }
       } else {
         setError('Task not found');
       }
@@ -248,7 +269,10 @@ function TaskDetailPage() {
         dueDate: editDueDate,
         ts: Date.now()
       };
-      try { localStorage.setItem(key, JSON.stringify(draft)); } catch (_) {}
+      try { 
+        localStorage.setItem(key, JSON.stringify(draft));
+        setSaveStatus(prev => (prev === 'editing' ? 'draft' : prev));
+      } catch (_) {}
     }, 500);
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
@@ -257,16 +281,23 @@ function TaskDetailPage() {
 
   // Background interval sync removed per request — only Save Now or on exit
 
-  // Attempt to save on exit/reload (no blocking prompt)
+  // Attempt to save draft + sync on exit/reload (best-effort)
   useEffect(() => {
-    const handler = () => {
+    const handler = (e) => {
+      // Persist draft synchronously
+      try {
+        const key = `draft:task:${id}`;
+        const draft = { title: editTitle, description: editDescription, dueDate: editDueDate, ts: Date.now() };
+        localStorage.setItem(key, JSON.stringify(draft));
+      } catch (_) {}
+      // Optionally trigger a best-effort sync without blocking
       if (hasChanges) {
         try { handleSaveChanges(); } catch (_) {}
       }
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
-  }, [hasChanges]);
+  }, [hasChanges, id, editTitle, editDescription, editDueDate]);
 
   // Pagehide/visibility autosave removed — only beforeunload and unmount
 
@@ -430,8 +461,24 @@ function TaskDetailPage() {
       <div className="page-content">
         <div className="container">
           <div className="task-description card">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
-              <h3 style={{margin:0}}>Description</h3>
+            <div className="desc-header-row">
+              <div className="field-status">
+                {saveStatus === 'syncing' && (
+                  <span className="status-pill syncing"><RefreshCw size={14} className="spin" /> Syncing…</span>
+                )}
+                {saveStatus === 'synced' && (
+                  <span className="status-pill synced"><CheckCircle size={14} /> Synced</span>
+                )}
+                {saveStatus === 'draft' && (
+                  <span className="status-pill draft"><HardDrive size={14} /> Saved locally</span>
+                )}
+                {saveStatus === 'editing' && (
+                  <span className="status-pill editing"><AlertTriangle size={14} /> Unsaved</span>
+                )}
+                {saveStatus === 'error' && (
+                  <span className="status-pill error"><AlertTriangle size={14} /> Sync error</span>
+                )}
+              </div>
               <div className="mode-toggle">
                 <button
                   className={descMode === 'preview' ? 'active' : ''}
@@ -442,6 +489,13 @@ function TaskDetailPage() {
                   onClick={() => setDescMode('edit')}
                 >Edit</button>
               </div>
+              <button
+                className={`save-now ${isSaving || (!hasChanges && saveStatus !== 'error') ? 'disabled' : ''}`}
+                onClick={handleSaveChanges}
+                disabled={isSaving || (!hasChanges && saveStatus !== 'error')}
+              >
+                {isSaving ? 'Saving…' : 'Save Now'}
+              </button>
             </div>
 
             {descMode === 'edit' ? (
@@ -524,25 +578,7 @@ function TaskDetailPage() {
         />
       )}
 
-      {/* Save indicator */}
-      <div style={{position:'fixed',bottom:'calc(88px + var(--safe-area-inset-bottom))',right:12,background:'rgba(0,0,0,0.7)',color:'#fff',padding:'6px 10px',borderRadius:8,fontSize:12,zIndex:'var(--z-save-bar)',display:'flex',gap:8,alignItems:'center'}}>
-        <span>
-          {saveStatus === 'syncing' && 'Syncing…'}
-          {saveStatus === 'synced' && (lastSavedAt ? `Synced ${new Date(lastSavedAt).toLocaleTimeString()}` : 'Synced')}
-          {saveStatus === 'editing' && 'Draft saved locally'}
-          {saveStatus === 'error' && 'Sync error — will retry'}
-        </span>
-        <button
-          onClick={handleSaveChanges}
-          disabled={isSaving || (!hasChanges && saveStatus !== 'error')}
-          style={{
-            background:'#fff', color:'#333', border:'none', borderRadius:6,
-            padding:'4px 8px', fontSize:12, fontWeight:600, cursor: (isSaving || (!hasChanges && saveStatus !== 'error')) ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {isSaving ? 'Saving…' : 'Save Now'}
-        </button>
-      </div>
+      {/* Floating save chip removed – inline status used instead */}
     </div>
   );
 }
