@@ -25,9 +25,11 @@ html {
   --text-primary: #212529;
   --text-secondary: #6C757D;
   --border: #E9ECEF;
+  --border-color: #E9ECEF; /* alias used by some page styles */
   --success: #51CF66;
   --warning: #FFB84D;
   --error: #FF6B6B;
+  --danger: #E03131;
   --info: #339AF0;
   
   --status-planning: #FF6B6B;

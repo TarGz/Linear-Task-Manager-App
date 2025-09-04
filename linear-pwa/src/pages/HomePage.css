@@ -435,6 +435,28 @@
   transform: scale(1.05);
 }
 
+.task-date-compact.overdue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.overdue-section-compact {
+  background: var(--surface);
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  margin: 6px 0;
+  padding: 8px 0;
+}
+
+.overdue-header-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 4px 12px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 /* Loading state */
 .loading-state {
   display: flex;

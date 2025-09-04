@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff, Briefcase, Home } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff, Briefcase, Home, SortAsc } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -25,8 +25,16 @@ function HomePage() {
   const [editingTask, setEditingTask] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [selectedFilter, setSelectedFilter] = useState('day'); // 'all', 'day', 'week', 'month'
-  const [workFilter, setWorkFilter] = useState('all'); // 'all', 'work', 'personal'
+  const [selectedFilter, setSelectedFilter] = useState(() => {
+    try { return localStorage.getItem('home.selectedFilter') || 'day'; } catch { return 'day'; }
+  }); // 'all', 'day', 'week', 'month'
+  const [workFilter, setWorkFilter] = useState(() => {
+    try { return localStorage.getItem('home.workFilter') || 'all'; } catch { return 'all'; }
+  }); // 'all', 'work', 'personal'
+  const [sortMode, setSortMode] = useState(() => {
+    try { return localStorage.getItem('home.sortMode') || 'project'; } catch { return 'project'; }
+  }); // 'project' | 'due'
+  const [dueSortedTasks, setDueSortedTasks] = useState([]);
   
   // Notifications hook
   const { requestPermission, checkTasksDue, hasPermission } = useNotifications();
@@ -129,6 +137,17 @@ function HomePage() {
     loadProjectsWithTasks();
   }, []);
 
+  // Persist filters and sort to localStorage
+  useEffect(() => {
+    try { localStorage.setItem('home.selectedFilter', selectedFilter); } catch {}
+  }, [selectedFilter]);
+  useEffect(() => {
+    try { localStorage.setItem('home.workFilter', workFilter); } catch {}
+  }, [workFilter]);
+  useEffect(() => {
+    try { localStorage.setItem('home.sortMode', sortMode); } catch {}
+  }, [sortMode]);
+
   // Apply filters when selectedFilter or workFilter changes
   useEffect(() => {
     if (allProjects.length > 0) {
@@ -136,6 +155,25 @@ function HomePage() {
       setProjects(filteredProjects);
     }
   }, [selectedFilter, workFilter, allProjects, applyFilters]);
+
+  // Build due-date sorted flat list (active tasks with a due date), filtered by work/personal
+  useEffect(() => {
+    const all = allProjects.flatMap(p => p.allTasks || []);
+    const activeWithDue = all.filter(t => t.dueDate && t.state?.type !== 'completed' && t.state?.type !== 'canceled');
+    const filtered = activeWithDue.filter(t => {
+      const proj = allProjects.find(p => p.id === t.project?.id);
+      // Reuse project heuristics
+      const hasWorkName = proj?.name?.includes('🏢');
+      const hasWorkTag = proj?.description?.includes('[WORK]');
+      const hasWorkLabel = proj?.labels?.nodes?.some(label => label.name === 'Work');
+      const isWorkProject = hasWorkName || hasWorkTag || hasWorkLabel;
+      if (workFilter === 'work') return isWorkProject;
+      if (workFilter === 'personal') return !isWorkProject;
+      return true;
+    });
+    filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    setDueSortedTasks(filtered);
+  }, [allProjects, workFilter]);
 
   const loadProjectsWithTasks = async () => {
     try {
@@ -200,6 +238,8 @@ function HomePage() {
         };
       });
       
+      // Note: overdue list removed; overdue highlighting handled per-card
+
       // Sort projects by their earliest task due date
       processedProjects.sort((a, b) => {
         // Projects with no tasks go last
@@ -401,6 +441,12 @@ function HomePage() {
     
     // Start animation immediately
     updateTaskLocallyAndReorder(taskId, 'completed', swipeDirection);
+    // Reflect in due-date list immediately
+    setDueSortedTasks(prev => {
+      const exists = prev.some(t => t.id === taskId);
+      if (!exists) return prev;
+      return prev.filter(t => t.id !== taskId);
+    });
     
     // Do API call in background
     try {
@@ -615,6 +661,15 @@ function HomePage() {
     
     // Start animation immediately
     updateTaskLocallyAndReorder(taskId, 'started', swipeDirection);
+    // Update due-date list state
+    setDueSortedTasks(prev => {
+      const idx = prev.findIndex(t => t.id === taskId);
+      if (idx === -1) return prev;
+      const updated = [...prev];
+      updated[idx] = { ...updated[idx], state: { ...updated[idx].state, type: 'started' } };
+      updated.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+      return updated;
+    });
     
     // Do API call in background
     try {
@@ -690,6 +745,18 @@ function HomePage() {
         
         const internalStatus = linearToInternalStatus[targetState.type] || newStatus;
         updateTaskLocallyAndReorder(taskId, internalStatus);
+        // Update due-date list
+        setDueSortedTasks(prev => {
+          const idx = prev.findIndex(t => t.id === taskId);
+          if (idx === -1) return prev;
+          if (internalStatus === 'completed' || internalStatus === 'canceled') {
+            return prev.filter(t => t.id !== taskId);
+          }
+          const updated = [...prev];
+          updated[idx] = { ...updated[idx], state: { ...updated[idx].state, type: internalStatus } };
+          updated.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
+          return updated;
+        });
         
         setSelectedTaskForStatus(null);
       }
@@ -751,32 +818,22 @@ function HomePage() {
               {workFilter === 'work' ? <Briefcase size={14} /> : workFilter === 'personal' ? <Home size={14} /> : null}
               {workFilter === 'work' ? 'Work' : workFilter === 'personal' ? 'Personal' : 'All'}
             </button>
-            <button 
-              className="notification-button"
-              onClick={async () => {
-                if (!hasPermission) {
-                  const granted = await requestPermission();
-                  if (granted) {
-                    // Re-check tasks for notifications
-                    const allTasks = allProjects.flatMap(p => p.allTasks || []);
-                    checkTasksDue(allTasks);
-                  }
-                }
-              }}
-              title={hasPermission ? "Notifications enabled" : "Enable notifications"}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '6px',
-                cursor: 'pointer',
-                color: hasPermission ? '#7C4DFF' : '#999'
-              }}
+            {/* Notification button removed per request */}
+            <button
+              className="filter-button-compact"
+              onClick={() => setSortMode(prev => prev === 'project' ? 'due' : 'project')}
+              title={`Sort: ${sortMode === 'project' ? 'Project' : 'Date'}`}
+              aria-label="Toggle sort mode"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              {hasPermission ? <Bell size={18} /> : <BellOff size={18} />}
+              <SortAsc size={16} /> {sortMode === 'project' ? 'Project' : 'Date'}
             </button>
             <button 
               className="filter-button-compact"
               onClick={() => setShowFilterMenu(!showFilterMenu)}
+              title="Filter old tasks"
+              aria-label="Filter tasks by recency"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <Filter size={18} />
               {selectedFilter !== 'all' && <span className="filter-badge"></span>}
@@ -848,13 +905,75 @@ function HomePage() {
           </div>
         )}
 
-        {projects.length === 0 && !error ? (
-          <div className="empty-state-compact">
-            <p>No active tasks</p>
+        {sortMode === 'due' && (
+          <div className="projects-list-compact" style={{marginBottom: '6px'}}>
+            <div className="project-group-compact">
+              <div className="tasks-list-compact">
+                {dueSortedTasks.map(task => (
+                  <SwipeableCard
+                    key={`due-${task.id}`}
+                    onSwipeActionLeft={canMarkInProgress(task) ? (swipeDirection) => handleMarkInProgress(task.id, swipeDirection) : null}
+                    onSwipeActionRight={canMarkComplete(task) ? (swipeDirection) => handleTaskComplete({ stopPropagation: () => {} }, task.id, swipeDirection) : null}
+                    onLongPress={() => handleTaskLongPress(task)}
+                    leftActionLabel="In Progress"
+                    rightActionLabel="Complete"
+                    disabled={!isTaskClickable(task)}
+                  >
+                    <div
+                      className={`task-item-compact ${getTaskStatusClass(task)}`}
+                      onClick={() => handleTaskClick(task)}
+                    >
+                      <button
+                        className="task-checkbox-compact"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTaskLongPress(task);
+                        }}
+                        title="Change task status"
+                      >
+                        {getTaskIcon(task)}
+                      </button>
+                      <div className="task-content-compact">
+                        <div className="task-title-compact">
+                          {task.title}
+                        </div>
+                        {task.description && (
+                          <div
+                            className="task-description-compact"
+                            onClick={(e) => e.stopPropagation()}
+                            dangerouslySetInnerHTML={{ __html: renderMarkdownInline(task.description) }}
+                          />
+                        )}
+                      </div>
+                      {task.dueDate && (
+                        <button 
+                          className={`task-date-compact clickable-date ${task.dueDate && new Date(task.dueDate) < new Date() && task.state?.type !== 'completed' && task.state?.type !== 'canceled' ? 'overdue' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/task/${task.id}`);
+                          }}
+                          title="View task details"
+                        >
+                          {formatDateShort(task.dueDate)}
+                        </button>
+                      )}
+                    </div>
+                  </SwipeableCard>
+                ))}
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="projects-list-compact">
-            {projects.map(project => (
+        )}
+
+
+        {sortMode !== 'due' && (
+          projects.length === 0 && !error ? (
+            <div className="empty-state-compact">
+              <p>No active tasks</p>
+            </div>
+          ) : (
+            <div className="projects-list-compact">
+              {projects.map(project => (
               <div key={project.id} className="project-group-compact">
                 <div className="project-header-compact">
                   <div 
@@ -928,7 +1047,7 @@ function HomePage() {
                           </div>
                           {task.dueDate && (
                             <button 
-                              className="task-date-compact clickable-date"
+                              className={`task-date-compact clickable-date ${task.dueDate && new Date(task.dueDate) < new Date() && task.state?.type !== 'completed' && task.state?.type !== 'canceled' ? 'overdue' : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 navigate(`/task/${task.id}`);
@@ -944,8 +1063,9 @@ function HomePage() {
                   </div>
                 )}
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
 

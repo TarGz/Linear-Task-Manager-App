@@ -49,7 +49,7 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, onUnar
       leftActionLabel={isArchived ? null : 'Delete'}
       rightActionLabel={isArchived ? null : (task.state?.type === 'completed' ? 'Done' : 'Mark Done')}
       disabled={isArchived || task.state?.type === 'completed'}
-    >
+      >
       <div
         className="task-card card"
         onClick={handleClick}
@@ -75,7 +75,7 @@ function TaskCard({ task, onStatusChange, onDelete, onClick, onLongPress, onUnar
           />
           
           <div className="task-bottom-row">
-            <div className="task-due-date">
+            <div className={`task-due-date ${task.dueDate && new Date(task.dueDate) < new Date() && task.state?.type !== 'completed' && task.state?.type !== 'canceled' ? 'overdue' : ''}`}>
               {task.dueDate ? (
                 <>
                   <Calendar size={12} />

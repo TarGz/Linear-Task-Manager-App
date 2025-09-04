@@ -72,6 +72,11 @@
   margin-top: var(--spacing-xs);
 }
 
+.task-due-date.overdue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 .task-card.dragging {
   transition: none !important;
 }
