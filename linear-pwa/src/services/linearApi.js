@@ -173,6 +173,21 @@ class LinearAPI {
     return this.query(query);
   }
 
+  async getIssue(id) {
+    const query = `
+      query($id: String!) {
+        issue(id: $id) {
+          id
+          title
+          description
+          dueDate
+          updatedAt
+        }
+      }
+    `;
+    return this.query(query, { id });
+  }
+
   async getProjectsWithIssues() {
     const query = `
       query {

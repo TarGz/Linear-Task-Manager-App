@@ -256,6 +256,9 @@
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
+.conflict-box { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px; }
+.conflict-pre { white-space: pre-wrap; padding:8px; border:1px solid var(--border); border-radius:8px; background: var(--surface); max-height: 240px; overflow:auto; }
+
 /* Task actions overlay - appears on top of everything */
 .task-actions-overlay {
   position: fixed;

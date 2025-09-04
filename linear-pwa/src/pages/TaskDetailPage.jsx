@@ -5,6 +5,7 @@ import StatusMenu from '../components/StatusMenu';
 import CodeMirrorMarkdownEditor from '../components/common/CodeMirrorMarkdownEditor';
 import MarkdownPreview from '../components/common/MarkdownPreview';
 import linearApi from '../services/linearApi';
+import AppOverlay from '../components/common/AppOverlay';
 import './TaskDetailPage.css';
 
 function TaskDetailPage() {
@@ -25,6 +26,14 @@ function TaskDetailPage() {
   const draftTimerRef = useRef(null);
   // Using full CodeMirror editor with a Preview toggle
   const [descMode, setDescMode] = useState('preview'); // 'preview' | 'edit'
+  // Conflict detection
+  const [baseline, setBaseline] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    updatedAt: ''
+  });
+  const [conflict, setConflict] = useState(null); // { remote, pendingUpdate }
 
   // Auto-resize textarea function
   const autoResizeTextarea = (textarea) => {
@@ -74,6 +83,13 @@ function TaskDetailPage() {
           setHasChanges(false);
           setSaveStatus('synced');
         }
+        // Set baseline from server
+        setBaseline({
+          title: foundTask.title || '',
+          description: foundTask.description || '',
+          dueDate: foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '',
+          updatedAt: foundTask.updatedAt || ''
+        });
       } else {
         setError('Task not found');
       }
@@ -165,6 +181,20 @@ function TaskDetailPage() {
       let updateData = {};
       let hasUpdates = false;
       
+      // Sanitize markdown links before saving (avoid localhost/invalid links in production)
+      const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const absoluteBase = origin + base;
+      const sanitizeLinks = (md) => {
+        if (!md) return md;
+        let out = md;
+        // Replace localhost dev links with the current origin/base
+        out = out.replace(/\((?:http:\/\/localhost:\\d+)([^)]*)\)/g, (_, path) => `(${absoluteBase}${path.replace(/^\//,'')})`);
+        // Convert root-relative links to absolute
+        out = out.replace(/\((\/(?:[^)]+))\)/g, (_, path) => `(${absoluteBase}${path.replace(/^\//,'')})`);
+        return out;
+      };
+
       // Check what has changed
       if (editTitle !== task?.title) {
         if (!editTitle.trim()) {
@@ -176,7 +206,7 @@ function TaskDetailPage() {
       }
       
       if (editDescription !== (task?.description || '')) {
-        updateData.description = editDescription;
+        updateData.description = sanitizeLinks(editDescription);
         hasUpdates = true;
       }
       
@@ -192,6 +222,28 @@ function TaskDetailPage() {
         setLastSavedAt(new Date().toISOString());
         return;
       }
+
+      // Conflict detection: fetch latest remote and compare with baseline
+      try {
+        const remoteRes = await linearApi.getIssue(id);
+        const remote = remoteRes.issue || remoteRes?.issue || remoteRes?.data?.issue; // be tolerant
+        if (remote && baseline.updatedAt) {
+          const remoteNewer = new Date(remote.updatedAt).getTime() > new Date(baseline.updatedAt).getTime();
+          const baselineDiffers =
+            remote.title !== baseline.title ||
+            (remote.description || '') !== (baseline.description || '') ||
+            (remote.dueDate ? remote.dueDate.split('T')[0] : '') !== (baseline.dueDate || '');
+          if (remoteNewer && baselineDiffers) {
+            // Show conflict overlay and exit early; user will choose
+            setConflict({ remote, pendingUpdate: updateData });
+            setIsSaving(false);
+            setSaveStatus('editing');
+            return;
+          }
+        }
+      } catch (e) {
+        // If we cannot check, proceed with save as a best-effort
+      }
       
       const response = await linearApi.updateIssue(id, updateData);
       
@@ -206,6 +258,19 @@ function TaskDetailPage() {
           state: updatedIssue.state,
           updatedAt: updatedIssue.updatedAt
         }));
+        // Keep editor fields in sync with server values to avoid false "Unsaved"
+        setEditTitle(updatedIssue.title || '');
+        setEditDescription(updatedIssue.description || '');
+        setEditDueDate(updatedIssue.dueDate ? updatedIssue.dueDate.split('T')[0] : '');
+        // Clear local draft since it's now synced
+        try { localStorage.removeItem(`draft:task:${id}`); } catch (_) {}
+        // Update baseline to new server state
+        setBaseline({
+          title: updatedIssue.title || '',
+          description: updatedIssue.description || '',
+          dueDate: updatedIssue.dueDate ? updatedIssue.dueDate.split('T')[0] : '',
+          updatedAt: updatedIssue.updatedAt || ''
+        });
         
         setHasChanges(false);
         setSaveStatus('synced');
@@ -222,13 +287,40 @@ function TaskDetailPage() {
     }
   };
 
+  const resolveConflictKeepMine = async () => {
+    if (!conflict) return;
+    // Proceed with current local edits (pendingUpdate)
+    const pending = conflict.pendingUpdate || {};
+    setConflict(null);
+    // Merge into current flow: set updateData fields into state temporarly and call handleSaveChanges again
+    // Simply call handleSaveChanges again which will compute from current fields
+    await handleSaveChanges();
+  };
+
+  const resolveConflictKeepTheirs = () => {
+    if (!conflict) return;
+    const r = conflict.remote;
+    setEditTitle(r.title || '');
+    setEditDescription(r.description || '');
+    setEditDueDate(r.dueDate ? r.dueDate.split('T')[0] : '');
+    setBaseline({
+      title: r.title || '',
+      description: r.description || '',
+      dueDate: r.dueDate ? r.dueDate.split('T')[0] : '',
+      updatedAt: r.updatedAt || ''
+    });
+    setHasChanges(false);
+    setSaveStatus('synced');
+    setConflict(null);
+  };
+
   const discardChanges = () => {
     // Reset edit values to current task values
     setEditTitle(task?.title || '');
     setEditDescription(task?.description || '');
     setEditDueDate(task?.dueDate ? task.dueDate.split('T')[0] : '');
     setHasChanges(false);
-    setSaveStatus('idle');
+    setSaveStatus('synced');
   };
 
   // Note: Removed auto-save on unmount to avoid accidental frequent syncs
@@ -576,6 +668,27 @@ function TaskDetailPage() {
           onStatusChange={handleStatusChange}
           onClose={() => setSelectedTask(null)}
         />
+      )}
+
+      {conflict && (
+        <AppOverlay isOpen={true} onClose={() => setConflict(null)} title="Remote changes detected">
+          <p style={{marginTop:0}}>This task was updated elsewhere since you started editing. Choose how to proceed:</p>
+          <div className="conflict-box">
+            <div>
+              <h4>Remote</h4>
+              <pre className="conflict-pre">{conflict.remote?.title || ''}\n\n{conflict.remote?.description || ''}</pre>
+            </div>
+            <div>
+              <h4>Yours</h4>
+              <pre className="conflict-pre">{editTitle}\n\n{editDescription}</pre>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:8,marginTop:12,justifyContent:'flex-end'}}>
+            <button className="btn btn-secondary" onClick={() => setConflict(null)}>Cancel</button>
+            <button className="btn" onClick={resolveConflictKeepTheirs}>Keep Theirs</button>
+            <button className="btn btn-primary" onClick={resolveConflictKeepMine}>Keep Mine</button>
+          </div>
+        </AppOverlay>
       )}
 
       {/* Floating save chip removed – inline status used instead */}
