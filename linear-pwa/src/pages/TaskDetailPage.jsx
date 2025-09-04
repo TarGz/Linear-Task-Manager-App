@@ -173,7 +173,8 @@ function TaskDetailPage() {
   };
 
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (opts = {}) => {
+    const force = !!opts.force; // when true, bypass conflict check once
     try {
       setIsSaving(true);
       setSaveStatus('syncing');
@@ -223,26 +224,28 @@ function TaskDetailPage() {
         return;
       }
 
-      // Conflict detection: fetch latest remote and compare with baseline
-      try {
-        const remoteRes = await linearApi.getIssue(id);
-        const remote = remoteRes.issue || remoteRes?.issue || remoteRes?.data?.issue; // be tolerant
-        if (remote && baseline.updatedAt) {
-          const remoteNewer = new Date(remote.updatedAt).getTime() > new Date(baseline.updatedAt).getTime();
-          const baselineDiffers =
-            remote.title !== baseline.title ||
-            (remote.description || '') !== (baseline.description || '') ||
-            (remote.dueDate ? remote.dueDate.split('T')[0] : '') !== (baseline.dueDate || '');
-          if (remoteNewer && baselineDiffers) {
-            // Show conflict overlay and exit early; user will choose
-            setConflict({ remote, pendingUpdate: updateData });
-            setIsSaving(false);
-            setSaveStatus('editing');
-            return;
+      // Conflict detection: fetch latest remote and compare with baseline (unless forced)
+      if (!force) {
+        try {
+          const remoteRes = await linearApi.getIssue(id);
+          const remote = remoteRes.issue || remoteRes?.issue || remoteRes?.data?.issue; // be tolerant
+          if (remote && baseline.updatedAt) {
+            const remoteNewer = new Date(remote.updatedAt).getTime() > new Date(baseline.updatedAt).getTime();
+            const baselineDiffers =
+              remote.title !== baseline.title ||
+              (remote.description || '') !== (baseline.description || '') ||
+              (remote.dueDate ? remote.dueDate.split('T')[0] : '') !== (baseline.dueDate || '');
+            if (remoteNewer && baselineDiffers) {
+              // Show conflict overlay and exit early; user will choose
+              setConflict({ remote, pendingUpdate: updateData });
+              setIsSaving(false);
+              setSaveStatus('editing');
+              return;
+            }
           }
+        } catch (e) {
+          // If we cannot check, proceed with save as a best-effort
         }
-      } catch (e) {
-        // If we cannot check, proceed with save as a best-effort
       }
       
       const response = await linearApi.updateIssue(id, updateData);
@@ -289,12 +292,9 @@ function TaskDetailPage() {
 
   const resolveConflictKeepMine = async () => {
     if (!conflict) return;
-    // Proceed with current local edits (pendingUpdate)
-    const pending = conflict.pendingUpdate || {};
     setConflict(null);
-    // Merge into current flow: set updateData fields into state temporarly and call handleSaveChanges again
-    // Simply call handleSaveChanges again which will compute from current fields
-    await handleSaveChanges();
+    // Proceed with current local edits, bypassing conflict check
+    await handleSaveChanges({ force: true });
   };
 
   const resolveConflictKeepTheirs = () => {
