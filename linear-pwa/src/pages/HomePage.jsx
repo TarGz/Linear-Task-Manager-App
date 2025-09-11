@@ -22,7 +22,6 @@ function HomePage() {
   const [motivationalQuote, setMotivationalQuote] = useState('');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [editingTask, setEditingTask] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(() => {
@@ -427,13 +426,8 @@ function HomePage() {
   };
 
   const handleTaskClick = (task) => {
-    // Check if we're on desktop (screen width > 768px) to show edit panel
-    if (window.innerWidth > 768) {
-      setEditingTask(task);
-    } else {
-      // On mobile, navigate to task detail page
-      navigate(`/task/${task.id}`);
-    }
+    // Always navigate to task detail page
+    navigate(`/task/${task.id}`);
   };
 
   const handleTaskComplete = async (e, taskId, swipeDirection = 'right') => {
@@ -554,34 +548,8 @@ function HomePage() {
 
   const handleTaskCancel = () => {
     setShowCreateTask(false);
-    setEditingTask(null);
   };
 
-  const handleTaskEdit = async (taskData) => {
-    try {
-      console.log('🔄 Editing task with data:', taskData);
-      
-      const result = await linearApi.updateIssue(taskData.id, {
-        title: taskData.title,
-        description: taskData.description || undefined,
-        dueDate: taskData.dueDate || undefined
-      });
-      
-      console.log('✅ Task edit result:', result);
-      
-      if (result.issueUpdate?.success) {
-        // Close the form
-        setEditingTask(null);
-        
-        // Reload projects to show updated task
-        await loadProjectsWithTasks();
-      } else {
-        console.error('❌ Failed to update task - result not successful');
-      }
-    } catch (error) {
-      console.error('❌ Failed to update task:', error);
-    }
-  };
 
   // Use normalized status from utilities
   const getAppStatus = (task) => {
@@ -1078,14 +1046,6 @@ function HomePage() {
         />
       )}
 
-      {/* Task Edit Form */}
-      {editingTask && (
-        <TaskForm
-          task={editingTask}
-          onSubmit={handleTaskEdit}
-          onCancel={handleTaskCancel}
-        />
-      )}
 
       {/* Status Menu */}
       {selectedTaskForStatus && (

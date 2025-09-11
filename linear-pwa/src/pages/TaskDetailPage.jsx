@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import StatusMenu from '../components/StatusMenu';
 import CodeMirrorMarkdownEditor from '../components/common/CodeMirrorMarkdownEditor';
 import MarkdownPreview from '../components/common/MarkdownPreview';
+import SubtasksList from '../components/SubtasksList';
 import linearApi from '../services/linearApi';
 import AppOverlay from '../components/common/AppOverlay';
 import './TaskDetailPage.css';
@@ -23,6 +24,8 @@ function TaskDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle | editing | syncing | synced | error
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [subtasks, setSubtasks] = useState([]);
+  const [teamId, setTeamId] = useState(null);
   const draftTimerRef = useRef(null);
   // Using full CodeMirror editor with a Preview toggle
   const [descMode, setDescMode] = useState('preview'); // 'preview' | 'edit'
@@ -52,12 +55,20 @@ function TaskDetailPage() {
       setIsLoading(true);
       setError('');
       
-      // For now, we'll get the task from the issues list
-      const data = await linearApi.getAllIssues();
-      const foundTask = data.issues.nodes.find(issue => issue.id === id);
+      // Get the task with subtasks using the updated API
+      const taskData = await linearApi.getIssue(id);
+      const foundTask = taskData.issue;
+      
+      // Get team ID for subtask operations
+      const teamsData = await linearApi.getTeams();
+      const team = teamsData.teams?.nodes?.[0];
+      if (team) {
+        setTeamId(team.id);
+      }
       
       if (foundTask) {
         setTask(foundTask);
+        setSubtasks(foundTask.children?.nodes || []);
         // Attempt to restore a locally saved draft
         try {
           const key = `draft:task:${id}`;
@@ -552,6 +563,17 @@ function TaskDetailPage() {
       
       <div className="page-content">
         <div className="container">
+          {/* Subtasks Section - Only show if not a subtask itself */}
+          {!task?.parent && (
+            <SubtasksList 
+              subtasks={subtasks}
+              parentId={task?.id}
+              teamId={teamId}
+              onSubtasksChange={loadTask}
+              projectName={task?.project?.name}
+            />
+          )}
+
           <div className="task-description card">
             <div className="desc-header-row">
               <div className="field-status">

@@ -169,6 +169,10 @@ class LinearAPI {
               name
               avatarUrl
             }
+            parent {
+              id
+              title
+            }
           }
         }
       }
@@ -207,6 +211,35 @@ class LinearAPI {
           description
           dueDate
           updatedAt
+          state {
+            id
+            name
+            type
+          }
+          parent {
+            id
+            title
+          }
+          children {
+            nodes {
+              id
+              title
+              description
+              dueDate
+              state {
+                id
+                name
+                type
+              }
+              assignee {
+                id
+                name
+                avatarUrl
+              }
+              createdAt
+              updatedAt
+            }
+          }
         }
       }
     `;
@@ -256,6 +289,10 @@ class LinearAPI {
               name
               avatarUrl
             }
+            parent {
+              id
+              title
+            }
             labels {
               nodes {
                 id
@@ -288,6 +325,14 @@ class LinearAPI {
       }
     `;
     return this.query(mutation, { input });
+  }
+
+  async createSubtask(parentId, input) {
+    const subtaskInput = {
+      ...input,
+      parentId: parentId
+    };
+    return this.createIssue(subtaskInput);
   }
 
   async getTeams() {
