@@ -54,9 +54,20 @@ function bumpVersion(currentVersion, type = 'patch') {
 }
 
 function updatePackageVersion(newVersion) {
+  // Update linear-pwa/package.json
   const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
   packageJson.version = newVersion;
   fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2) + '\n');
+
+  // Update root package.json
+  const rootPackageJson = JSON.parse(fs.readFileSync('../package.json', 'utf8'));
+  rootPackageJson.version = newVersion;
+  fs.writeFileSync('../package.json', JSON.stringify(rootPackageJson, null, 2) + '\n');
+
+  // Update root package-lock.json (metadata only, keeps version in sync)
+  const rootPackageLock = JSON.parse(fs.readFileSync('../package-lock.json', 'utf8'));
+  rootPackageLock.version = newVersion;
+  fs.writeFileSync('../package-lock.json', JSON.stringify(rootPackageLock, null, 2) + '\n');
 }
 
 function updateConstantsVersion(newVersion) {
@@ -189,7 +200,7 @@ async function main() {
   log('cyan', `✨ Features: ${currentFeatures}\n`);
   
   // Update version in files
-  log('yellow', '🔄 Updating version in package.json, constants.js, index.html, and README.md...');
+  log('yellow', '🔄 Updating version in all package files, constants.js, index.html, and README.md...');
   updatePackageVersion(newVersion);
   updateConstantsVersion(newVersion);
   updateIndexHtmlVersion(newVersion);
