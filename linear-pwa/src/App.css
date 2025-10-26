@@ -118,10 +118,10 @@
 }
 
 .burger-menu-button {
-  position: fixed;
+  position: absolute;
   top: 12px;
   left: 16px;
-  z-index: 9999;
+  z-index: 100;
   background: transparent;
   border: none;
   padding: 8px;

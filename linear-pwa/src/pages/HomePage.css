@@ -10,6 +10,7 @@
   border-bottom: 1px solid var(--border-color);
   /* Add left padding to make room for burger menu */
   padding-left: 56px;
+  position: relative;
 }
 
 .header-row-compact {
