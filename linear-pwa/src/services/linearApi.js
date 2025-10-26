@@ -113,6 +113,12 @@ class LinearAPI {
           description
           state
           icon
+          teams {
+            nodes {
+              id
+              name
+            }
+          }
           issues {
             nodes {
               id

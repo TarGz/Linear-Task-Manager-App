@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc, FolderPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
+import ProjectForm from '../components/ProjectForm';
 import SwipeableCard from '../components/common/SwipeableCard';
 import StatusMenu from '../components/StatusMenu';
 import linearApi from '../services/linearApi';
@@ -21,6 +22,7 @@ function HomePage() {
   const [collapsedProjects, setCollapsedProjects] = useState(new Set());
   const [motivationalQuote, setMotivationalQuote] = useState('');
   const [showCreateTask, setShowCreateTask] = useState(false);
+  const [showCreateProject, setShowCreateProject] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -477,14 +479,24 @@ function HomePage() {
 
   const handleTaskSubmit = async (taskData) => {
     try {
-      // Get teams to find a team ID
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
+      // Find the project to get its team ID
+      const targetProject = allProjects.find(p => p.id === taskData.projectId);
 
-      if (!teamId) {
-        console.error('No team found');
+      if (!targetProject) {
+        console.error('Project not found');
+        alert('Project not found. Please try again.');
         return;
       }
+
+      const teamId = targetProject.teams?.nodes?.[0]?.id;
+
+      if (!teamId) {
+        console.error('No team found for this project');
+        alert('This project is not associated with a team. Please check the project settings in Linear.');
+        return;
+      }
+
+      console.log('🔍 Creating task in project:', targetProject.name, 'team:', targetProject.teams.nodes[0].name);
 
       const submitData = {
         title: taskData.title,
@@ -515,6 +527,84 @@ function HomePage() {
 
   const handleTaskCancel = () => {
     setShowCreateTask(false);
+  };
+
+  const handleCreateProject = async (projectData) => {
+    try {
+      // Get all teams to find the correct team based on project type
+      const teamsData = await linearApi.getTeams();
+      const allTeams = teamsData.teams?.nodes || [];
+
+      if (allTeams.length === 0) {
+        alert('No team found. Please make sure you have at least one team in Linear.');
+        setShowCreateProject(false);
+        return;
+      }
+
+      // Store team type in project name and get appropriate label if needed
+      console.log('🔍 Full projectData received:', projectData);
+      console.log('🔍 projectData.type:', projectData.type);
+      console.log('🔍 Available teams:', allTeams.map(t => t.name));
+
+      let projectName = projectData.name;
+      let labelIds = [];
+      let teamId;
+
+      if (projectData.type === 'pro') {
+        // Find the Pro team (case insensitive)
+        const proTeam = allTeams.find(t => t.name?.toLowerCase() === 'pro' || t.name?.toLowerCase() === 'professional');
+        if (!proTeam) {
+          alert('Pro team not found. Please create a "Pro" team in Linear first.');
+          setShowCreateProject(false);
+          return;
+        }
+        teamId = proTeam.id;
+        projectName = `🏢 ${projectData.name}`;
+        console.log('✅ Creating PRO project with name:', projectName, 'in team:', proTeam.name);
+
+        // Get Work PROJECT label ID for pro projects
+        console.log('🏷️ Getting Work project label...');
+        const workLabel = await linearApi.ensureWorkProjectLabel();
+        console.log('🏷️ Retrieved Work project label:', workLabel);
+
+        if (workLabel?.id) {
+          labelIds = [workLabel.id];
+          console.log('✅ Will create project with Work PROJECT label ID:', workLabel.id);
+        } else {
+          console.log('❌ Could not get Work PROJECT label ID');
+        }
+      } else {
+        // Find the Targz team (case insensitive)
+        const targzTeam = allTeams.find(t => t.name?.toLowerCase() === 'targz');
+        if (!targzTeam) {
+          alert('Targz team not found. Please create a "Targz" team in Linear first.');
+          setShowCreateProject(false);
+          return;
+        }
+        teamId = targzTeam.id;
+        console.log('✅ Creating TARGZ project with name:', projectName, 'in team:', targzTeam.name);
+      }
+
+      const createData = {
+        name: projectName,
+        teamIds: [teamId],
+        description: projectData.description || '',
+        ...(labelIds.length > 0 && { labelIds })
+      };
+
+      console.log('Creating project with data:', createData);
+      console.log('🏷️ Project label IDs being applied:', labelIds);
+      console.log('🏷️ Team ID being used:', teamId);
+
+      const result = await linearApi.createProject(createData);
+      console.log('✅ Project creation result:', result);
+
+      setShowCreateProject(false);
+      await loadProjectsWithTasks(); // Refresh to show new project
+    } catch (error) {
+      console.error('❌ Project creation failed:', error);
+      setShowCreateProject(false);
+    }
   };
 
 
@@ -728,7 +818,7 @@ function HomePage() {
           </h1>
           <div style={{display: 'flex', gap: '8px'}}>
             <button
-              className={`work-filter-toggle ${teamFilter === 'targz' ? 'active-work' : teamFilter === 'pro' ? 'active-personal' : ''}`}
+              className={`work-filter-toggle ${teamFilter === 'targz' ? 'active-targz' : teamFilter === 'pro' ? 'active-pro' : ''}`}
               onClick={() => {
                 if (teamFilter === 'all') setTeamFilter('targz');
                 else if (teamFilter === 'targz') setTeamFilter('pro');
@@ -755,6 +845,15 @@ function HomePage() {
             {/* Notification button removed per request */}
             <button
               className="filter-button-compact"
+              onClick={() => setShowCreateProject(true)}
+              title="Create new project"
+              aria-label="Create new project"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <FolderPlus size={16} />
+            </button>
+            <button
+              className="filter-button-compact"
               onClick={() => setSortMode(prev => prev === 'project' ? 'due' : 'project')}
               title={`Sort: ${sortMode === 'project' ? 'Project' : 'Date'}`}
               aria-label="Toggle sort mode"
@@ -762,7 +861,7 @@ function HomePage() {
             >
               <SortAsc size={16} /> {sortMode === 'project' ? 'Project' : 'Date'}
             </button>
-            <button 
+            <button
               className="filter-button-compact"
               onClick={() => setShowFilterMenu(!showFilterMenu)}
               title="Filter old tasks"
@@ -1012,6 +1111,13 @@ function HomePage() {
         />
       )}
 
+      {/* Project Form */}
+      {showCreateProject && (
+        <ProjectForm
+          onSubmit={handleCreateProject}
+          onCancel={() => setShowCreateProject(false)}
+        />
+      )}
 
       {/* Status Menu */}
       {selectedTaskForStatus && (

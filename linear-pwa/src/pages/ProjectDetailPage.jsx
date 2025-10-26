@@ -188,18 +188,20 @@ function ProjectDetailPage() {
 
   const handleCreateTask = async (taskData) => {
     try {
-      // Get teams to find a team ID (use first available team for now)
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
-      if (!teamId) {
-        console.error('No team found');
+      // Use the project's team ID instead of getting all teams
+      const projectTeamId = project?.teams?.nodes?.[0]?.id;
+
+      if (!projectTeamId) {
+        console.error('No team found for this project');
+        alert('This project is not associated with a team. Please check the project settings in Linear.');
         return;
       }
 
+      console.log('🔍 Creating task in team:', project.teams.nodes[0].name, 'with ID:', projectTeamId);
+
       const issueInput = {
         title: taskData.title,
-        teamId: teamId
+        teamId: projectTeamId
       };
 
       // Only add optional fields if they have values

@@ -134,33 +134,42 @@ function ProjectsPage() {
 
   const handleCreateProject = async (projectData) => {
     try {
-      // Get teams to find a team ID
+      // Get all teams to find the correct team based on project type
       const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
-      if (!teamId) {
+      const allTeams = teamsData.teams?.nodes || [];
+
+      if (allTeams.length === 0) {
         alert('No team found. Please make sure you have at least one team in Linear.');
         setShowProjectForm(false);
         return;
       }
 
-      // Store work type in project name and get Work PROJECT label if needed
+      // Store team type in project name and get appropriate label if needed
       console.log('🔍 Full projectData received:', projectData);
       console.log('🔍 projectData.type:', projectData.type);
-      console.log('🔍 projectData.type === "work":', projectData.type === 'work');
-      
+      console.log('🔍 Available teams:', allTeams.map(t => t.name));
+
       let projectName = projectData.name;
       let labelIds = [];
-      
-      if (projectData.type === 'work') {
+      let teamId;
+
+      if (projectData.type === 'pro') {
+        // Find the Pro team (case insensitive)
+        const proTeam = allTeams.find(t => t.name?.toLowerCase() === 'pro' || t.name?.toLowerCase() === 'professional');
+        if (!proTeam) {
+          alert('Pro team not found. Please create a "Pro" team in Linear first.');
+          setShowProjectForm(false);
+          return;
+        }
+        teamId = proTeam.id;
         projectName = `🏢 ${projectData.name}`;
-        console.log('✅ Creating WORK project with name:', projectName);
-        
-        // Get Work PROJECT label ID for work projects
+        console.log('✅ Creating PRO project with name:', projectName, 'in team:', proTeam.name);
+
+        // Get Work PROJECT label ID for pro projects
         console.log('🏷️ Getting Work project label...');
         const workLabel = await linearApi.ensureWorkProjectLabel();
         console.log('🏷️ Retrieved Work project label:', workLabel);
-        
+
         if (workLabel?.id) {
           labelIds = [workLabel.id];
           console.log('✅ Will create project with Work PROJECT label ID:', workLabel.id);
@@ -168,7 +177,15 @@ function ProjectsPage() {
           console.log('❌ Could not get Work PROJECT label ID');
         }
       } else {
-        console.log('❌ Not a work project, type is:', projectData.type);
+        // Find the Targz team (case insensitive)
+        const targzTeam = allTeams.find(t => t.name?.toLowerCase() === 'targz');
+        if (!targzTeam) {
+          alert('Targz team not found. Please create a "Targz" team in Linear first.');
+          setShowProjectForm(false);
+          return;
+        }
+        teamId = targzTeam.id;
+        console.log('✅ Creating TARGZ project with name:', projectName, 'in team:', targzTeam.name);
       }
 
       const createData = {
@@ -177,13 +194,14 @@ function ProjectsPage() {
         description: projectData.description || '',
         ...(labelIds.length > 0 && { labelIds })
       };
-      
+
       console.log('Creating project with data:', createData);
       console.log('🏷️ Project label IDs being applied:', labelIds);
-      
+      console.log('🏷️ Team ID being used:', teamId);
+
       const result = await linearApi.createProject(createData);
       console.log('✅ Project creation result:', result);
-      
+
       setShowProjectForm(false);
       await loadProjects(); // Refresh to show new project
     } catch (error) {

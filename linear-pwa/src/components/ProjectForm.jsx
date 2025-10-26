@@ -7,7 +7,7 @@ function ProjectForm({ onSubmit, onCancel }) {
     name: '',
     description: '',
     status: 'planned',
-    type: 'personal' // 'work' or 'personal'
+    type: 'targz' // 'targz' or 'pro'
   });
 
   const handleSubmit = (e) => {
@@ -72,19 +72,19 @@ function ProjectForm({ onSubmit, onCancel }) {
             <div className="type-selector">
               <button
                 type="button"
-                className={`type-button ${formData.type === 'personal' ? 'active' : ''}`}
-                onClick={() => setFormData(prev => ({ ...prev, type: 'personal' }))}
+                className={`type-button ${formData.type === 'targz' ? 'active' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, type: 'targz' }))}
               >
                 <Home size={16} />
-                Personal
+                Targz
               </button>
               <button
                 type="button"
-                className={`type-button ${formData.type === 'work' ? 'active' : ''}`}
-                onClick={() => setFormData(prev => ({ ...prev, type: 'work' }))}
+                className={`type-button ${formData.type === 'pro' ? 'active' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, type: 'pro' }))}
               >
                 <Briefcase size={16} />
-                Work
+                Pro
               </button>
             </div>
           </div>
