@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, Bell, BellOff, Briefcase, Home, SortAsc } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -27,9 +27,9 @@ function HomePage() {
   const [selectedFilter, setSelectedFilter] = useState(() => {
     try { return localStorage.getItem('home.selectedFilter') || 'day'; } catch { return 'day'; }
   }); // 'all', 'day', 'week', 'month'
-  const [workFilter, setWorkFilter] = useState(() => {
-    try { return localStorage.getItem('home.workFilter') || 'all'; } catch { return 'all'; }
-  }); // 'all', 'work', 'personal'
+  const [teamFilter, setTeamFilter] = useState(() => {
+    try { return localStorage.getItem('home.teamFilter') || 'all'; } catch { return 'all'; }
+  }); // 'all', 'targz', 'pro'
   const [sortMode, setSortMode] = useState(() => {
     try { return localStorage.getItem('home.sortMode') || 'project'; } catch { return 'project'; }
   }); // 'project' | 'due'
@@ -59,28 +59,33 @@ function HomePage() {
 
   // Function to apply filters to the raw project data
   const applyFilters = useCallback((projectsList) => {
-    // First, filter projects based on work/personal filter
+    // First, filter projects based on team filter
     let filteredProjects = projectsList;
-    
-    if (workFilter !== 'all') {
+
+    if (teamFilter !== 'all') {
       filteredProjects = projectsList.filter(project => {
-        // Check for 🏢 emoji in name, [WORK] tag in description, OR Work label (for backward compatibility)
-        const hasWorkName = project.name?.includes('🏢');
-        const hasWorkTag = project.description?.includes('[WORK]');
-        const hasWorkLabel = project.labels?.nodes?.some(label => label.name === 'Work');
-        const isWorkProject = hasWorkName || hasWorkTag || hasWorkLabel;
-        
-        console.log(`Project: ${project.name}, HasWorkName: ${hasWorkName}, HasWorkTag: ${hasWorkTag}, HasWorkLabel: ${hasWorkLabel}, IsWorkProject: ${isWorkProject}`);
-        
-        if (workFilter === 'work') {
-          // Only show work projects
-          return isWorkProject;
-        } else if (workFilter === 'personal') {
-          // Only show personal projects (not work)
-          return !isWorkProject;
+        // Check which team this project belongs to
+        const teamName = project.teams?.nodes?.[0]?.name;
+        const allTeams = project.teams?.nodes?.map(t => t.name).join(', ') || 'No teams';
+
+        console.log(`🔍 Project: ${project.name}`);
+        console.log(`   Teams: ${allTeams}`);
+        console.log(`   Filter: ${teamFilter}`);
+
+        if (teamFilter === 'targz') {
+          // Only show Targz team projects (case insensitive)
+          const match = teamName?.toLowerCase() === 'targz';
+          console.log(`   Targz match: ${match}`);
+          return match;
+        } else if (teamFilter === 'pro') {
+          // Only show Pro team projects (case insensitive)
+          const match = teamName?.toLowerCase() === 'pro' || teamName?.toLowerCase() === 'professional';
+          console.log(`   Pro match: ${match}`);
+          return match;
         }
         return true;
       });
+      console.log(`📊 Filtered ${filteredProjects.length} projects out of ${projectsList.length}`);
     }
     
     // Then apply time filters to tasks within remaining projects
@@ -123,7 +128,7 @@ function HomePage() {
         tasks: relevantTasks
       };
     }).filter(project => project.tasks.length > 0);
-  }, [selectedFilter, workFilter]);
+  }, [selectedFilter, teamFilter]);
 
   // Set random quote on component mount
   useEffect(() => {
@@ -141,38 +146,35 @@ function HomePage() {
     try { localStorage.setItem('home.selectedFilter', selectedFilter); } catch {}
   }, [selectedFilter]);
   useEffect(() => {
-    try { localStorage.setItem('home.workFilter', workFilter); } catch {}
-  }, [workFilter]);
+    try { localStorage.setItem('home.teamFilter', teamFilter); } catch {}
+  }, [teamFilter]);
   useEffect(() => {
     try { localStorage.setItem('home.sortMode', sortMode); } catch {}
   }, [sortMode]);
 
-  // Apply filters when selectedFilter or workFilter changes
+  // Apply filters when selectedFilter or teamFilter changes
   useEffect(() => {
     if (allProjects.length > 0) {
       const filteredProjects = applyFilters(allProjects);
       setProjects(filteredProjects);
     }
-  }, [selectedFilter, workFilter, allProjects, applyFilters]);
+  }, [selectedFilter, teamFilter, allProjects, applyFilters]);
 
-  // Build due-date sorted flat list (active tasks with a due date), filtered by work/personal
+  // Build due-date sorted flat list (active tasks with a due date), filtered by team
   useEffect(() => {
     const all = allProjects.flatMap(p => p.allTasks || []);
     const activeWithDue = all.filter(t => t.dueDate && t.state?.type !== 'completed' && t.state?.type !== 'canceled');
     const filtered = activeWithDue.filter(t => {
       const proj = allProjects.find(p => p.id === t.project?.id);
-      // Reuse project heuristics
-      const hasWorkName = proj?.name?.includes('🏢');
-      const hasWorkTag = proj?.description?.includes('[WORK]');
-      const hasWorkLabel = proj?.labels?.nodes?.some(label => label.name === 'Work');
-      const isWorkProject = hasWorkName || hasWorkTag || hasWorkLabel;
-      if (workFilter === 'work') return isWorkProject;
-      if (workFilter === 'personal') return !isWorkProject;
+      // Check which team this project belongs to
+      const teamName = proj?.teams?.nodes?.[0]?.name;
+      if (teamFilter === 'targz') return teamName?.toLowerCase() === 'targz';
+      if (teamFilter === 'pro') return teamName?.toLowerCase() === 'pro' || teamName?.toLowerCase() === 'professional';
       return true;
     });
     filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     setDueSortedTasks(filtered);
-  }, [allProjects, workFilter]);
+  }, [allProjects, teamFilter]);
 
   const loadProjectsWithTasks = async () => {
     try {
@@ -478,43 +480,10 @@ function HomePage() {
       // Get teams to find a team ID
       const teamsData = await linearApi.getTeams();
       const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
+
       if (!teamId) {
         console.error('No team found');
         return;
-      }
-
-      // Check if the project is a work project
-      const project = allProjects.find(p => p.id === taskData.projectId);
-      let labelIds = [];
-      
-      console.log('🔍 Creating task for project:', project);
-      
-      const isWorkProject = project?.name?.includes('🏢') ||
-                           project?.description?.includes('[WORK]') || 
-                           project?.labels?.nodes?.some(label => label.name === 'Work');
-      
-      console.log('🔍 Project work indicators:', {
-        hasWorkName: project?.name?.includes('🏢'),
-        hasWorkTag: project?.description?.includes('[WORK]'),
-        hasWorkLabel: project?.labels?.nodes?.some(label => label.name === 'Work'),
-        isWorkProject
-      });
-      
-      if (isWorkProject) {
-        // This is a work project, ensure task gets Work label
-        console.log('🏷️ This is a work project, getting Work label...');
-        const workLabel = await linearApi.ensureWorkLabel();
-        console.log('🏷️ Retrieved Work label:', workLabel);
-        
-        if (workLabel?.id) {
-          labelIds = [workLabel.id];
-          console.log('✅ Will create task with Work label ID:', workLabel.id);
-        } else {
-          console.log('❌ Could not get Work label ID');
-        }
-      } else {
-        console.log('👤 This is a personal project, no Work label needed');
       }
 
       const submitData = {
@@ -522,20 +491,18 @@ function HomePage() {
         description: taskData.description || undefined,
         projectId: taskData.projectId,
         teamId: teamId,
-        dueDate: taskData.dueDate || undefined,
-        ...(labelIds.length > 0 && { labelIds })
+        dueDate: taskData.dueDate || undefined
       };
 
       console.log('🔄 Creating task with submitData:', submitData);
-      console.log('🏷️ Label IDs being applied:', labelIds);
-      
+
       const result = await linearApi.createIssue(submitData);
       console.log('✅ Task creation result:', result);
-      
+
       if (result.issueCreate?.success) {
         // Close the form
         setShowCreateTask(false);
-        
+
         // Reload projects to show the new task
         await loadProjectsWithTasks();
       } else {
@@ -760,31 +727,30 @@ function HomePage() {
             {motivationalQuote}
           </h1>
           <div style={{display: 'flex', gap: '8px'}}>
-            <button 
-              className={`work-filter-toggle ${workFilter === 'work' ? 'active-work' : workFilter === 'personal' ? 'active-personal' : ''}`}
+            <button
+              className={`work-filter-toggle ${teamFilter === 'targz' ? 'active-work' : teamFilter === 'pro' ? 'active-personal' : ''}`}
               onClick={() => {
-                if (workFilter === 'all') setWorkFilter('work');
-                else if (workFilter === 'work') setWorkFilter('personal');
-                else setWorkFilter('all');
+                if (teamFilter === 'all') setTeamFilter('targz');
+                else if (teamFilter === 'targz') setTeamFilter('pro');
+                else setTeamFilter('all');
               }}
-              title={workFilter === 'work' ? 'Showing work tasks' : workFilter === 'personal' ? 'Showing personal tasks' : 'Showing all tasks'}
+              title={teamFilter === 'targz' ? 'Showing Targz tasks' : teamFilter === 'pro' ? 'Showing Pro tasks' : 'Showing all tasks'}
               style={{
-                background: workFilter === 'work' ? '#FF6B6B' : workFilter === 'personal' ? '#4ECDC4' : 'transparent',
+                background: teamFilter === 'targz' ? '#FF6B6B' : teamFilter === 'pro' ? '#4ECDC4' : 'transparent',
                 border: '1px solid',
-                borderColor: workFilter !== 'all' ? 'transparent' : '#e0e0e0',
+                borderColor: teamFilter !== 'all' ? 'transparent' : '#e0e0e0',
                 borderRadius: '8px',
                 padding: '6px 10px',
                 cursor: 'pointer',
-                color: workFilter !== 'all' ? 'white' : '#666',
+                color: teamFilter !== 'all' ? 'white' : '#666',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
                 fontSize: '12px',
-                fontWeight: workFilter !== 'all' ? '600' : '400'
+                fontWeight: teamFilter !== 'all' ? '600' : '400'
               }}
             >
-              {workFilter === 'work' ? <Briefcase size={14} /> : workFilter === 'personal' ? <Home size={14} /> : null}
-              {workFilter === 'work' ? 'Work' : workFilter === 'personal' ? 'Personal' : 'All'}
+              {teamFilter === 'targz' ? 'Targz' : teamFilter === 'pro' ? 'Pro' : 'All'}
             </button>
             {/* Notification button removed per request */}
             <button

@@ -264,6 +264,12 @@ class LinearAPI {
                 color
               }
             }
+            teams {
+              nodes {
+                id
+                name
+              }
+            }
           }
         }
         issues(first: 200) {
