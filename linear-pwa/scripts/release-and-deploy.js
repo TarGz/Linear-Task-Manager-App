@@ -67,6 +67,9 @@ function updatePackageVersion(newVersion) {
   // Update root package-lock.json (metadata only, keeps version in sync)
   const rootPackageLock = JSON.parse(fs.readFileSync('../package-lock.json', 'utf8'));
   rootPackageLock.version = newVersion;
+  if (rootPackageLock.packages && rootPackageLock.packages[""]) {
+    rootPackageLock.packages[""].version = newVersion;
+  }
   fs.writeFileSync('../package-lock.json', JSON.stringify(rootPackageLock, null, 2) + '\n');
 }
 
