@@ -22,7 +22,6 @@ function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [collapsedProjects, setCollapsedProjects] = useState(new Set());
-  const [motivationalQuote, setMotivationalQuote] = useState('');
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -43,25 +42,6 @@ function HomePage() {
   
   // Notifications hook
   const { requestPermission, checkTasksDue, hasPermission } = useNotifications();
-
-  // Short motivational quotes that fit in the title space
-  const quotes = [
-    "You got this!",
-    "Just one swipe",
-    "Small wins count",
-    "Progress matters",
-    "Keep going",
-    "You can do it",
-    "Make it happen",
-    "Every step counts",
-    "Stay focused",
-    "Almost there",
-    "Push through",
-    "One task at a time",
-    "You're doing great",
-    "Keep momentum",
-    "Trust the process"
-  ];
 
   // Function to apply filters to the raw project data
   const applyFilters = useCallback((projectsList) => {
@@ -136,12 +116,6 @@ function HomePage() {
     });
     // Show all projects, including those with no tasks
   }, [selectedFilter, teamFilter]);
-
-  // Set random quote on component mount
-  useEffect(() => {
-    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-    setMotivationalQuote(randomQuote);
-  }, []);
 
   // Load data on mount
   useEffect(() => {
@@ -869,9 +843,8 @@ function HomePage() {
     return (
       <div className="home-page-compact">
         <div className="page-header-compact">
-          <h1 className="page-title-compact">
-            {motivationalQuote || "Loading..."}
-          </h1>
+          <div className="header-row-compact">
+          </div>
         </div>
         <div className="page-content-compact">
           <div className="loading-state">
@@ -886,9 +859,6 @@ function HomePage() {
     <div className="home-page-compact">
       <div className="page-header-compact">
         <div className="header-row-compact">
-          <h1 className="page-title-compact">
-            {motivationalQuote}
-          </h1>
           <div style={{display: 'flex', gap: '8px'}}>
             <button
               className={`work-filter-toggle ${teamFilter === 'targz' ? 'active-targz' : teamFilter === 'pro' ? 'active-pro' : ''}`}
