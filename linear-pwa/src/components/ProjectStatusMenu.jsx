@@ -1,8 +1,10 @@
-import { Check, Clock, Play, X, Trash2, ExternalLink } from 'lucide-react';
+import { Check, Clock, Play, X, Trash2, ExternalLink, Edit } from 'lucide-react';
 import { STATUS_COLORS, STATUS_LABELS } from '../config/constants';
+import { useNavigate } from 'react-router-dom';
 import './ProjectStatusMenu.css';
 
 function ProjectStatusMenu({ project, onStatusChange, onDelete, onClose }) {
+  const navigate = useNavigate();
   const statuses = [
     { value: 'planned', label: STATUS_LABELS.planned, icon: Clock, color: STATUS_COLORS.planned },
     { value: 'started', label: STATUS_LABELS.started, icon: Play, color: STATUS_COLORS.started },
@@ -23,6 +25,11 @@ function ProjectStatusMenu({ project, onStatusChange, onDelete, onClose }) {
 
   const handleOpenInLinear = () => {
     window.open(`https://linear.app/project/${project.id}`, '_blank');
+  };
+
+  const handleEditProject = () => {
+    navigate(`/project/${project.id}`);
+    onClose();
   };
 
   return (
@@ -60,6 +67,16 @@ function ProjectStatusMenu({ project, onStatusChange, onDelete, onClose }) {
               </button>
             );
           })}
+
+          <button
+            className="project-status-option"
+            onClick={handleEditProject}
+          >
+            <div className="project-status-option-icon">
+              <Edit size={16} />
+            </div>
+            <span className="project-status-option-label">Edit Project</span>
+          </button>
 
           <button
             className="project-status-option"

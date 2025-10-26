@@ -133,7 +133,8 @@ function HomePage() {
         ...project,
         tasks: relevantTasks
       };
-    }).filter(project => project.tasks.length > 0);
+    });
+    // Show all projects, including those with no tasks
   }, [selectedFilter, teamFilter]);
 
   // Set random quote on component mount
