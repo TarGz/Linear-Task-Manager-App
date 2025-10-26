@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Trash2, ExternalLink, MoreVertical, CheckCircle, AlertTriangle, HardDrive, RefreshCw } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import PageHeader from '../components/common/PageHeader';
 import StatusMenu from '../components/StatusMenu';
 import CodeMirrorMarkdownEditor from '../components/common/CodeMirrorMarkdownEditor';
 import MarkdownPreview from '../components/common/MarkdownPreview';
@@ -9,7 +10,7 @@ import linearApi from '../services/linearApi';
 import AppOverlay from '../components/common/AppOverlay';
 import './TaskDetailPage.css';
 
-function TaskDetailPage() {
+function TaskDetailPage({ onOpenBurgerMenu }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [task, setTask] = useState(null);
@@ -439,16 +440,15 @@ function TaskDetailPage() {
   if (isLoading) {
     return (
       <div className="task-detail-page">
-        <div className="page-header">
-          <div className="container">
-            <div className="header-content">
-              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="page-title">Loading...</h1>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Loading..."
+          onOpenBurgerMenu={onOpenBurgerMenu}
+          backButton={
+            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+          }
+        />
         <div className="page-content">
           <div className="container">
             <div className="loading-state">
@@ -464,16 +464,15 @@ function TaskDetailPage() {
   if (error) {
     return (
       <div className="task-detail-page">
-        <div className="page-header">
-          <div className="container">
-            <div className="header-content">
-              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="page-title">Error</h1>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Error"
+          onOpenBurgerMenu={onOpenBurgerMenu}
+          backButton={
+            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+          }
+        />
         <div className="page-content">
           <div className="container">
             <div className="error-message">
@@ -487,36 +486,24 @@ function TaskDetailPage() {
 
   return (
     <div className={`task-detail-page ${hasChanges ? 'has-changes' : ''}`}>
-      <div className="page-header">
-        <div className="container">
-          <div className="task-header-row">
-            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-              <ArrowLeft size={20} />
-            </button>
-            <div className="task-name-header">
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="edit-task-input-header"
-                placeholder="Task title..."
-              />
-            </div>
-            <button
-              className="btn btn-icon btn-secondary more-btn"
-              onClick={() => setShowTaskActions(!showTaskActions)}
-              title="More actions"
-            >
-              <MoreVertical size={20} />
-            </button>
-          </div>
-          
-          <div className="task-info-row">
-            <div className="task-project-name">
+      <PageHeader
+        title={
+          <input
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            className="edit-task-input-header"
+            placeholder="Task title..."
+            style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.5rem', fontWeight: 600, padding: 0 }}
+          />
+        }
+        subtitle={
+          <div className="task-info-row" style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="task-project-name" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
               {task?.project?.name || 'Personal'}
             </div>
-            <span className="separator">-</span>
-            <button 
+            <span className="separator" style={{ color: 'var(--text-secondary)' }}>-</span>
+            <button
               className={`status-badge status-${getStatusClass(task?.state?.type)} clickable`}
               onClick={() => handleTaskClick(task)}
               title="Click to change status"
@@ -524,8 +511,23 @@ function TaskDetailPage() {
               {getStatusDisplay(task?.state?.type)}
             </button>
           </div>
-        </div>
-      </div>
+        }
+        onOpenBurgerMenu={onOpenBurgerMenu}
+        backButton={
+          <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+            <ArrowLeft size={20} />
+          </button>
+        }
+        actions={
+          <button
+            className="btn btn-icon btn-secondary more-btn"
+            onClick={() => setShowTaskActions(!showTaskActions)}
+            title="More actions"
+          >
+            <MoreVertical size={20} />
+          </button>
+        }
+      />
       
       {showTaskActions && (
         <div className="task-actions-overlay" onClick={() => setShowTaskActions(false)}>

@@ -3,8 +3,10 @@
 }
 
 .project-detail-page .page-header {
-  /* Add left padding to make room for burger menu */
-  padding-left: 56px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .project-header-row {

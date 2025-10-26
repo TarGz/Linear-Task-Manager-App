@@ -1,38 +1,46 @@
+import BurgerMenuButton from '../BurgerMenuButton';
 import './PageHeader.css';
 
-function PageHeader({ 
-  title, 
-  icon: Icon, 
-  actions, 
+/**
+ * Unified PageHeader component
+ * Layout: [Burger Menu (left)] [Back Button (if present)] [Title (left-aligned)] [Actions (right-aligned)]
+ * - No icons in title (removed for consistency)
+ * - Burger menu always on the left
+ * - Title is left-aligned after burger/back button
+ * - Actions always on the right
+ */
+function PageHeader({
+  title,
+  actions,
   subtitle,
-  backButton 
+  backButton,
+  onOpenBurgerMenu
 }) {
   return (
     <div className="page-header">
-      <div className="container">
-        <div className="header-content">
-          {backButton && (
-            <div className="header-back">
-              {backButton}
-            </div>
-          )}
-          
-          <div className="header-main">
-            <h1 className="page-title">
-              {Icon && <Icon size={24} className="page-icon" />}
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="page-subtitle">{subtitle}</p>
-            )}
+      <div className="header-content">
+        {onOpenBurgerMenu && <BurgerMenuButton onClick={onOpenBurgerMenu} />}
+
+        {backButton && (
+          <div className="header-back">
+            {backButton}
           </div>
-          
-          {actions && (
-            <div className="header-actions">
-              {actions}
-            </div>
+        )}
+
+        <div className="header-main">
+          <h1 className="page-title">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="page-subtitle">{subtitle}</p>
           )}
         </div>
+
+        {actions && (
+          <div className="header-actions">
+            {actions}
+          </div>
+        )}
       </div>
     </div>
   );

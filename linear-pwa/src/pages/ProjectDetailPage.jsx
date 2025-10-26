@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Edit, Trash2, MoreVertical, ExternalLink, Palette, Package, Briefcase, Target, Lightbulb, Zap, Rocket, Star, Heart, Coffee, Camera, Music, Book, Code, Globe, Shield, Wrench, Monitor, Smartphone, Megaphone, CheckSquare } from 'lucide-react';
+import { ArrowLeft, Plus, MoreVertical, ExternalLink, Trash2, Package, Briefcase, Target, Lightbulb, Zap, Rocket, Star, Heart, Coffee, Camera, Music, Book, Code, Palette, Globe, Shield, Wrench, Monitor, Smartphone, Megaphone, CheckSquare } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import PageHeader from '../components/common/PageHeader';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
 import StatusMenu from '../components/StatusMenu';
-// Icon editing removed; using standard icons only
 import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import AppOverlay from '../components/common/AppOverlay';
 import linearApi from '../services/linearApi';
 import './ProjectDetailPage.css';
 import { linearIconNameToEmoji } from '../utils/iconUtils';
 
-function ProjectDetailPage() {
+function ProjectDetailPage({ onOpenBurgerMenu }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
@@ -341,16 +341,15 @@ function ProjectDetailPage() {
   if (isLoading) {
     return (
       <div className="project-detail-page">
-        <div className="page-header">
-          <div className="container">
-            <div className="header-content">
-              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="page-title">Loading...</h1>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Loading..."
+          onOpenBurgerMenu={onOpenBurgerMenu}
+          backButton={
+            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+          }
+        />
         <div className="page-content">
           <div className="container">
             <div className="loading-state">
@@ -366,16 +365,15 @@ function ProjectDetailPage() {
   if (error) {
     return (
       <div className="project-detail-page">
-        <div className="page-header">
-          <div className="container">
-            <div className="header-content">
-              <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-                <ArrowLeft size={20} />
-              </button>
-              <h1 className="page-title">Error</h1>
-            </div>
-          </div>
-        </div>
+        <PageHeader
+          title="Error"
+          onOpenBurgerMenu={onOpenBurgerMenu}
+          backButton={
+            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+              <ArrowLeft size={20} />
+            </button>
+          }
+        />
         <div className="page-content">
           <div className="container">
             <div className="error-message">
@@ -389,59 +387,61 @@ function ProjectDetailPage() {
 
   return (
     <div className="project-detail-page">
-      <div className="page-header">
-        <div className="container">
-          <div className="project-header-row">
-            <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
-              <ArrowLeft size={20} />
-            </button>
-            <div className="project-name">
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="edit-project-input-header"
-                  autoFocus
-                  onBlur={() => {
-                    if (editName !== project?.name) {
-                      handleEditProject();
-                    } else {
-                      setIsEditing(false);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleEditProject();
-                    } else if (e.key === 'Escape') {
-                      setEditName(project?.name);
-                      setIsEditing(false);
-                    }
-                  }}
-                />
-              ) : (
-                <span onClick={() => setIsEditing(true)} className="project-name-text">
-                  {getProjectIcon()} {project?.name}
-                </span>
-              )}
-            </div>
-            <button
-              className="btn btn-icon btn-secondary more-btn"
-              onClick={() => setShowProjectActions(!showProjectActions)}
-              title="More actions"
-            >
-              <MoreVertical size={20} />
-            </button>
-          </div>
-          
-          
-          <div className="project-status-section">
+      <PageHeader
+        title={
+          isEditing ? (
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="edit-project-input-header"
+              autoFocus
+              onBlur={() => {
+                if (editName !== project?.name) {
+                  handleEditProject();
+                } else {
+                  setIsEditing(false);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleEditProject();
+                } else if (e.key === 'Escape') {
+                  setEditName(project?.name);
+                  setIsEditing(false);
+                }
+              }}
+              style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.5rem', fontWeight: 600, padding: 0 }}
+            />
+          ) : (
+            <span onClick={() => setIsEditing(true)} style={{ cursor: 'pointer' }}>
+              {project?.name}
+            </span>
+          )
+        }
+        subtitle={
+          <div style={{ marginTop: '8px' }}>
             <span className={`status-badge status-${getStatusClass(project?.state)}`}>
               {getStatusDisplay(project?.state)}
             </span>
           </div>
-        </div>
-      </div>
+        }
+        onOpenBurgerMenu={onOpenBurgerMenu}
+        backButton={
+          <button className="btn btn-icon btn-secondary" onClick={() => navigate(-1)}>
+            <ArrowLeft size={20} />
+          </button>
+        }
+        actions={
+          <button
+            className="btn btn-icon btn-secondary more-btn"
+            onClick={() => setShowProjectActions(!showProjectActions)}
+            title="More actions"
+          >
+            <MoreVertical size={20} />
+          </button>
+        }
+      />
       
       <div className="page-content">
         <div className="container">

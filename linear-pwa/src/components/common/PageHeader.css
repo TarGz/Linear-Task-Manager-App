@@ -1,17 +1,17 @@
+/* Unified compact header to match HomePage */
 .page-header {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
   z-index: 10;
-  /* Add left padding to make room for burger menu */
-  padding-left: 56px;
+  padding: 12px 16px;
 }
 
 .header-content {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg) 0;
+  gap: 12px;
+  padding: 0;
 }
 
 .header-back {
@@ -21,16 +21,22 @@
 .header-main {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .page-title {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.0rem;
   font-weight: 600;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .page-icon {
@@ -39,24 +45,24 @@
 }
 
 .page-subtitle {
-  margin: var(--spacing-xs) 0 0 0;
-  font-size: 0.875rem;
+  margin: 4px 0 0 0;
+  font-size: 14px;
   color: var(--text-secondary);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
   flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 1.25rem;
+  .page-header {
+    padding: 10px 12px;
   }
-  
-  .header-content {
-    padding: var(--spacing-md) 0;
+
+  .page-title {
+    font-size: 16px;
   }
 }

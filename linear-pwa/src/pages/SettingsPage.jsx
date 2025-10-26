@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw, Archive } from 'lucide-react';
+import PageHeader from '../components/common/PageHeader';
 import linearApi from '../services/linearApi';
 import pwaService from '../services/pwaService';
 import { APP_VERSION, APP_FEATURES, BUILD_DATE } from '../config/constants';
 import './SettingsPage.css';
 
-function SettingsPage({ onApiKeyChange }) {
+function SettingsPage({ onApiKeyChange, onOpenBurgerMenu }) {
   const [apiKey, setApiKey] = useState('');
   const [showApiKey, setShowApiKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -269,11 +270,10 @@ function SettingsPage({ onApiKeyChange }) {
 
   return (
     <div className="settings-page">
-      <div className="page-header">
-        <div className="container">
-          <h1 className="page-title">⚙️ Settings</h1>
-        </div>
-      </div>
+      <PageHeader
+        title="Settings"
+        onOpenBurgerMenu={onOpenBurgerMenu}
+      />
       
       <div className="page-content">
         <div className="container">

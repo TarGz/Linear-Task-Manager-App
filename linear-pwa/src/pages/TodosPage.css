@@ -3,14 +3,17 @@
 }
 
 .todos-page .page-header {
-  /* Add left padding to make room for burger menu */
-  padding-left: 56px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .header-actions {

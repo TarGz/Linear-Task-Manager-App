@@ -43,17 +43,6 @@ function App() {
       <div className="app">
         <UpdatePrompt />
 
-        {/* Burger Menu Button - only show when API key is set */}
-        {isApiKeySet && (
-          <button
-            className="burger-menu-button"
-            onClick={() => setIsBurgerMenuOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={24} />
-          </button>
-        )}
-
         {/* Burger Menu */}
         {isApiKeySet && (
           <BurgerMenu
@@ -68,7 +57,7 @@ function App() {
               path="/"
               element={
                 isApiKeySet ?
-                <HomePage /> :
+                <HomePage onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} /> :
                 <Navigate to="/settings" replace />
               }
             />
@@ -76,23 +65,23 @@ function App() {
               path="/projects"
               element={
                 isApiKeySet ?
-                <ProjectsPage /> :
+                <ProjectsPage onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} /> :
                 <Navigate to="/settings" replace />
               }
             />
-            <Route path="/project/:id" element={<ProjectDetailPage />} />
-            <Route path="/task/:id" element={<TaskDetailPage />} />
+            <Route path="/project/:id" element={<ProjectDetailPage onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} />} />
+            <Route path="/task/:id" element={<TaskDetailPage onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} />} />
             <Route
               path="/todos"
               element={
                 isApiKeySet ?
-                <TodosPage /> :
+                <TodosPage onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} /> :
                 <Navigate to="/settings" replace />
               }
             />
             <Route
               path="/settings"
-              element={<SettingsPage onApiKeyChange={setIsApiKeySet} />}
+              element={<SettingsPage onApiKeyChange={setIsApiKeySet} onOpenBurgerMenu={() => setIsBurgerMenuOpen(true)} />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

@@ -3,14 +3,28 @@
 }
 
 .projects-page .page-header {
-  /* Add left padding to make room for burger menu */
-  padding-left: 56px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.projects-page .page-header .container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  flex: 1;
 }
 
 .page-subtitle {
@@ -24,14 +38,22 @@
   min-width: 40px;
 }
 
-.create-project-header-btn {
-  min-width: 44px;
-  height: 44px;
-  border-radius: 50%;
+.filter-button-compact {
+  position: relative;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-button-compact:hover {
+  background: var(--background);
+  color: var(--text-primary);
 }
 
 .spinning {
@@ -57,45 +79,9 @@
   .projects-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .header-content {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    text-align: center;
-  }
-}
-
-.create-project-fab {
-  position: fixed;
-  bottom: 90px;
-  right: var(--spacing-md);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #f44336;
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  transition: all 0.2s ease;
-}
-
-.create-project-fab:hover {
-  background: #d32f2f;
-  transform: scale(1.05);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.create-project-fab:active {
-  transform: scale(0.95);
-}
-
-@media (min-width: 769px) {
-  .create-project-fab {
-    bottom: var(--spacing-lg);
+    flex-direction: row;
+    gap: 12px;
   }
 }

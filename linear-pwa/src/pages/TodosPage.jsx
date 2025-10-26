@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Plus, CheckSquare, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/common/PageHeader';
 import TaskCard from '../components/TaskCard';
 import StatusMenu from '../components/StatusMenu';
 import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import './TodosPage.css';
 
-function TodosPage() {
+function TodosPage({ onOpenBurgerMenu }) {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -200,11 +201,10 @@ function TodosPage() {
   if (isLoading) {
     return (
       <div className="todos-page">
-        <div className="page-header">
-          <div className="container">
-            <h1 className="page-title">All Tasks</h1>
-          </div>
-        </div>
+        <PageHeader
+          title="All Tasks"
+          onOpenBurgerMenu={onOpenBurgerMenu}
+        />
         <div className="page-content">
           <div className="container">
             <div className="loading-state">
@@ -219,16 +219,10 @@ function TodosPage() {
 
   return (
     <div className="todos-page">
-      <div className="page-header">
-        <div className="container">
-          <div className="header-content">
-            <h1 className="page-title">
-              <CheckSquare size={24} className="page-icon" />
-              All Tasks
-            </h1>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="All Tasks"
+        onOpenBurgerMenu={onOpenBurgerMenu}
+      />
 
       
       <div className="page-content">

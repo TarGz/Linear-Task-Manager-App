@@ -55,3 +55,4 @@ ALWAYS test CSS changes in production build mode before deploying:
 - **Primary method**: `npm run release-deploy` for releases
 - **Build only**: `npm run build` for local testing
 - **Preview**: `npm run preview` to test production build locally
+- never commit before the user have tested the fix or edit

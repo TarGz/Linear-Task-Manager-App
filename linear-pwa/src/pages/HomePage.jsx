@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc, FolderPlus, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BurgerMenuButton from '../components/BurgerMenuButton';
 import TaskForm from '../components/TaskForm';
 import ProjectForm from '../components/ProjectForm';
 import SwipeableCard from '../components/common/SwipeableCard';
@@ -15,7 +16,7 @@ import { normalizeStatus } from '../utils/statusUtils';
 import { useNotifications } from '../hooks/useNotifications';
 import './HomePage.css';
 
-function HomePage() {
+function HomePage({ onOpenBurgerMenu }) {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [allProjects, setAllProjects] = useState([]); // Store unfiltered data
@@ -858,6 +859,7 @@ function HomePage() {
   return (
     <div className="home-page-compact">
       <div className="page-header-compact">
+        <BurgerMenuButton onClick={onOpenBurgerMenu} />
         <div className="header-row-compact">
           <div style={{display: 'flex', gap: '8px'}}>
             <button

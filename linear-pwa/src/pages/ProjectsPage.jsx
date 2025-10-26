@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Home } from 'lucide-react';
+import { FolderPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '../components/common/PageHeader';
 import ProjectCard from '../components/ProjectCard';
 import ProjectForm from '../components/ProjectForm';
 import ProjectStatusMenu from '../components/ProjectStatusMenu';
@@ -8,7 +9,7 @@ import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import './ProjectsPage.css';
 
-function ProjectsPage() {
+function ProjectsPage({ onOpenBurgerMenu }) {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -213,11 +214,10 @@ function ProjectsPage() {
   if (isLoading) {
     return (
       <div className="projects-page">
-        <div className="page-header">
-          <div className="container">
-            <h1 className="page-title">Projects</h1>
-          </div>
-        </div>
+        <PageHeader
+          title="Projects"
+          onOpenBurgerMenu={onOpenBurgerMenu}
+        />
         <div className="page-content">
           <div className="container">
             <div className="loading-state">
@@ -234,23 +234,20 @@ function ProjectsPage() {
 
   return (
     <div className="projects-page">
-      <div className="page-header">
-        <div className="container">
-          <div className="header-content">
-            <h1 className="page-title">
-              <Home size={24} className="page-icon" />
-              Projects
-            </h1>
-            <button 
-              className="btn btn-primary create-project-header-btn"
-              onClick={() => setShowProjectForm(true)}
-              title="Create New Project"
-            >
-              <Plus size={20} />
-            </button>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Projects"
+        onOpenBurgerMenu={onOpenBurgerMenu}
+        actions={
+          <button
+            className="filter-button-compact"
+            onClick={() => setShowProjectForm(true)}
+            title="Create new project"
+            aria-label="Create new project"
+          >
+            <FolderPlus size={16} />
+          </button>
+        }
+      />
       
       <div className="page-content">
         <div className="container">
@@ -282,14 +279,6 @@ function ProjectsPage() {
           )}
         </div>
       </div>
-
-      <button 
-        className="fab create-project-fab"
-        onClick={() => setShowProjectForm(true)}
-        title="Create New Project"
-      >
-        <Plus size={24} />
-      </button>
 
       {showProjectForm && (
         <ProjectForm
