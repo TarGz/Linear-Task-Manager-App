@@ -2,6 +2,11 @@
   min-height: 100vh;
 }
 
+.settings-page .page-header {
+  /* Add left padding to make room for burger menu */
+  padding-left: 56px;
+}
+
 .settings-section {
   margin-bottom: var(--spacing-xl);
 }

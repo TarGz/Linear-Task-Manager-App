@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import BottomNav from './components/BottomNav';
+import { Menu } from 'lucide-react';
+import BurgerMenu from './components/BurgerMenu';
 import HomePage from './pages/HomePage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
@@ -14,6 +15,7 @@ import './App.css';
 function App() {
   const [isApiKeySet, setIsApiKeySet] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBurgerMenuOpen, setIsBurgerMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkApiKey = () => {
@@ -40,42 +42,61 @@ function App() {
     <Router basename={basename}>
       <div className="app">
         <UpdatePrompt />
+
+        {/* Burger Menu Button - only show when API key is set */}
+        {isApiKeySet && (
+          <button
+            className="burger-menu-button"
+            onClick={() => setIsBurgerMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={24} />
+          </button>
+        )}
+
+        {/* Burger Menu */}
+        {isApiKeySet && (
+          <BurgerMenu
+            isOpen={isBurgerMenuOpen}
+            onClose={() => setIsBurgerMenuOpen(false)}
+          />
+        )}
+
         <div className="app-content">
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
-                isApiKeySet ? 
-                <HomePage /> : 
+                isApiKeySet ?
+                <HomePage /> :
                 <Navigate to="/settings" replace />
-              } 
+              }
             />
-            <Route 
-              path="/projects" 
+            <Route
+              path="/projects"
               element={
-                isApiKeySet ? 
-                <ProjectsPage /> : 
+                isApiKeySet ?
+                <ProjectsPage /> :
                 <Navigate to="/settings" replace />
-              } 
+              }
             />
             <Route path="/project/:id" element={<ProjectDetailPage />} />
             <Route path="/task/:id" element={<TaskDetailPage />} />
-            <Route 
-              path="/todos" 
+            <Route
+              path="/todos"
               element={
-                isApiKeySet ? 
-                <TodosPage /> : 
+                isApiKeySet ?
+                <TodosPage /> :
                 <Navigate to="/settings" replace />
-              } 
+              }
             />
-            <Route 
-              path="/settings" 
-              element={<SettingsPage onApiKeyChange={setIsApiKeySet} />} 
+            <Route
+              path="/settings"
+              element={<SettingsPage onApiKeyChange={setIsApiKeySet} />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-        {isApiKeySet && <BottomNav />}
       </div>
     </Router>
   );

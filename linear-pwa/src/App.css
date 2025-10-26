@@ -6,8 +6,8 @@
 
 .app-content {
   flex: 1;
-  /* Match bottom nav: 100px height + 12px padding + safe area */
-  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  /* No bottom padding needed - bottom nav removed */
+  padding-bottom: var(--spacing-md);
 }
 
 .app-loading {
@@ -117,13 +117,48 @@
   text-align: center;
 }
 
+.burger-menu-button {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  z-index: 9999;
+  background: var(--surface);
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.burger-menu-button:hover {
+  background: var(--hover-bg);
+  color: var(--primary-color);
+}
+
+.burger-menu-button:active {
+  transform: scale(0.95);
+}
+
 @media (max-width: 768px) {
   .app-content {
-    /* Match bottom nav: 100px height + 12px padding + safe area */
-    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+    /* No bottom padding needed - bottom nav removed */
+    padding-bottom: var(--spacing-md);
   }
-  
+
   .page-content {
     padding: 0 var(--spacing-sm);
+  }
+}
+
+/* PWA Safe Area Support */
+@supports (-webkit-touch-callout: none) {
+  .burger-menu-button {
+    top: calc(12px + env(safe-area-inset-top, 0));
+    left: calc(16px + env(safe-area-inset-left, 0));
   }
 }

@@ -4,6 +4,11 @@
   background: var(--background);
 }
 
+.task-detail-page .page-header {
+  /* Add left padding to make room for burger menu */
+  padding-left: 56px;
+}
+
 .task-header-row {
   display: flex;
   justify-content: space-between;

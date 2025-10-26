@@ -870,7 +870,6 @@ function HomePage() {
       <div className="home-page-compact">
         <div className="page-header-compact">
           <h1 className="page-title-compact">
-            <Clock size={20} />
             {motivationalQuote || "Loading..."}
           </h1>
         </div>
@@ -888,7 +887,6 @@ function HomePage() {
       <div className="page-header-compact">
         <div className="header-row-compact">
           <h1 className="page-title-compact">
-            <Clock size={20} />
             {motivationalQuote}
           </h1>
           <div style={{display: 'flex', gap: '8px'}}>
