@@ -1,6 +1,6 @@
 {
   "name": "linear-task-manager-app",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "A PWA for managing Linear tasks",
   "main": "test-linear-api.js",
   "scripts": {
@@ -12,7 +12,11 @@
     "release-deploy:minor": "npm --prefix linear-pwa run release-deploy:minor",
     "release-deploy:major": "npm --prefix linear-pwa run release-deploy:major"
   },
-  "keywords": ["linear", "pwa", "task-manager"],
+  "keywords": [
+    "linear",
+    "pwa",
+    "task-manager"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

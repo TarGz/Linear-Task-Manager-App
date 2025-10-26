@@ -1,8 +1,8 @@
-import { Check, Clock, Play, X } from 'lucide-react';
+import { Check, Clock, Play, X, Trash2, ExternalLink } from 'lucide-react';
 import { STATUS_COLORS, STATUS_LABELS } from '../config/constants';
 import './ProjectStatusMenu.css';
 
-function ProjectStatusMenu({ project, onStatusChange, onClose }) {
+function ProjectStatusMenu({ project, onStatusChange, onDelete, onClose }) {
   const statuses = [
     { value: 'planned', label: STATUS_LABELS.planned, icon: Clock, color: STATUS_COLORS.planned },
     { value: 'started', label: STATUS_LABELS.started, icon: Play, color: STATUS_COLORS.started },
@@ -15,22 +15,32 @@ function ProjectStatusMenu({ project, onStatusChange, onClose }) {
     onClose();
   };
 
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete(project.id);
+    }
+  };
+
+  const handleOpenInLinear = () => {
+    window.open(`https://linear.app/project/${project.id}`, '_blank');
+  };
+
   return (
     <div className="project-status-menu-overlay" onClick={onClose}>
-      <div 
+      <div
         className="project-status-menu card"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="project-status-menu-header">
-          <h4>Update Project Status</h4>
+          <h4>Project Actions</h4>
           <p className="project-title">{project.name}</p>
         </div>
-        
+
         <div className="project-status-options">
           {statuses.map(status => {
             const Icon = status.icon;
             const isCurrentStatus = project.state === status.value;
-            
+
             return (
               <button
                 key={status.value}
@@ -50,6 +60,28 @@ function ProjectStatusMenu({ project, onStatusChange, onClose }) {
               </button>
             );
           })}
+
+          <button
+            className="project-status-option"
+            onClick={handleOpenInLinear}
+          >
+            <div className="project-status-option-icon">
+              <ExternalLink size={16} />
+            </div>
+            <span className="project-status-option-label">Open in Linear</span>
+          </button>
+
+          {onDelete && (
+            <button
+              className="project-status-option delete-option"
+              onClick={handleDelete}
+            >
+              <div className="project-status-option-icon" style={{ color: '#ff4444' }}>
+                <Trash2 size={16} />
+              </div>
+              <span className="project-status-option-label" style={{ color: '#ff4444' }}>Delete Project</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

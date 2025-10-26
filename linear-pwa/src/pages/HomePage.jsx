@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc, FolderPlus } from 'lucide-react';
+import { Clock, ChevronDown, ChevronRight, Circle, Plus, Check, X, Play, Filter, SortAsc, FolderPlus, MoreVertical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/TaskForm';
 import ProjectForm from '../components/ProjectForm';
 import SwipeableCard from '../components/common/SwipeableCard';
 import StatusMenu from '../components/StatusMenu';
+import ProjectStatusMenu from '../components/ProjectStatusMenu';
+import ConfirmationPanel from '../components/common/ConfirmationPanel';
 import linearApi from '../services/linearApi';
 import { formatDateShort } from '../utils/dateUtils';
 import { renderMarkdownInline } from '../utils/markdownUtils';
@@ -25,6 +27,8 @@ function HomePage() {
   const [showCreateProject, setShowCreateProject] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedTaskForStatus, setSelectedTaskForStatus] = useState(null);
+  const [selectedProjectForStatus, setSelectedProjectForStatus] = useState(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(() => {
     try { return localStorage.getItem('home.selectedFilter') || 'day'; } catch { return 'day'; }
@@ -669,9 +673,9 @@ function HomePage() {
   const handleTaskDelete = async (taskId) => {
     try {
       await linearApi.deleteIssue(taskId);
-      
+
       // Remove the task from view immediately
-      setProjects(prevProjects => 
+      setProjects(prevProjects =>
         prevProjects.map(project => ({
           ...project,
           tasks: project.tasks.filter(task => task.id !== taskId)
@@ -679,6 +683,76 @@ function HomePage() {
       );
     } catch (error) {
       console.error('Failed to delete task:', error);
+    }
+  };
+
+  const handleProjectStatusChange = async (projectId, newStatus) => {
+    try {
+      await linearApi.updateProject(projectId, { state: newStatus });
+
+      // Update project locally
+      setProjects(prevProjects =>
+        prevProjects.map(project =>
+          project.id === projectId
+            ? { ...project, state: newStatus }
+            : project
+        )
+      );
+      setAllProjects(prevProjects =>
+        prevProjects.map(project =>
+          project.id === projectId
+            ? { ...project, state: newStatus }
+            : project
+        )
+      );
+
+      // Update collapsed state based on new status
+      setCollapsedProjects(prev => {
+        const newSet = new Set(prev);
+        const isTodoStatus = ['planned', 'backlog', 'todo', 'planning'].includes(newStatus.toLowerCase());
+
+        if (isTodoStatus) {
+          newSet.add(projectId);
+        } else {
+          newSet.delete(projectId);
+        }
+        return newSet;
+      });
+
+      setSelectedProjectForStatus(null);
+    } catch (error) {
+      console.error('Failed to update project status:', error);
+    }
+  };
+
+  const handleProjectDelete = (projectId) => {
+    const project = allProjects.find(p => p.id === projectId);
+    setDeleteConfirmation({
+      projectId,
+      title: 'Delete Project',
+      message: `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`
+    });
+    setSelectedProjectForStatus(null);
+  };
+
+  const confirmProjectDelete = async () => {
+    if (!deleteConfirmation) return;
+
+    try {
+      const result = await linearApi.deleteProject(deleteConfirmation.projectId);
+
+      if (result.projectDelete?.success) {
+        // Remove project from local state
+        setProjects(prev => prev.filter(p => p.id !== deleteConfirmation.projectId));
+        setAllProjects(prev => prev.filter(p => p.id !== deleteConfirmation.projectId));
+      } else {
+        setError('Failed to delete project. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      setError('Failed to delete project. Please try again.');
+    } finally {
+      setDeleteConfirmation(null);
     }
   };
 
@@ -1009,7 +1083,7 @@ function HomePage() {
               {projects.map(project => (
               <div key={project.id} className="project-group-compact">
                 <div className="project-header-compact">
-                  <div 
+                  <div
                     className="project-header-clickable"
                     onClick={() => toggleProject(project.id)}
                   >
@@ -1021,22 +1095,34 @@ function HomePage() {
                       )}
                       <span className="project-name-compact">{project.name}</span>
                     </div>
-                    <div 
+                    <div
                       className={`project-badge-compact ${collapsedProjects.has(project.id) ? 'visible' : ''}`}
                     >
                       {project.tasks.length}
                     </div>
                   </div>
-                  <button
-                    className="add-task-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCreateTask(project.id);
-                    }}
-                    title="Add task"
-                  >
-                    <Plus size={14} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                    <button
+                      className="add-task-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateTask(project.id);
+                      }}
+                      title="Add task"
+                    >
+                      <Plus size={14} />
+                    </button>
+                    <button
+                      className="add-task-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProjectForStatus(project);
+                      }}
+                      title="Project actions"
+                    >
+                      <MoreVertical size={14} />
+                    </button>
+                  </div>
                 </div>
                 
                 {!collapsedProjects.has(project.id) && (
@@ -1127,6 +1213,28 @@ function HomePage() {
           onClose={() => setSelectedTaskForStatus(null)}
         />
       )}
+
+      {/* Project Status Menu */}
+      {selectedProjectForStatus && (
+        <ProjectStatusMenu
+          project={selectedProjectForStatus}
+          onStatusChange={handleProjectStatusChange}
+          onDelete={handleProjectDelete}
+          onClose={() => setSelectedProjectForStatus(null)}
+        />
+      )}
+
+      {/* Delete Confirmation */}
+      <ConfirmationPanel
+        isVisible={!!deleteConfirmation}
+        title={deleteConfirmation?.title || ''}
+        message={deleteConfirmation?.message || ''}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmProjectDelete}
+        onCancel={() => setDeleteConfirmation(null)}
+        type="danger"
+      />
     </div>
   );
 }
