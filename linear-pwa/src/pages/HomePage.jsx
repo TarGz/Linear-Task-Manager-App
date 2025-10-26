@@ -167,9 +167,14 @@ function HomePage({ onOpenBurgerMenu }) {
       const projectsList = data.projects?.nodes || [];
       const issuesList = data.issues?.nodes || [];
       
-      // Group issues by project
+      // Group issues by project (exclude subtasks - issues with a parent)
       const issuesByProject = {};
       issuesList.forEach(issue => {
+        // Skip subtasks (issues that have a parent)
+        if (issue.parent) {
+          return;
+        }
+
         if (issue.project) {
           if (!issuesByProject[issue.project.id]) {
             issuesByProject[issue.project.id] = [];
