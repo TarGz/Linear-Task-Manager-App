@@ -421,7 +421,7 @@ function HomePage({ onOpenBurgerMenu }) {
 
   const handleTaskComplete = async (e, taskId, swipeDirection = 'right') => {
     if (e && e.stopPropagation) e.stopPropagation();
-    
+
     // Start animation immediately
     updateTaskLocallyAndReorder(taskId, 'completed', swipeDirection);
     // Reflect in due-date list immediately
@@ -430,14 +430,19 @@ function HomePage({ onOpenBurgerMenu }) {
       if (!exists) return prev;
       return prev.filter(t => t.id !== taskId);
     });
-    
+
     // Do API call in background
     try {
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
+      // Find the task to get its team
+      let task = null;
+      for (const project of allProjects) {
+        task = project.allTasks?.find(t => t.id === taskId);
+        if (task) break;
+      }
+      const teamId = task?.team?.id;
+
       if (!teamId) {
-        console.error('No team found');
+        console.error('No team found for task');
         return;
       }
 
@@ -738,7 +743,7 @@ function HomePage({ onOpenBurgerMenu }) {
   };
 
   const handleMarkInProgress = async (taskId, swipeDirection = 'left') => {
-    
+
     // Start animation immediately
     updateTaskLocallyAndReorder(taskId, 'started', swipeDirection);
     // Update due-date list state
@@ -750,14 +755,19 @@ function HomePage({ onOpenBurgerMenu }) {
       updated.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate));
       return updated;
     });
-    
+
     // Do API call in background
     try {
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
+      // Find the task to get its team
+      let task = null;
+      for (const project of allProjects) {
+        task = project.allTasks?.find(t => t.id === taskId);
+        if (task) break;
+      }
+      const teamId = task?.team?.id;
+
       if (!teamId) {
-        console.error('No team found');
+        console.error('No team found for task');
         return;
       }
 
@@ -780,12 +790,16 @@ function HomePage({ onOpenBurgerMenu }) {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      // Get teams to find a team ID
-      const teamsData = await linearApi.getTeams();
-      const teamId = teamsData.teams?.nodes?.[0]?.id;
-      
+      // Find the task to get its team
+      let task = null;
+      for (const project of allProjects) {
+        task = project.allTasks?.find(t => t.id === taskId);
+        if (task) break;
+      }
+      const teamId = task?.team?.id;
+
       if (!teamId) {
-        console.error('No team found');
+        console.error('No team found for task');
         return;
       }
 

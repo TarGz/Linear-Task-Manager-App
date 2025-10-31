@@ -287,6 +287,9 @@ class LinearAPI {
             id
             title
             description
+            team {
+              id
+            }
             state {
               id
               name
