@@ -237,6 +237,10 @@ class LinearAPI {
                 name
                 type
               }
+              team {
+                id
+                name
+              }
               assignee {
                 id
                 name

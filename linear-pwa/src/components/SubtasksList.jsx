@@ -77,30 +77,39 @@ function SubtasksList({ subtasks = [], parentId, onSubtasksChange, teamId, proje
 
   const handleStatusChange = async (subtaskId, newStatus) => {
     try {
-      const workflowStates = await linearApi.getWorkflowStates(teamId);
-      
+      // Find the subtask to get its team ID
+      const subtask = subtasks.find(st => st.id === subtaskId);
+      if (!subtask) {
+        console.error('Subtask not found:', subtaskId);
+        return;
+      }
+
+      // Use the subtask's own team ID, fallback to parent's teamId if not available
+      const subtaskTeamId = subtask.team?.id || teamId;
+      const workflowStates = await linearApi.getWorkflowStates(subtaskTeamId);
+
       let targetState;
       if (newStatus === 'completed') {
-        targetState = workflowStates.team.states.nodes.find(state => 
+        targetState = workflowStates.team.states.nodes.find(state =>
           state.type === 'completed'
         );
       } else if (newStatus === 'started') {
-        targetState = workflowStates.team.states.nodes.find(state => 
+        targetState = workflowStates.team.states.nodes.find(state =>
           state.type === 'started'
         );
       } else if (newStatus === 'planned') {
-        targetState = workflowStates.team.states.nodes.find(state => 
+        targetState = workflowStates.team.states.nodes.find(state =>
           state.type === 'unstarted' || state.type === 'backlog'
         );
       } else if (newStatus === 'canceled') {
-        targetState = workflowStates.team.states.nodes.find(state => 
+        targetState = workflowStates.team.states.nodes.find(state =>
           state.type === 'canceled'
         );
       }
-      
+
       if (targetState) {
         await linearApi.updateIssue(subtaskId, { stateId: targetState.id });
-        
+
         // Trigger parent to reload
         if (onSubtasksChange) {
           onSubtasksChange();
