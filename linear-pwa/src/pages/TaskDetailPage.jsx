@@ -75,13 +75,26 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
           const key = `draft:task:${id}`;
           const raw = localStorage.getItem(key);
           const draft = raw ? JSON.parse(raw) : null;
-          if (draft && (draft.title || draft.description || draft.dueDate)) {
+          
+          // Check if draft is actually different from server
+          const isDraftDifferent = draft && (
+            (draft.title && draft.title !== foundTask.title) ||
+            (draft.description && draft.description !== (foundTask.description || '')) ||
+            (draft.dueDate && draft.dueDate !== (foundTask.dueDate ? foundTask.dueDate.split('T')[0] : ''))
+          );
+
+          if (isDraftDifferent) {
+            console.log('Restore draft because it differs from server');
             setEditTitle(draft.title ?? foundTask.title);
             setEditDescription(draft.description ?? (foundTask.description || ''));
             setEditDueDate(draft.dueDate ?? (foundTask.dueDate ? foundTask.dueDate.split('T')[0] : ''));
             setHasChanges(true);
             setSaveStatus('draft');
           } else {
+            // Draft matches server or is empty, so we can ignore/clear it
+            if (draft) {
+              localStorage.removeItem(key);
+            }
             setEditTitle(foundTask.title);
             setEditDescription(foundTask.description || '');
             setEditDueDate(foundTask.dueDate ? foundTask.dueDate.split('T')[0] : '');
@@ -363,10 +376,27 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
   };
 
   // Persist draft locally (debounced) to ensure no data loss
+  // Persist draft locally (debounced) ONLY if there are changes
   useEffect(() => {
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    
+    // Don't save draft if we're still loading or don't have a task
+    if (!task) return;
+
     draftTimerRef.current = setTimeout(() => {
       const key = `draft:task:${id}`;
+      
+      // Check if current edits match the task (no changes)
+      const titleSame = editTitle === (task.title || '');
+      const descSame = editDescription === (task.description || '');
+      const dateSame = editDueDate === (task.dueDate ? task.dueDate.split('T')[0] : '');
+      
+      if (titleSame && descSame && dateSame) {
+        // No changes, so remove any existing draft
+        localStorage.removeItem(key);
+        return;
+      }
+
       const draft = {
         title: editTitle,
         description: editDescription,
@@ -381,7 +411,7 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
-  }, [id, editTitle, editDescription, editDueDate]);
+  }, [id, editTitle, editDescription, editDueDate, task]);
 
   // Background interval sync removed per request — only Save Now or on exit
 

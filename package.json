@@ -1,6 +1,6 @@
 {
   "name": "linear-task-manager-app",
-  "version": "4.0.10",
+  "version": "4.0.11",
   "description": "A PWA for managing Linear tasks",
   "main": "test-linear-api.js",
   "scripts": {
