@@ -1064,13 +1064,13 @@ function HomePage({ onOpenBurgerMenu }) {
 
 
         {sortMode !== 'due' && (
-          projects.length === 0 && !error ? (
+          projects.filter(p => p.tasks.length > 0).length === 0 && !error ? (
             <div className="empty-state-compact">
               <p>No active tasks</p>
             </div>
           ) : (
             <div className="projects-list-compact">
-              {projects.map(project => (
+              {projects.filter(project => project.tasks.length > 0).map(project => (
               <div key={project.id} className="project-group-compact">
                 <div className="project-header-compact">
                   <div

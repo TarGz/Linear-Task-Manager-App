@@ -257,7 +257,8 @@ class LinearAPI {
   }
 
   async getProjectsWithIssues() {
-    const query = `
+    // First fetch projects
+    const projectsQuery = `
       query {
         projects(first: 50) {
           nodes {
@@ -282,48 +283,88 @@ class LinearAPI {
             }
           }
         }
-        issues(first: 200) {
-          nodes {
-            id
-            title
-            description
-            team {
-              id
-            }
-            state {
-              id
-              name
-              type
-            }
-            priority
-            dueDate
-            createdAt
-            updatedAt
-            project {
-              id
-              name
-            }
-            assignee {
-              id
-              name
-              avatarUrl
-            }
-            parent {
-              id
-              title
-            }
-            labels {
+      }
+    `;
+
+    // Fetch all issues with pagination
+    const fetchAllIssues = async () => {
+      let allIssues = [];
+      let hasNextPage = true;
+      let cursor = null;
+
+      while (hasNextPage) {
+        const afterArg = cursor ? `, after: "${cursor}"` : '';
+        const issuesQuery = `
+          query {
+            issues(first: 200${afterArg}) {
               nodes {
                 id
-                name
-                color
+                title
+                description
+                team {
+                  id
+                }
+                state {
+                  id
+                  name
+                  type
+                }
+                priority
+                dueDate
+                createdAt
+                updatedAt
+                project {
+                  id
+                  name
+                }
+                assignee {
+                  id
+                  name
+                  avatarUrl
+                }
+                parent {
+                  id
+                  title
+                }
+                labels {
+                  nodes {
+                    id
+                    name
+                    color
+                  }
+                }
+              }
+              pageInfo {
+                hasNextPage
+                endCursor
               }
             }
           }
-        }
+        `;
+
+        const result = await this.query(issuesQuery);
+        const issues = result.issues?.nodes || [];
+        allIssues = [...allIssues, ...issues];
+
+        hasNextPage = result.issues?.pageInfo?.hasNextPage || false;
+        cursor = result.issues?.pageInfo?.endCursor;
+
+        console.log(`📥 Fetched ${issues.length} issues (total: ${allIssues.length}), hasNextPage: ${hasNextPage}`);
       }
-    `;
-    return this.query(query);
+
+      return allIssues;
+    };
+
+    // Fetch projects and issues in parallel
+    const [projectsResult, allIssues] = await Promise.all([
+      this.query(projectsQuery),
+      fetchAllIssues()
+    ]);
+
+    return {
+      projects: projectsResult.projects,
+      issues: { nodes: allIssues }
+    };
   }
 
   async createIssue(input) {
