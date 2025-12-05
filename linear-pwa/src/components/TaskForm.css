@@ -1,37 +1,47 @@
 .task-form-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-task-form);
-  padding: var(--spacing-lg);
+  z-index: 50000;
+  animation: overlayFadeIn 0.2s ease-out;
 }
 
 .task-form-container {
-  width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  max-height: 85vh;
   overflow-y: auto;
   background: var(--surface);
   padding: var(--spacing-xl);
-  animation: slideUp 0.2s ease-out;
+  animation: sheetSlideUp 0.25s ease-out;
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
 }
 
-@keyframes slideUp {
+@keyframes overlayFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
     transform: translateY(0);
+  }
+}
+
+/* Safe area for bottom sheet on iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .task-form-container {
+    padding-bottom: calc(var(--spacing-xl) + env(safe-area-inset-bottom));
   }
 }
 
@@ -158,17 +168,6 @@
 }
 
 @media (max-width: 768px) {
-  .task-form-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  .task-form-container {
-    max-width: none;
-    border-radius: 24px 24px 0 0;
-    max-height: 85vh;
-  }
-
   .form-row {
     flex-direction: column;
   }

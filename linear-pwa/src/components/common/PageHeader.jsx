@@ -3,11 +3,10 @@ import './PageHeader.css';
 
 /**
  * Unified PageHeader component
- * Layout: [Burger Menu (left)] [Back Button (if present)] [Title (left-aligned)] [Actions (right-aligned)]
- * - No icons in title (removed for consistency)
- * - Burger menu always on the left
- * - Title is left-aligned after burger/back button
- * - Actions always on the right
+ * Two layouts:
+ * - List pages: [Burger Menu] [Title] --- [Actions]
+ * - Detail pages (with backButton): [Back] [Title] --- [Actions]
+ *                                   [Subtitle/metadata below]
  */
 function PageHeader({
   title,
@@ -16,25 +15,25 @@ function PageHeader({
   backButton,
   onOpenBurgerMenu
 }) {
-  return (
-    <div className="page-header">
-      <div className="header-content">
-        {onOpenBurgerMenu && <BurgerMenuButton onClick={onOpenBurgerMenu} />}
+  const isDetailPage = !!backButton;
 
-        {backButton && (
+  return (
+    <div className={`page-header ${isDetailPage ? 'page-header--detail' : ''}`}>
+      <div className="header-content">
+        {/* Show burger OR back button, not both */}
+        {backButton ? (
           <div className="header-back">
             {backButton}
           </div>
+        ) : (
+          onOpenBurgerMenu && <BurgerMenuButton onClick={onOpenBurgerMenu} />
         )}
 
-        <div className="header-main">
-          <h1 className="page-title">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="page-subtitle">{subtitle}</p>
-          )}
-        </div>
+        <h1 className="page-title">
+          {title}
+        </h1>
+
+        <div className="header-spacer" />
 
         {actions && (
           <div className="header-actions">
@@ -42,6 +41,13 @@ function PageHeader({
           </div>
         )}
       </div>
+
+      {/* Subtitle/metadata on second line for detail pages */}
+      {subtitle && (
+        <div className="header-meta">
+          {subtitle}
+        </div>
+      )}
     </div>
   );
 }

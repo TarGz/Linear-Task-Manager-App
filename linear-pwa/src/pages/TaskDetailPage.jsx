@@ -524,15 +524,12 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
             onChange={(e) => setEditTitle(e.target.value)}
             className="edit-task-input-header"
             placeholder="Task title..."
-            style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.5rem', fontWeight: 600, padding: 0 }}
           />
         }
         subtitle={
-          <div className="task-info-row" style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div className="task-project-name" style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              {task?.project?.name || 'Personal'}
-            </div>
-            <span className="separator" style={{ color: 'var(--text-secondary)' }}>-</span>
+          <>
+            <span className="meta-project">{task?.project?.name || 'Personal'}</span>
+            <span className="meta-separator">&bull;</span>
             <button
               className={`status-badge status-${getStatusClass(task?.state?.type)} clickable`}
               onClick={() => handleTaskClick(task)}
@@ -540,7 +537,7 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
             >
               {getStatusDisplay(task?.state?.type)}
             </button>
-          </div>
+          </>
         }
         onOpenBurgerMenu={onOpenBurgerMenu}
         backButton={
@@ -559,39 +556,34 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
         }
       />
       
-      {showTaskActions && (
-        <div className="task-actions-overlay" onClick={() => setShowTaskActions(false)}>
-          <div className="task-actions-menu" onClick={(e) => e.stopPropagation()}>
-            <div className="task-actions-header">
-              <h4>Task Actions</h4>
-              <p className="task-title">{task?.title}</p>
-            </div>
-            <div className="task-actions-options">
-              <button
-                className="task-action-option"
-                onClick={() => {
-                  setShowTaskActions(false);
-                  handleOpenInLinear();
-                }}
-              >
-                <ExternalLink size={16} />
-                <span>Open in Linear</span>
-              </button>
-              <button
-                className="task-action-option delete"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
-                    handleDeleteTask();
-                  }
-                }}
-              >
-                <Trash2 size={16} />
-                <span>Delete Task</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppOverlay
+        isOpen={showTaskActions}
+        onClose={() => setShowTaskActions(false)}
+        title="Task Actions"
+        subtitle={task?.title}
+      >
+        <button
+          className="overlay-option"
+          onClick={() => {
+            setShowTaskActions(false);
+            handleOpenInLinear();
+          }}
+        >
+          <ExternalLink size={16} />
+          <span>Open in Linear</span>
+        </button>
+        <button
+          className="overlay-option danger"
+          onClick={() => {
+            if (window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+              handleDeleteTask();
+            }
+          }}
+        >
+          <Trash2 size={16} />
+          <span>Delete Task</span>
+        </button>
+      </AppOverlay>
       
       <div className="page-content">
         <div className="container">

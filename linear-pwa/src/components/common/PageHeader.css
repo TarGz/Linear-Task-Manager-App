@@ -1,68 +1,141 @@
-/* Unified compact header to match HomePage */
+/* Unified PageHeader - Clean horizontal layout */
 .page-header {
   background: var(--surface);
   border-bottom: none;
   position: relative;
   z-index: 10;
-  padding: 16px 16px 12px 16px;
+  padding: 12px 16px;
+}
+
+/* Detail page variant - slightly more padding for the two-line layout */
+.page-header--detail {
+  padding-bottom: 8px;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0;
+  min-height: 40px;
 }
 
 .header-back {
   flex-shrink: 0;
-}
-
-.header-main {
-  flex: 1;
-  min-width: 0;
   display: flex;
   align-items: center;
+}
+
+.header-back .btn {
+  padding: 8px;
+  border-radius: 8px;
 }
 
 .page-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+/* Clickable/editable title */
+.page-title .editable-title {
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.page-title .editable-title:hover {
+  color: var(--text-secondary);
+}
+
+.header-spacer {
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Metadata row - shown below title on detail pages */
+.header-meta {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  font-size: 1.0rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: 1;
+  padding-left: 52px;
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
 }
 
-.page-icon {
+/* Project name tag */
+.header-meta .meta-project {
+  font-weight: 500;
   color: var(--text-secondary);
-  flex-shrink: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
 }
 
-.page-subtitle {
-  margin: 4px 0 0 0;
-  font-size: 14px;
-  color: var(--text-secondary);
+/* Separator dot */
+.header-meta .meta-separator {
+  color: var(--text-tertiary);
+  opacity: 0.4;
+  font-size: 0.625rem;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
+/* Ensure buttons in header are vertically centered */
+.header-back .btn,
+.header-actions .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Legacy page-subtitle for backwards compatibility (will be phased out) */
+.page-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.page-subtitle .status-badge {
+  margin-left: 2px;
+}
+
+@media (max-width: 480px) {
   .page-header {
     padding: 10px 12px;
   }
 
+  .page-header--detail {
+    padding-bottom: 6px;
+  }
+
   .page-title {
-    font-size: 16px;
+    font-size: 1rem;
+  }
+
+  .header-meta {
+    padding-left: 44px;
+    font-size: 0.75rem;
+    gap: 6px;
+  }
+
+  .header-content {
+    gap: 8px;
   }
 }

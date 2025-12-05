@@ -411,20 +411,17 @@ function ProjectDetailPage({ onOpenBurgerMenu }) {
                   setIsEditing(false);
                 }
               }}
-              style={{ width: '100%', border: 'none', background: 'transparent', fontSize: '1.5rem', fontWeight: 600, padding: 0 }}
             />
           ) : (
-            <span onClick={() => setIsEditing(true)} style={{ cursor: 'pointer' }}>
+            <span className="editable-title" onClick={() => setIsEditing(true)}>
               {project?.name}
             </span>
           )
         }
         subtitle={
-          <div style={{ marginTop: '8px' }}>
-            <span className={`status-badge status-${getStatusClass(project?.state)}`}>
-              {getStatusDisplay(project?.state)}
-            </span>
-          </div>
+          <span className={`status-badge status-${getStatusClass(project?.state)}`}>
+            {getStatusDisplay(project?.state)}
+          </span>
         }
         onOpenBurgerMenu={onOpenBurgerMenu}
         backButton={
@@ -502,30 +499,30 @@ function ProjectDetailPage({ onOpenBurgerMenu }) {
         />
       )}
 
-      {showProjectActions && (
-        <AppOverlay isOpen={showProjectActions} onClose={() => setShowProjectActions(false)} variant="sheet" title="Project Actions">
-          <p className="project-title" style={{ marginTop: 0 }}>{project?.name}</p>
-          <div className="project-actions-options" style={{ padding: 0 }}>
-            <button
-              className="project-action-option"
-              onClick={() => {
-                setShowProjectActions(false);
-                handleOpenInLinear();
-              }}
-            >
-              <ExternalLink size={16} />
-              <span>Open in Linear</span>
-            </button>
-            <button
-              className="project-action-option delete"
-              onClick={handleDeleteProject}
-            >
-              <Trash2 size={16} />
-              <span>Delete Project</span>
-            </button>
-          </div>
-        </AppOverlay>
-      )}
+      <AppOverlay
+        isOpen={showProjectActions}
+        onClose={() => setShowProjectActions(false)}
+        title="Project Actions"
+        subtitle={project?.name}
+      >
+        <button
+          className="overlay-option"
+          onClick={() => {
+            setShowProjectActions(false);
+            handleOpenInLinear();
+          }}
+        >
+          <ExternalLink size={16} />
+          <span>Open in Linear</span>
+        </button>
+        <button
+          className="overlay-option danger"
+          onClick={handleDeleteProject}
+        >
+          <Trash2 size={16} />
+          <span>Delete Project</span>
+        </button>
+      </AppOverlay>
 
       {/* Icon selector removed */}
 

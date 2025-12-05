@@ -1,5 +1,6 @@
 import { Check, Clock, Play, X } from 'lucide-react';
 import { STATUS_COLORS, STATUS_LABELS } from '../config/constants';
+import AppOverlay from './common/AppOverlay';
 import './StatusMenu.css';
 
 function StatusMenu({ task, onStatusChange, onClose }) {
@@ -16,46 +17,41 @@ function StatusMenu({ task, onStatusChange, onClose }) {
   };
 
   return (
-    <div className="status-menu-overlay" onClick={onClose}>
-      <div 
-        className="status-menu card"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="status-menu-header">
-          <h4>Update Status</h4>
-          <p className="task-title">{task.title}</p>
-        </div>
-        
-        <div className="status-options">
-          {statuses.map(status => {
-            const Icon = status.icon;
-            const isCurrentStatus = task.state?.type === status.value || 
-              (status.value === 'planned' && (task.state?.type === 'unstarted' || task.state?.type === 'backlog')) ||
-              (status.value === 'started' && task.state?.type === 'started') ||
-              (status.value === 'completed' && task.state?.type === 'completed') ||
-              (status.value === 'canceled' && task.state?.type === 'canceled');
-            
-            return (
-              <button
-                key={status.value}
-                className={`status-option status-${status.value} ${isCurrentStatus ? 'current' : ''}`}
-                onClick={() => handleStatusSelect(status.value)}
-              >
-                <div className="status-option-icon">
-                  <Icon size={16} />
+    <AppOverlay
+      isOpen={true}
+      onClose={onClose}
+      title="Update Status"
+      subtitle={task.title}
+    >
+      <div className="status-options">
+        {statuses.map(status => {
+          const Icon = status.icon;
+          const isCurrentStatus = task.state?.type === status.value ||
+            (status.value === 'planned' && (task.state?.type === 'unstarted' || task.state?.type === 'backlog')) ||
+            (status.value === 'started' && task.state?.type === 'started') ||
+            (status.value === 'completed' && task.state?.type === 'completed') ||
+            (status.value === 'canceled' && task.state?.type === 'canceled');
+
+          return (
+            <button
+              key={status.value}
+              className={`status-option status-${status.value} ${isCurrentStatus ? 'current' : ''}`}
+              onClick={() => handleStatusSelect(status.value)}
+            >
+              <div className="status-option-icon">
+                <Icon size={16} />
+              </div>
+              <span className="status-option-label">{status.label}</span>
+              {isCurrentStatus && (
+                <div className="current-indicator">
+                  <Check size={16} />
                 </div>
-                <span className="status-option-label">{status.label}</span>
-                {isCurrentStatus && (
-                  <div className="current-indicator">
-                    <Check size={16} />
-                  </div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </AppOverlay>
   );
 }
 

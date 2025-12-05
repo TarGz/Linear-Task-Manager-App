@@ -46,18 +46,18 @@
 
 .edit-project-input-header {
   width: 100%;
-  padding: var(--spacing-xs);
-  border: 2px solid var(--primary-color);
-  border-radius: var(--radius-sm);
+  padding: 2px 0;
+  border: none;
+  border-radius: 0;
   font-weight: 600;
-  background: var(--surface);
+  background: transparent;
   color: var(--text-primary);
-  text-align: center;
+  text-align: left;
+  font-size: 16px;
 }
 
 .edit-project-input-header:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
 }
 
 .project-header-icon {
@@ -167,111 +167,19 @@
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-  
-  .header-info {
+  .project-detail-page .header-info {
     order: 2;
     width: 100%;
     margin: var(--spacing-sm) 0;
   }
-  
-  .header-info .page-title {
+
+  .project-detail-page .header-info .page-title {
     text-align: center;
   }
-  
-  .header-actions {
+
+  .project-detail-page .header-actions {
     order: 3;
   }
 }
 
-.project-actions-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: var(--z-project-menu);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.project-actions-menu {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--surface);
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
-  border-radius: 24px 24px 0 0;
-  overflow: hidden;
-  animation: slideUpMobile 0.2s ease-out;
-  transform: none;
-}
-
-@keyframes slideUpMobile {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.project-actions-header {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--border);
-}
-
-.project-actions-header h4 {
-  margin: 0 0 var(--spacing-xs) 0;
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.project-actions-header .project-title {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.project-actions-options {
-  padding: var(--spacing-sm) 0;
-}
-
-.project-action-option {
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.project-action-option:hover {
-  background: var(--background);
-}
-
-.project-action-option.delete {
-  color: var(--danger);
-}
-
-.project-action-option.delete:hover {
-  background: rgba(244, 67, 54, 0.1);
-}
+/* Project actions now use unified AppOverlay component */

@@ -24,26 +24,25 @@
 }
 
 .task-name-header {
-  text-align: center;
+  text-align: left;
   flex: 1;
-  padding: 0 8px;
+  padding: 0;
 }
 
 .edit-task-input-header {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  padding: 2px 0;
+  border: none;
+  border-radius: 0;
   font-weight: 600;
-  background: var(--surface);
+  background: transparent;
   color: var(--text-primary);
-  text-align: center;
+  text-align: left;
   font-size: 16px; /* Prevent iOS Safari zoom */
 }
 
 .edit-task-input-header:focus {
   outline: none;
-  border-color: var(--primary);
 }
 
 .task-info-row {
@@ -78,10 +77,10 @@
 
 /* Compact card styling */
 .task-detail-page .card {
-  margin-bottom: 8px;
-  padding: 12px;
+  margin-bottom: 12px;
+  padding: 16px;
   background: var(--surface);
-  border-radius: var(--border-radius);
+  border-radius: 16px;
   border: 1px solid var(--border-color);
 }
 
@@ -260,100 +259,7 @@
 .conflict-box { display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:8px; }
 .conflict-pre { white-space: pre-wrap; padding:8px; border:1px solid var(--border); border-radius:8px; background: var(--surface); max-height: 240px; overflow:auto; }
 
-/* Task actions overlay - appears on top of everything */
-.task-actions-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.task-actions-menu {
-  background: var(--surface);
-  border-radius: 24px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  animation: slideUpMobile 0.3s ease-out;
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUpMobile {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.task-actions-header {
-  padding: 20px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.task-actions-header h4 {
-  margin: 0 0 4px 0;
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.task-actions-header .task-title {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-actions-options {
-  padding: 8px 0;
-}
-
-.task-action-option {
-  width: 100%;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.task-action-option:hover {
-  background: var(--background);
-}
-
-.task-action-option.delete {
-  color: var(--danger);
-}
-
-.task-action-option.delete:hover {
-  background: rgba(244, 67, 54, 0.1);
-}
+/* Task actions now use unified AppOverlay component */
 
 /* Global Save Bar - Compact */
 .global-save-bar {
@@ -453,8 +359,9 @@
   }
   
   .task-detail-page .card {
-    padding: 8px;
-    margin-bottom: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 12px;
   }
   
   .detail-item {
@@ -492,6 +399,64 @@
   .task-info-row {
     margin-bottom: 8px;
   }
+}
+
+/* Subtasks section - reduce gap */
+.subtasks-section {
+  margin-bottom: 8px !important;
+}
+
+/* Subtask form styling (inside AppOverlay) */
+.subtask-form {
+  padding: 12px 20px 20px 20px;
+}
+
+.subtask-form-input,
+.subtask-form-textarea,
+.subtask-form-date {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--background);
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.subtask-form-input:focus,
+.subtask-form-textarea:focus,
+.subtask-form-date:focus {
+  outline: none;
+  border-color: var(--text-secondary);
+}
+
+.subtask-form-input::placeholder,
+.subtask-form-textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.subtask-form-textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.subtask-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.subtasks-empty {
+  text-align: center;
+  padding: 20px 16px;
+  color: var(--text-tertiary);
+  font-size: 14px;
+  background: var(--background);
+  border-radius: 8px;
 }
 
 /* Dark mode adjustments */

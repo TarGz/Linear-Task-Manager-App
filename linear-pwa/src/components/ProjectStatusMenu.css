@@ -1,30 +1,36 @@
 .project-status-menu-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: var(--z-project-menu);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50000;
+  animation: overlayFadeIn 0.2s ease-out;
 }
 
 .project-status-menu {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+  border-radius: 24px;
+  max-height: 85vh;
   overflow: hidden;
-  animation: slideUpMobile 0.2s ease-out;
-  transform: none;
+  display: flex;
+  flex-direction: column;
+  animation: sheetSlideUp 0.25s ease-out;
 }
 
-@keyframes slideUpMobile {
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetSlideUp {
   from {
     transform: translateY(100%);
   }
@@ -33,8 +39,15 @@
   }
 }
 
+/* Safe area for bottom sheet on iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .project-status-menu {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 .project-status-menu-header {
-  padding: var(--spacing-lg);
+  padding: 20px 20px 16px 20px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -55,15 +68,16 @@
 }
 
 .project-status-options {
-  padding: var(--spacing-sm) 0;
+  padding: 8px 0;
+  overflow-y: auto;
 }
 
 .project-status-option {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: 16px 20px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 12px;
   background: transparent;
   border: none;
   text-align: left;
@@ -90,7 +104,7 @@
 
 .project-status-option-label {
   flex: 1;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text-primary);
 }

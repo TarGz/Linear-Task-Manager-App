@@ -1,41 +1,105 @@
-.app-overlay {
+/* Unified AppOverlay - Bottom Sheet Component */
+
+.app-overlay-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 12000; /* Higher than any other UI */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 50000; /* Very high to be above everything */
+  animation: overlayFadeIn 0.2s ease-out;
 }
 
-.app-overlay-content {
+.app-overlay-sheet {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  width: 92%;
-  max-width: 520px;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
   max-height: 85vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.app-overlay-content.sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: auto;
-  max-width: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  animation: sheetSlideUp 0.25s ease-out;
 }
 
 .app-overlay-header {
-  padding: var(--spacing-lg);
+  padding: 20px 20px 16px 20px;
   border-bottom: 1px solid var(--border);
 }
 
-.app-overlay-body {
-  padding: var(--spacing-lg);
+.app-overlay-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
+.app-overlay-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-overlay-body {
+  padding: 8px 0;
+  overflow-y: auto;
+}
+
+/* Action option buttons inside the overlay */
+.app-overlay-body .overlay-option {
+  width: 100%;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.app-overlay-body .overlay-option:hover {
+  background: var(--background);
+}
+
+.app-overlay-body .overlay-option.danger {
+  color: var(--danger);
+}
+
+.app-overlay-body .overlay-option.danger:hover {
+  background: rgba(244, 67, 54, 0.1);
+}
+
+/* Animations */
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Safe area for bottom sheet on iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .app-overlay-sheet {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

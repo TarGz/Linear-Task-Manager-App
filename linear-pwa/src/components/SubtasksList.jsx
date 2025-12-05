@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Circle, Check, Play, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SwipeableCard from './common/SwipeableCard';
+import AppOverlay from './common/AppOverlay';
 import StatusMenu from './StatusMenu';
 import linearApi from '../services/linearApi';
 import { formatDateShort } from '../utils/dateUtils';
@@ -209,10 +210,10 @@ function SubtasksList({ subtasks = [], parentId, onSubtasksChange, teamId, proje
   }
 
   return (
-    <div className="projects-list-compact" style={{ marginBottom: '16px' }}>
+    <div className="projects-list-compact subtasks-section">
       <div className="project-group-compact">
         <div className="project-header-compact">
-          <div 
+          <div
             className="project-header-clickable"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
@@ -224,7 +225,7 @@ function SubtasksList({ subtasks = [], parentId, onSubtasksChange, teamId, proje
               )}
               <span className="project-name-compact">Subtasks</span>
             </div>
-            <div 
+            <div
               className={`project-badge-compact ${isCollapsed ? 'visible' : ''}`}
             >
               {subtasks.length}
@@ -244,78 +245,9 @@ function SubtasksList({ subtasks = [], parentId, onSubtasksChange, teamId, proje
 
         {!isCollapsed && (
           <>
-            {showAddForm && (
-              <div style={{ padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginTop: '8px' }}>
-                <input
-                  type="text"
-                  placeholder="Subtask title..."
-                  value={newSubtaskTitle}
-                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    marginBottom: '8px', 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                  autoFocus
-                />
-                <textarea
-                  placeholder="Description (optional)"
-                  value={newSubtaskDescription}
-                  onChange={(e) => setNewSubtaskDescription(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    marginBottom: '8px', 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px',
-                    minHeight: '60px',
-                    resize: 'vertical',
-                    fontSize: '14px'
-                  }}
-                  rows={2}
-                />
-                <input
-                  type="date"
-                  value={newSubtaskDueDate}
-                  onChange={(e) => setNewSubtaskDueDate(e.target.value)}
-                  style={{ 
-                    width: '100%', 
-                    padding: '8px', 
-                    marginBottom: '12px', 
-                    border: '1px solid #ddd', 
-                    borderRadius: '4px',
-                    fontSize: '14px'
-                  }}
-                />
-                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                  <button
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setNewSubtaskTitle('');
-                      setNewSubtaskDescription('');
-                      setNewSubtaskDueDate('');
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="btn btn-primary"
-                    onClick={handleAddSubtask}
-                    disabled={!newSubtaskTitle.trim() || isCreating}
-                  >
-                    {isCreating ? 'Creating...' : 'Add Subtask'}
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="tasks-list-compact">
               {sortedSubtasks.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '16px', color: '#999', fontSize: '14px' }}>
+                <div className="subtasks-empty">
                   No subtasks yet
                 </div>
               ) : (
@@ -394,6 +326,61 @@ function SubtasksList({ subtasks = [], parentId, onSubtasksChange, teamId, proje
           onClose={() => setSelectedSubtask(null)}
         />
       )}
+
+      <AppOverlay
+        isOpen={showAddForm}
+        onClose={() => {
+          setShowAddForm(false);
+          setNewSubtaskTitle('');
+          setNewSubtaskDescription('');
+          setNewSubtaskDueDate('');
+        }}
+        title="Add Subtask"
+      >
+        <div className="subtask-form">
+          <input
+            type="text"
+            placeholder="Subtask title..."
+            value={newSubtaskTitle}
+            onChange={(e) => setNewSubtaskTitle(e.target.value)}
+            className="subtask-form-input"
+            autoFocus
+          />
+          <textarea
+            placeholder="Description (optional)"
+            value={newSubtaskDescription}
+            onChange={(e) => setNewSubtaskDescription(e.target.value)}
+            className="subtask-form-textarea"
+            rows={2}
+          />
+          <input
+            type="date"
+            value={newSubtaskDueDate}
+            onChange={(e) => setNewSubtaskDueDate(e.target.value)}
+            className="subtask-form-date"
+          />
+          <div className="subtask-form-actions">
+            <button
+              className="btn btn-secondary"
+              onClick={() => {
+                setShowAddForm(false);
+                setNewSubtaskTitle('');
+                setNewSubtaskDescription('');
+                setNewSubtaskDueDate('');
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={handleAddSubtask}
+              disabled={!newSubtaskTitle.trim() || isCreating}
+            >
+              {isCreating ? 'Creating...' : 'Add Subtask'}
+            </button>
+          </div>
+        </div>
+      </AppOverlay>
     </div>
   );
 }
