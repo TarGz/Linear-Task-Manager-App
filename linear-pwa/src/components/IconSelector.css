@@ -1,25 +1,31 @@
 .icon-selector-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
-  z-index: var(--z-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-lg);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 50000;
+  animation: overlayFadeIn 0.2s ease-out;
 }
 
 .icon-selector {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  max-width: 400px;
-  width: 100%;
-  max-height: 80vh;
+  border-radius: 24px;
+  max-height: 85vh;
   overflow: hidden;
-  animation: slideUp 0.2s ease-out;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.2);
+  animation: sheetSlideUp 0.25s ease-out;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .icon-sections {
@@ -34,14 +40,19 @@
   font-weight: 600;
 }
 
-@keyframes slideUp {
+@keyframes sheetSlideUp {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(100%);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Safe area for bottom sheet on iOS */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .icon-selector {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
@@ -98,16 +109,11 @@
 }
 
 @media (max-width: 768px) {
-  .icon-selector {
-    margin: var(--spacing-md);
-    max-height: 70vh;
-  }
-  
   .icon-grid {
     grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
     gap: var(--spacing-sm);
   }
-  
+
   .icon-option {
     width: 50px;
     height: 50px;
