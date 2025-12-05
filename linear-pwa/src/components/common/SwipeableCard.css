@@ -86,11 +86,11 @@
 
 /* Colored state when action is ready */
 .swipeable-card-container:has(.swipeable-card[data-action-ready="true"]) .swipe-action-left {
-  background: linear-gradient(90deg, #7C4DFF 0%, rgba(124, 77, 255, 0.9) 100%) !important;
+  background: linear-gradient(90deg, #1a1a1a 0%, rgba(26, 26, 26, 0.9) 100%) !important;
 }
 
 .swipeable-card-container:has(.swipeable-card[data-action-ready="true"]) .swipe-action-right {
-  background: linear-gradient(-90deg, var(--success) 0%, rgba(76, 175, 80, 0.9) 100%) !important;
+  background: linear-gradient(-90deg, #4CAF50 0%, rgba(76, 175, 80, 0.9) 100%) !important;
 }
 
 .swipe-action-content {

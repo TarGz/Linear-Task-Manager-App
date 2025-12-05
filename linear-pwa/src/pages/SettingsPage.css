@@ -3,9 +3,9 @@
 }
 
 .settings-page .page-header {
-  padding: 12px 16px;
+  padding: 16px 16px 12px 16px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
   position: relative;
 }
 

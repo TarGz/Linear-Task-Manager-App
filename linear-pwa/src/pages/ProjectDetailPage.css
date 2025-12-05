@@ -3,9 +3,9 @@
 }
 
 .project-detail-page .page-header {
-  padding: 12px 16px;
+  padding: 16px 16px 12px 16px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
   position: relative;
 }
 
@@ -61,7 +61,7 @@
 }
 
 .project-header-icon {
-  color: var(--primary-color);
+  color: var(--text-secondary);
 }
 
 .project-header-emoji {
@@ -206,8 +206,8 @@
   left: 0;
   right: 0;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+  border-radius: 24px 24px 0 0;
   overflow: hidden;
   animation: slideUpMobile 0.2s ease-out;
   transform: none;

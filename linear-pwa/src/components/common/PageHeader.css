@@ -1,10 +1,10 @@
 /* Unified compact header to match HomePage */
 .page-header {
   background: var(--surface);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
   position: relative;
   z-index: 10;
-  padding: 12px 16px;
+  padding: 16px 16px 12px 16px;
 }
 
 .header-content {
@@ -40,7 +40,7 @@
 }
 
 .page-icon {
-  color: var(--primary-color);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 

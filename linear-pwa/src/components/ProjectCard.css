@@ -27,12 +27,12 @@
 .project-icon {
   width: 40px;
   height: 40px;
-  background: rgba(241, 129, 115, 0.1);
+  background: #f5f5f5;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-color);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -54,23 +54,23 @@
 }
 
 .status-active {
-  background: rgba(147, 197, 253, 0.2);
-  color: #3B82F6;
+  background: #f0f0f0;
+  color: #666666;
 }
 
 .status-progress {
-  background: rgba(196, 181, 253, 0.2);
-  color: #8B5CF6;
+  background: #1a1a1a;
+  color: #ffffff;
 }
 
 .status-done {
-  background: rgba(134, 239, 172, 0.2);
-  color: #22C55E;
+  background: rgba(76, 175, 80, 0.15);
+  color: #4CAF50;
 }
 
 .status-overdue {
-  background: rgba(252, 165, 165, 0.2);
-  color: #EF4444;
+  background: rgba(229, 57, 53, 0.1);
+  color: #e53935;
 }
 
 .project-stats {
@@ -131,19 +131,19 @@
 }
 
 .progress-active {
-  background: #3B82F6;
+  background: #888888;
 }
 
 .progress-progress {
-  background: #8B5CF6;
+  background: #1a1a1a;
 }
 
 .progress-done {
-  background: #22C55E;
+  background: #4CAF50;
 }
 
 .progress-overdue {
-  background: #EF4444;
+  background: #e53935;
 }
 
 .progress-text {

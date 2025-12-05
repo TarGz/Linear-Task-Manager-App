@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
   z-index: var(--z-status-menu);
   display: flex;
   align-items: center;
@@ -17,8 +17,8 @@
   left: 0;
   right: 0;
   background: var(--surface);
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.1);
+  border-radius: 24px 24px 0 0;
   overflow: hidden;
   animation: slideUpMobile 0.2s ease-out;
   transform: none;
@@ -94,19 +94,19 @@
 
 /* Status-specific colors and borders */
 .status-planned {
-  border-left: 4px solid #FF6B6B !important;
+  border-left: 4px solid #888888 !important;
 }
 
 .status-planned .status-option-icon {
-  color: #FF6B6B !important;
+  color: #888888 !important;
 }
 
 .status-started {
-  border-left: 4px solid #7C4DFF !important;
+  border-left: 4px solid #1a1a1a !important;
 }
 
 .status-started .status-option-icon {
-  color: #7C4DFF !important;
+  color: #1a1a1a !important;
 }
 
 .status-completed {
@@ -118,11 +118,11 @@
 }
 
 .status-canceled {
-  border-left: 4px solid #9E9E9E !important;
+  border-left: 4px solid #aaaaaa !important;
 }
 
 .status-canceled .status-option-icon {
-  color: #9E9E9E !important;
+  color: #aaaaaa !important;
 }
 
 .status-option-label {

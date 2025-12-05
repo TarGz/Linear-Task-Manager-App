@@ -1,13 +1,13 @@
 /* Compact Layout Styles */
 .home-page-compact {
   min-height: 100vh;
-  background: #FBD8FC;
+  background: #f5f5f5;
 }
 
 .page-header-compact {
-  padding: 12px 16px;
+  padding: 16px 16px 12px 16px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: none;
   position: relative;
   display: flex;
   align-items: center;
@@ -39,10 +39,10 @@
 
 .filter-button-compact {
   position: relative;
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 14px;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -51,17 +51,17 @@
 }
 
 .filter-button-compact:hover {
-  background: var(--background);
+  background: #e8e8e8;
   color: var(--text-primary);
 }
 
 .filter-button-compact .filter-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 6px;
+  right: 6px;
   width: 6px;
   height: 6px;
-  background: var(--primary-color);
+  background: #1a1a1a;
   border-radius: 50%;
 }
 
@@ -78,10 +78,10 @@
 
 .filter-menu {
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 24px;
   width: 90%;
   max-width: 400px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .filter-menu-header {
@@ -130,8 +130,9 @@
 }
 
 .filter-option.active {
-  background: rgba(255, 107, 107, 0.1);
-  color: var(--primary-color);
+  background: rgba(26, 26, 26, 0.06);
+  color: #1a1a1a;
+  font-weight: 600;
 }
 
 .filter-option span {
@@ -139,31 +140,31 @@
 }
 
 .page-content-compact {
-  padding: 6px;
-  background: #FBD8FC;
+  padding: 12px;
+  background: #f5f5f5;
 }
 
 .error-message-compact {
-  margin: 0 0 6px 0;
-  padding: 12px 16px;
+  margin: 0 0 12px 0;
+  padding: 14px 18px;
   color: var(--danger);
   font-size: 14px;
   background: var(--surface);
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .empty-state-compact {
   margin: 0;
-  padding: 40px 16px;
+  padding: 48px 20px;
   text-align: center;
   color: var(--text-secondary);
   font-size: 14px;
   background: var(--surface);
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .empty-state-compact p {
@@ -173,17 +174,18 @@
 .projects-list-compact {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
   padding: 0;
+  padding-bottom: 100px;
 }
 
 .project-group-compact {
   background: var(--surface);
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
+  border: none;
+  border-radius: 20px;
   overflow: hidden;
   margin: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .project-header-compact {
@@ -252,13 +254,13 @@
 }
 
 .project-badge-compact {
-  background: var(--primary);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  min-width: 18px;
+  background: #e8e8e8;
+  color: #666666;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 20px;
   text-align: center;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -304,28 +306,28 @@
 }
 
 .tasks-list-compact .task-item-started {
-  background: rgba(124, 77, 255, 0.08) !important;
+  background: rgba(26, 26, 26, 0.04) !important;
 }
 
 .tasks-list-compact .task-item-started:hover {
-  background: rgba(124, 77, 255, 0.12) !important;
+  background: rgba(26, 26, 26, 0.08) !important;
 }
 
 .tasks-list-compact .task-item-completed {
-  background: rgba(76, 175, 80, 0.08) !important;
+  background: rgba(76, 175, 80, 0.06) !important;
 }
 
 .tasks-list-compact .task-item-completed:hover {
-  background: rgba(76, 175, 80, 0.12) !important;
+  background: rgba(76, 175, 80, 0.1) !important;
 }
 
-/* Canceled tasks have red background */
+/* Canceled tasks have gray background */
 .tasks-list-compact .task-item-canceled {
-  background: rgba(255, 107, 107, 0.08) !important;
+  background: rgba(150, 150, 150, 0.08) !important;
 }
 
 .tasks-list-compact .task-item-canceled:hover {
-  background: rgba(255, 107, 107, 0.12) !important;
+  background: rgba(150, 150, 150, 0.12) !important;
 }
 
 .task-checkbox-compact {
@@ -347,8 +349,8 @@
 }
 
 .task-checkbox-compact:hover {
-  background: rgba(124, 77, 255, 0.1);
-  color: var(--primary);
+  background: rgba(26, 26, 26, 0.08);
+  color: #1a1a1a;
   transform: scale(1.1);
 }
 
@@ -364,7 +366,7 @@
 
 .task-item-started .task-checkbox-compact,
 .task-item-started .task-checkbox-disabled {
-  color: #7C4DFF;
+  color: #1a1a1a;
 }
 
 .task-item-completed .task-checkbox-compact,
@@ -372,10 +374,10 @@
   color: #4CAF50;
 }
 
-/* Canceled tasks have red icon color */
+/* Canceled tasks have gray icon color */
 .task-item-canceled .task-checkbox-compact,
 .task-item-canceled .task-checkbox-disabled {
-  color: #FF6B6B;
+  color: #aaaaaa;
 }
 
 .task-content-compact {
@@ -441,8 +443,8 @@
 }
 
 .task-date-compact.clickable-date:hover {
-  background: rgba(124, 77, 255, 0.1);
-  color: var(--primary);
+  background: rgba(26, 26, 26, 0.08);
+  color: #1a1a1a;
   transform: scale(1.05);
 }
 
@@ -453,10 +455,11 @@
 
 .overdue-section-compact {
   background: var(--surface);
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-  margin: 6px 0;
+  border: none;
+  border-radius: 20px;
+  margin: 0 0 12px 0;
   padding: 8px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .overdue-header-compact {
@@ -587,6 +590,6 @@
 }
 
 @keyframes statusChangeHighlight {
-  0% { background-color: rgba(124, 77, 255, 0.2); }
+  0% { background-color: rgba(26, 26, 26, 0.1); }
   100% { background-color: var(--surface); }
 }
