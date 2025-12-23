@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Trash2, ExternalLink, MoreVertical, CheckCircle, AlertTriangle, HardDrive, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Trash2, ExternalLink, MoreVertical, CheckCircle, AlertTriangle, HardDrive, RefreshCw, ChevronDown, FolderOpen } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import StatusMenu from '../components/StatusMenu';
@@ -27,6 +27,8 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [subtasks, setSubtasks] = useState([]);
   const [teamId, setTeamId] = useState(null);
+  const [projects, setProjects] = useState([]);
+  const [showProjectSelector, setShowProjectSelector] = useState(false);
   const draftTimerRef = useRef(null);
   // Using full CodeMirror editor with a Preview toggle
   const [descMode, setDescMode] = useState('preview'); // 'preview' | 'edit'
@@ -65,6 +67,12 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
       const team = teamsData.teams?.nodes?.[0];
       if (team) {
         setTeamId(team.id);
+      }
+
+      // Fetch available projects
+      const projectsData = await linearApi.getProjects();
+      if (projectsData.projects?.nodes) {
+        setProjects(projectsData.projects.nodes);
       }
       
       if (foundTask) {
@@ -361,6 +369,24 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
     setSaveStatus(changed ? 'editing' : 'synced');
   };
 
+  const handleProjectChange = async (projectId) => {
+    try {
+      setShowProjectSelector(false);
+
+      const response = await linearApi.updateIssue(id, { projectId: projectId || null });
+
+      if (response.issueUpdate.success) {
+        const updatedIssue = response.issueUpdate.issue;
+        setTask(prev => ({
+          ...prev,
+          project: updatedIssue.project
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
+  };
+
   const handleDeleteTask = async () => {
     try {
       setShowTaskActions(false);
@@ -528,7 +554,15 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
         }
         subtitle={
           <>
-            <span className="meta-project">{task?.project?.name || 'Personal'}</span>
+            <button
+              className="meta-project clickable"
+              onClick={() => setShowProjectSelector(true)}
+              title="Click to change project"
+            >
+              <FolderOpen size={12} />
+              <span>{task?.project?.name || 'No Project'}</span>
+              <ChevronDown size={12} />
+            </button>
             <span className="meta-separator">&bull;</span>
             <button
               className={`status-badge status-${getStatusClass(task?.state?.type)} clickable`}
@@ -661,12 +695,17 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
               </button>
             </div>
 
-            {task?.project && (
-              <div className="detail-item">
-                <strong>Project:</strong>
-                <span>{task.project.name}</span>
-              </div>
-            )}
+            <div className="detail-item">
+              <strong>Project:</strong>
+              <button
+                className="project-selector-btn"
+                onClick={() => setShowProjectSelector(true)}
+                title="Click to change project"
+              >
+                <span>{task?.project?.name || 'No Project'}</span>
+                <ChevronDown size={14} />
+              </button>
+            </div>
 
             {task?.assignee && (
               <div className="detail-item">
@@ -733,6 +772,37 @@ function TaskDetailPage({ onOpenBurgerMenu }) {
             <button className="btn btn-secondary" onClick={() => setConflict(null)}>Cancel</button>
             <button className="btn" onClick={resolveConflictKeepTheirs}>Keep Theirs</button>
             <button className="btn btn-primary" onClick={resolveConflictKeepMine}>Keep Mine</button>
+          </div>
+        </AppOverlay>
+      )}
+
+      {showProjectSelector && (
+        <AppOverlay
+          isOpen={showProjectSelector}
+          onClose={() => setShowProjectSelector(false)}
+          title="Select Project"
+          subtitle="Choose a project for this task"
+        >
+          <div className="project-selector-list">
+            <button
+              className={`project-option ${!task?.project ? 'selected' : ''}`}
+              onClick={() => handleProjectChange(null)}
+            >
+              <FolderOpen size={16} />
+              <span>No Project</span>
+              {!task?.project && <CheckCircle size={16} className="check-icon" />}
+            </button>
+            {projects.map(project => (
+              <button
+                key={project.id}
+                className={`project-option ${task?.project?.id === project.id ? 'selected' : ''}`}
+                onClick={() => handleProjectChange(project.id)}
+              >
+                <FolderOpen size={16} />
+                <span>{project.name}</span>
+                {task?.project?.id === project.id && <CheckCircle size={16} className="check-icon" />}
+              </button>
+            ))}
           </div>
         </AppOverlay>
       )}

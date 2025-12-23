@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw, Archive } from 'lucide-react';
+import { Save, Eye, EyeOff, ExternalLink, Download, RefreshCw, Smartphone, RotateCcw, Archive, Trash2 } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import linearApi from '../services/linearApi';
 import pwaService from '../services/pwaService';
@@ -19,6 +19,7 @@ function SettingsPage({ onApiKeyChange, onOpenBurgerMenu }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
   const [isForceUpdating, setIsForceUpdating] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
   const [issueCounts, setIssueCounts] = useState(null);
   const [isCountingIssues, setIsCountingIssues] = useState(false);
   const [isCleaningIssues, setIsCleaningIssues] = useState(false);

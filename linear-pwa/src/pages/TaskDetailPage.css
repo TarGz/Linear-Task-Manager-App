@@ -459,17 +459,101 @@
   border-radius: 8px;
 }
 
+/* Project selector button in header */
+.meta-project.clickable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.meta-project.clickable:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Project selector button in Task Details */
+.project-selector-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.project-selector-btn:hover {
+  border-color: var(--primary);
+  background: var(--background);
+}
+
+/* Project selector list in overlay */
+.project-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.project-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  text-align: left;
+}
+
+.project-option:hover {
+  background: var(--background);
+}
+
+.project-option.selected {
+  background: rgba(var(--primary-rgb, 59, 130, 246), 0.1);
+}
+
+.project-option .check-icon {
+  margin-left: auto;
+  color: var(--primary);
+}
+
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   .task-actions-menu {
     background: var(--surface);
   }
-  
+
   .task-action-option:hover {
     background: rgba(255, 255, 255, 0.05);
   }
-  
+
   .detail-item {
     border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .meta-project.clickable {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .meta-project.clickable:hover {
+    background: rgba(255, 255, 255, 0.15);
   }
 }

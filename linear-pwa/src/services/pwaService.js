@@ -53,30 +53,58 @@ class PWAService {
   async updateApp() {
     console.log('🔄 Starting update process...');
     console.log('📱 iOS Device:', this.isIOS(), 'Standalone:', window.matchMedia('(display-mode: standalone)').matches, 'Has SW Update:', !!this.updateSW, 'Need Refresh:', this.needRefresh);
-    
-    // For iOS devices, skip service worker and go directly to force reload
+
+    // For iOS devices, clear caches and force reload
     if (this.isIOS()) {
-      console.log('📱 iOS PWA detected - skipping service worker, using force reload');
+      console.log('📱 iOS PWA detected - clearing caches and reloading');
+      await this.clearAllCaches();
+      // Unregister service worker to force fresh fetch on reload
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations.map(reg => reg.unregister()));
+        console.log('📱 Service workers unregistered');
+      }
+      // Small delay to ensure unregistration completes
+      await new Promise(resolve => setTimeout(resolve, 100));
       this.forceReload();
       return true;
     }
-    
-    // If we have a service worker update, try it first (non-iOS PWA)
+
+    // For non-iOS: Try to trigger SW update check first
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      try {
+        console.log('🔍 Checking for service worker updates...');
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (registration) {
+          await registration.update();
+          // Wait a moment for the update to be detected
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } catch (error) {
+        console.log('⚠️ SW update check failed:', error);
+      }
+    }
+
+    // If we have a service worker update ready, activate it
     if (this.updateSW && this.needRefresh) {
       try {
-        console.log('📦 Updating via service worker...');
+        console.log('📦 Activating waiting service worker...');
         await this.updateSW(true);
         this.needRefresh = false;
+        // Wait for SW to take control
+        await new Promise(resolve => setTimeout(resolve, 300));
+        window.location.reload();
         return true;
       } catch (error) {
         console.error('❌ Service worker update failed:', error);
       }
     }
-    
-    // For GitHub Pages updates or when SW update fails, force reload
-    console.log('🔄 Using force reload method...');
+
+    // Fallback: clear caches and force reload
+    console.log('🔄 Using cache clear + force reload method...');
+    await this.clearAllCaches();
     this.forceReload();
-    return true; // Always return true since forceReload will handle the update
+    return true;
   }
 
   // Check if running on iOS
@@ -94,45 +122,38 @@ class PWAService {
   forceReload() {
     console.log('🔄 Force reloading app...');
     console.log('📱 Standalone:', window.matchMedia('(display-mode: standalone)').matches, 'iOS Device:', this.isIOS());
-    
+
     // Clear all possible caches first
     try {
       // Clear session storage
       sessionStorage.clear();
-      
+
       if (this.isIOS()) {
-        console.log('📱 iOS PWA detected - clearing all caches first');
-        
-        // For iOS PWA, we must clear ALL caches before reloading
+        console.log('📱 iOS PWA detected - clearing caches (preserving user data)');
+
+        // For iOS PWA, clear caches but PRESERVE user data (API key, settings)
         Promise.all([
-          // Clear all cache storage
+          // Clear all cache storage (PWA/SW caches only)
           this.clearAllCaches(),
-          // Clear localStorage
-          new Promise(resolve => {
-            try {
-              localStorage.clear();
-              resolve();
-            } catch (e) { resolve(); }
-          }),
-          // Unregister service worker
-          navigator.serviceWorker?.getRegistrations().then(registrations => 
+          // Unregister service worker to force fresh fetch
+          navigator.serviceWorker?.getRegistrations().then(registrations =>
             Promise.all(registrations.map(reg => reg.unregister()))
           ).catch(() => {})
         ]).then(() => {
-          console.log('🧹 All caches cleared, forcing iOS reload...');
+          console.log('🧹 PWA caches cleared, forcing iOS reload...');
           // Navigate to app base with cache busting
           const base = (import.meta.env.BASE_URL || '/');
           const rootUrl = new URL(base, window.location.origin);
           rootUrl.searchParams.set('_ios_force_update', Date.now());
           rootUrl.searchParams.set('_v', Math.random().toString(36));
-          
+
           console.log('🚀 iOS PWA navigating to:', rootUrl.toString());
           window.location.href = rootUrl.toString();
         }).catch(error => {
           console.error('❌ Cache clearing failed, fallback reload:', error);
           window.location.reload(true);
         });
-        
+
         return; // Exit early for iOS PWA
       } else {
         // Regular browser handling
@@ -140,11 +161,11 @@ class PWAService {
         url.searchParams.set('_t', Date.now());
         url.searchParams.set('_refresh', '1');
         url.searchParams.set('_v', Math.random().toString(36).substring(2));
-        
+
         console.log('🚀 Redirecting to:', url.toString());
         window.location.replace(url.toString());
       }
-      
+
     } catch (error) {
       console.error('❌ Force reload error:', error);
       // Fallback to simple reload

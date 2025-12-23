@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FolderPlus } from 'lucide-react';
+import { FolderPlus, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import ProjectCard from '../components/ProjectCard';
@@ -17,6 +17,7 @@ function ProjectsPage({ onOpenBurgerMenu }) {
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadProjects = async () => {
     try {
@@ -232,6 +233,11 @@ function ProjectsPage({ onOpenBurgerMenu }) {
 
   const activeProjects = projects.filter(p => p.state !== 'completed' && p.state !== 'canceled');
 
+  // Filter projects based on search query
+  const filteredProjects = projects.filter(project =>
+    project.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="projects-page">
       <PageHeader
@@ -251,21 +257,48 @@ function ProjectsPage({ onOpenBurgerMenu }) {
       
       <div className="page-content">
         <div className="container">
+          {/* Search Bar */}
+          <div className="projects-search-container">
+            <div className="projects-search-bar">
+              <Search size={16} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="projects-search-input"
+              />
+              {searchQuery && (
+                <button
+                  className="search-clear-btn"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+
           {error && (
             <div className="error-message">
               {error}
             </div>
           )}
 
-
           {projects.length === 0 && !error ? (
             <div className="empty-state">
               <h3>No projects found</h3>
               <p>You don't have any projects yet. Create your first project in Linear to get started.</p>
             </div>
+          ) : filteredProjects.length === 0 ? (
+            <div className="empty-state">
+              <h3>No matching projects</h3>
+              <p>No projects match "{searchQuery}"</p>
+            </div>
           ) : (
             <div className="projects-list">
-              {projects.map(project => (
+              {filteredProjects.map(project => (
                 <ProjectCard
                   key={project.id}
                   project={project}

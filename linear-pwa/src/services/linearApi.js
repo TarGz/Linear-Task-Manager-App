@@ -216,11 +216,16 @@ class LinearAPI {
           title
           description
           dueDate
+          createdAt
           updatedAt
           state {
             id
             name
             type
+          }
+          project {
+            id
+            name
           }
           parent {
             id
@@ -423,6 +428,10 @@ class LinearAPI {
               id
               name
               type
+            }
+            project {
+              id
+              name
             }
             updatedAt
           }

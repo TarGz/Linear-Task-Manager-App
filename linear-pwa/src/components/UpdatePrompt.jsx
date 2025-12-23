@@ -33,9 +33,16 @@ function UpdatePrompt() {
 
   const handleUpdate = async () => {
     try {
-      // Ask SW to update then use centralized update flow
-      updateServiceWorker(true);
       setShowPrompt(false);
+
+      // First, tell the waiting service worker to activate
+      // This returns a promise that resolves when the SW takes control
+      await updateServiceWorker(true);
+
+      // Give the SW a moment to fully activate before reloading
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Now reload to get the new version
       await pwaService.updateApp();
     } catch (error) {
       console.error('Update failed:', error);
