@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Save, Briefcase, Home } from 'lucide-react';
+import { X, Save, Briefcase, Home, ListPlus } from 'lucide-react';
 import './ProjectForm.css';
 
 function ProjectForm({ onSubmit, onCancel }) {
@@ -7,13 +7,14 @@ function ProjectForm({ onSubmit, onCancel }) {
     name: '',
     description: '',
     status: 'planned',
-    type: 'targz' // 'targz' or 'pro'
+    type: 'targz', // 'targz' or 'pro'
+    firstTaskTitle: ''
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
-    
+    if (!formData.name.trim() || !formData.firstTaskTitle.trim()) return;
+
     console.log('💫 Form submitting data:', formData);
     onSubmit(formData);
   };
@@ -89,6 +90,22 @@ function ProjectForm({ onSubmit, onCancel }) {
             </div>
           </div>
 
+          <div className="form-group first-task-group">
+            <label htmlFor="firstTaskTitle">
+              <ListPlus size={16} />
+              First Task *
+            </label>
+            <input
+              id="firstTaskTitle"
+              name="firstTaskTitle"
+              type="text"
+              value={formData.firstTaskTitle}
+              onChange={handleChange}
+              placeholder="What's the first thing to do?"
+              required
+            />
+          </div>
+
           <div className="project-form-actions">
             <button 
               type="button" 
@@ -97,10 +114,10 @@ function ProjectForm({ onSubmit, onCancel }) {
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary"
-              disabled={!formData.name.trim()}
+              disabled={!formData.name.trim() || !formData.firstTaskTitle.trim()}
             >
               <Save size={16} />
               Create Project

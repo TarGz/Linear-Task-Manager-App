@@ -589,6 +589,19 @@ function HomePage({ onOpenBurgerMenu }) {
       const result = await linearApi.createProject(createData);
       console.log('✅ Project creation result:', result);
 
+      // Create the first task if provided
+      if (projectData.firstTaskTitle?.trim() && result?.projectCreate?.project?.id) {
+        const projectId = result.projectCreate.project.id;
+        console.log('📝 Creating first task for project:', projectId);
+
+        const issueResult = await linearApi.createIssue({
+          title: projectData.firstTaskTitle.trim(),
+          teamId: teamId,
+          projectId: projectId
+        });
+        console.log('✅ First task created:', issueResult);
+      }
+
       setShowCreateProject(false);
       await loadProjectsWithTasks(); // Refresh to show new project
     } catch (error) {

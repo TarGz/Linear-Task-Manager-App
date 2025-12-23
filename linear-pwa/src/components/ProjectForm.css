@@ -162,6 +162,25 @@
   font-weight: bold;
 }
 
+.first-task-group {
+  background: var(--surface-elevated, var(--surface));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.first-task-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--primary);
+}
+
+.first-task-group label svg {
+  color: var(--primary);
+}
+
 .project-form-actions {
   display: flex;
   gap: var(--spacing-md);
